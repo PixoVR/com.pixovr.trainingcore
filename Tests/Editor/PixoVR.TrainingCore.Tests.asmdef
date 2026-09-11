@@ -3,6 +3,7 @@
     "rootNamespace": "PixoVR.TrainingCore.Tests",
     "references": [
         "PixoVR.TrainingCore",
+        "PixoVR.TrainingCore.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

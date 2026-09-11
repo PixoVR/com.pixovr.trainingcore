@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.Timeline;
 
 namespace PixoVR.TrainingCore.Utility
 {
@@ -69,31 +71,34 @@ namespace PixoVR.TrainingCore.Utility
         }
     }
 
-    /// <summary>Scrubs a <see cref="PlayableDirector"/> between start and end with lerp control.</summary>
-    public class TimelinePlayer : MonoBehaviour
+    /// <summary>Static timeline helpers: play, jump to first/last frame.</summary>
+    public static class TimelinePlayer
     {
-        /// <summary>The bound director.</summary>
-        [SerializeField]
-        private PlayableDirector targetDirector;
-
-        /// <summary>Normalized position (0-1).</summary>
-        public float Progress { get; private set; }
-
-        /// <summary>The bound director.</summary>
-        public PlayableDirector Director => targetDirector;
-
-        /// <summary>Jump to a normalized position.</summary>
-        public void SetProgress(float t)
+        /// <summary>Play a timeline; invoke <paramref name="onComplete"/> when it stops.</summary>
+        public static void Play(PlayableDirector director, TimelineAsset timeline = null, bool loop = false, Action onComplete = null)
         {
-            Progress = Mathf.Clamp01(t);
-            if (targetDirector != null && targetDirector.playableAsset != null)
-                targetDirector.time = Progress * targetDirector.playableAsset.duration;
+            if (director == null)
+                return;
+            if (timeline != null)
+                director.playableAsset = timeline;
+            director.extrapolationMode = loop ? DirectorWrapMode.Loop : DirectorWrapMode.Hold;
+            director.stopped += _ => onComplete?.Invoke();
+            director.Play();
         }
 
-        /// <summary>Seek to the start.</summary>
-        public void Reset() => SetProgress(0f);
+        /// <summary>Seek to the last frame.</summary>
+        public static void SetToLastFrame(PlayableDirector director, TimelineAsset asset = null)
+        {
+            var a = asset != null ? asset : director?.playableAsset as TimelineAsset;
+            if (director != null && a != null)
+                director.time = a.duration;
+        }
 
-        /// <summary>Seek to the end.</summary>
-        public void Complete() => SetProgress(1f);
+        /// <summary>Seek to the first frame.</summary>
+        public static void SetToFirstFrame(PlayableDirector director, TimelineAsset asset = null)
+        {
+            if (director != null)
+                director.time = 0;
+        }
     }
 }

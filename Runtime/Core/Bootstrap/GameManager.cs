@@ -23,6 +23,15 @@ namespace PixoVR.TrainingCore
         /// <summary>Start-step index the flow will begin from (set before run).</summary>
         public int StartStep;
 
+        /// <summary>Invoked once initial setup (environment + fade) has finished.</summary>
+        public UnityEngine.Events.UnityEvent OnInitalSetUp;
+
+        /// <summary>Invoked when the flow graph is initialised.</summary>
+        public UnityEngine.Events.UnityEvent OnGraphLoaded;
+
+        /// <summary>Invoked when the flow graph starts.</summary>
+        public UnityEngine.Events.UnityEvent OnGraphStarted;
+
         /// <summary>Whether the module has finished starting.</summary>
         public bool Started { get; private set; }
 
@@ -45,10 +54,13 @@ namespace PixoVR.TrainingCore
                 FadeManager.Instance.FadeToClear();
             }
             InitializeStepCounter(StartStep);
+            OnInitalSetUp?.Invoke();
             if (FlowManager != null)
             {
                 FlowManager.Initialize(mode);
+                OnGraphLoaded?.Invoke();
                 FlowManager.StartGraph();
+                OnGraphStarted?.Invoke();
             }
             Started = true;
         }

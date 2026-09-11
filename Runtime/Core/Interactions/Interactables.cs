@@ -339,7 +339,7 @@ namespace PixoVR.TrainingCore.Interactions
     public class GazeTarget : InteractableBase
     {
         /// <summary>Seconds of gaze before the first event fires.</summary>
-        public float DwellTime = 1f;
+        public float ContinuousDuration = 1f;
 
         private bool gazing;
         private float gazeTime;
@@ -350,7 +350,7 @@ namespace PixoVR.TrainingCore.Interactions
             if (!gazing || fired)
                 return;
             gazeTime += Time.deltaTime;
-            if (gazeTime >= DwellTime)
+            if (gazeTime >= ContinuousDuration)
             {
                 fired = true;
                 Publish(new GazeInteractionEventArgs(Subject, gazeTime));
@@ -401,6 +401,10 @@ namespace PixoVR.TrainingCore.Interactions
     [RequireComponent(typeof(ObservableSubject))]
     public class GenericStepTrigger : InteractableBase
     {
+        /// <summary>Serialized subject reference (Luminous field name kept for migration).</summary>
+        [SerializeField]
+        private ObservableSubject subject;
+
         /// <summary>Fired when the owning step starts.</summary>
         public UnityEngine.Events.UnityEvent StepEntered;
 
@@ -439,6 +443,10 @@ namespace PixoVR.TrainingCore.Interactions
     [RequireComponent(typeof(ObservableSubject))]
     public class GenericActionTrigger : InteractableBase
     {
+        /// <summary>Serialized subject reference (Luminous field name kept for migration).</summary>
+        [SerializeField]
+        private ObservableSubject subject;
+
         /// <summary>Fired when the owning action executes.</summary>
         public UnityEngine.Events.UnityEvent Execute;
 

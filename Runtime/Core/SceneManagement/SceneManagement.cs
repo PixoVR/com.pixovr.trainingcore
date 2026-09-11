@@ -28,12 +28,21 @@ namespace PixoVR.TrainingCore.SceneManagement
     /// </summary>
     public class SceneLoader : SingletonBehaviour<SceneLoader>
     {
+        /// <summary>Scene to load when <see cref="LoadConfiguredScene"/> is called.</summary>
+        public string SceneName;
+
+        /// <summary>Load <see cref="SceneName"/> additively instead of replacing the active scene.</summary>
+        public bool AdditiveScene;
+
         /// <summary>Fired when a scene load starts.</summary>
         public static Action<string> OnLoadStarted;
         /// <summary>Fired when a scene finished loading.</summary>
         public static Action<string> OnLoadCompleted;
 
-        /// <summary>Load a scene (single mode) asynchronously.</summary>
+        /// <summary>Load the configured <see cref="SceneName"/>.</summary>
+        public void LoadConfiguredScene() => LoadScene(SceneName);
+
+        /// <summary>Load a scene asynchronously.</summary>
         public void LoadScene(string sceneName)
         {
             OnLoadStarted?.Invoke(sceneName);
@@ -51,7 +60,8 @@ namespace PixoVR.TrainingCore.SceneManagement
 
         private IEnumerator LoadCoroutine(string sceneName)
         {
-            var op = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+            var op = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName,
+                AdditiveScene ? LoadSceneMode.Additive : LoadSceneMode.Single);
             while (op != null && !op.isDone)
                 yield return null;
             OnLoadCompleted?.Invoke(sceneName);
@@ -61,20 +71,41 @@ namespace PixoVR.TrainingCore.SceneManagement
     /// <summary>Loads the scenario environment scene/prefab via Addressables.</summary>
     public class EnvironmentLoader : MonoBehaviour
     {
-        /// <summary>Environment asset reference.</summary>
-        public AssetReference Environment;
+        /// <summary>Environment used on desktop/editor (serialized name kept for migration parity).</summary>
+        public AssetReference DesktopEnvrionment;
+
+        /// <summary>Environment used on Android builds.</summary>
+        public AssetReference AndroidEnvrionment;
+
+        /// <summary>Optional editor-only override.</summary>
+        public AssetReference EditorEnvrionmentToLoad;
+
+        /// <summary>Set when the environment finished loading.</summary>
+        public bool LoadingDone { get; private set; }
 
         /// <summary>Instantiated environment root.</summary>
         public GameObject EnvironmentObject { get; private set; }
 
-        /// <summary>Instantiate <see cref="Environment"/> under this transform.</summary>
+        /// <summary>Platform-appropriate environment reference.</summary>
+        public AssetReference CurrentEnvironment =>
+#if UNITY_EDITOR
+            EditorEnvrionmentToLoad ?? DesktopEnvrionment;
+#elif UNITY_ANDROID
+            AndroidEnvrionment ?? DesktopEnvrionment;
+#else
+            DesktopEnvrionment;
+#endif
+
+        /// <summary>Instantiate <see cref="CurrentEnvironment"/> under this transform.</summary>
         public void LoadEnvironment()
         {
-            if (Environment == null || !Environment.RuntimeKeyIsValid())
+            var reference = CurrentEnvironment;
+            if (reference == null || !reference.RuntimeKeyIsValid())
                 return;
-            Environment.InstantiateAsync(transform).Completed += handle =>
+            reference.InstantiateAsync(transform).Completed += handle =>
             {
                 EnvironmentObject = handle.Result;
+                LoadingDone = true;
             };
         }
 
@@ -83,8 +114,9 @@ namespace PixoVR.TrainingCore.SceneManagement
         {
             if (EnvironmentObject != null)
             {
-                Environment.ReleaseInstance(EnvironmentObject);
+                CurrentEnvironment?.ReleaseInstance(EnvironmentObject);
                 EnvironmentObject = null;
+                LoadingDone = false;
             }
         }
     }
