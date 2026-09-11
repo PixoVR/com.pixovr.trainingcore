@@ -1,0 +1,26 @@
+{
+    "name": "PixoVR.TrainingCore.XRI",
+    "rootNamespace": "PixoVR.TrainingCore.XRI",
+    "references": [
+        "PixoVR.TrainingCore",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "PIXO_XRI"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "",
+            "define": "PIXO_XRI"
+        }
+    ],
+    "noEngineReferences": false
+}

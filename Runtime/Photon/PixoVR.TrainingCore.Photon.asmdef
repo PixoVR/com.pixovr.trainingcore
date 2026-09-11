@@ -1,0 +1,21 @@
+{
+    "name": "PixoVR.TrainingCore.Photon",
+    "rootNamespace": "PixoVR.TrainingCore.Photon",
+    "references": [
+        "PixoVR.TrainingCore",
+        "PhotonUnityNetworking",
+        "PhotonRealtime",
+        "PhotonChat"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "PHOTON_UNITY_NETWORKING"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
