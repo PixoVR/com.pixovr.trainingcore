@@ -174,7 +174,7 @@ namespace PixoVR.TrainingCore.Interactions
 
         private void OnDisable() => GameModes.GameModeManager.OnFail -= OnFail;
 
-        private void OnFail(List<Flow.Step> steps, string reason, int handlerIndex) => OnEndTap();
+        private void OnFail(List<Flow.StepBase> steps, string reason, int handlerIndex) => OnEndTap();
 
         private void Update()
         {
@@ -412,6 +412,15 @@ namespace PixoVR.TrainingCore.Interactions
 
         /// <summary>Fired when the owning step is skipped backwards.</summary>
         public UnityEngine.Events.UnityEvent SkippedBackwards;
+
+        /// <summary>Publish a complete event to end the owning step.</summary>
+        public void CompleteStep() => Publish(new GenericInteractionEventArgs(SubjectId, "Complete"));
+
+        /// <summary>Fire the skipped-forwards callbacks.</summary>
+        public void SkipForwards() => SkippedForwards?.Invoke();
+
+        /// <summary>Fire the skipped-backwards callbacks.</summary>
+        public void SkipBackwards() => SkippedBackwards?.Invoke();
 
         /// <summary>Invoke <see cref="StepEntered"/>.</summary>
         public void OnStepEntered() => StepEntered?.Invoke();

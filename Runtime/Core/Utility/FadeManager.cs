@@ -47,7 +47,7 @@ namespace PixoVR.TrainingCore.Utility
         {
             EnsureOverlay();
             var settings = TrainingConfig.Instance != null ? TrainingConfig.Instance.FadeSettings : null;
-            float duration = settings != null ? settings.FadeTime : 0.5f;
+            float duration = settings != null ? settings.FadeDuration : 0.5f;
             targetAlpha = toBlack ? 1f : 0f;
             if (fadeCoroutine != null)
                 StopCoroutine(fadeCoroutine);

@@ -4,8 +4,7 @@
     "references": [
         "PixoVR.TrainingCore",
         "PhotonUnityNetworking",
-        "PhotonRealtime",
-        "PhotonChat"
+        "PhotonRealtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

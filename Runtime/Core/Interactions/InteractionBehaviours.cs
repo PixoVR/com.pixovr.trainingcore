@@ -2,6 +2,17 @@ using UnityEngine;
 
 namespace PixoVR.TrainingCore.Interactions
 {
+    /// <summary>Valve completion state.</summary>
+    public enum ValveState
+    {
+        /// <summary>Fully open.</summary>
+        Open,
+        /// <summary>Fully closed.</summary>
+        Close,
+        /// <summary>Custom range.</summary>
+        Other
+    }
+
     /// <summary>Underlying grab implementation (XRI, custom physics, etc.) a <see cref="Grabbable"/> delegates to.</summary>
     public interface IGrabBehaviour
     {

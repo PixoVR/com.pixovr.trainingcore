@@ -132,7 +132,7 @@ namespace PixoVR.TrainingCore.Tests
             var go = new GameObject();
             var ctx = go.AddComponent<SessionContext>();
             ctx.RoomId = "r"; ctx.SessionId = "s"; ctx.isMultiuser = true;
-            ctx.ResetSessionValues();
+            ctx.ResetPortalCommsFields();
             Assert.IsEmpty(ctx.RoomId);
             Assert.IsEmpty(ctx.SessionId);
             Assert.IsFalse(ctx.isMultiuser);
@@ -144,10 +144,10 @@ namespace PixoVR.TrainingCore.Tests
         {
             var go = new GameObject();
             var ctx = go.AddComponent<SessionContext>();
-            ctx.isLoggedIn = true; ctx.AdminMode = true;
-            ctx.ResetAll();
+            ctx.isLoggedIn = true; ctx.AdminMode = 1;
+            ctx.ResetSessionInfoFields();
             Assert.IsFalse(ctx.isLoggedIn);
-            Assert.IsFalse(ctx.AdminMode);
+            Assert.AreEqual(0, ctx.AdminMode);
             UnityEngine.Object.DestroyImmediate(go);
         }
     }

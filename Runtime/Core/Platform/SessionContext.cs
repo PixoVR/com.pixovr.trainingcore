@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace PixoVR.TrainingCore.Platform
@@ -10,14 +11,14 @@ namespace PixoVR.TrainingCore.Platform
     {
         /// <summary>True after platform initialisation completed.</summary>
         public bool Initialised;
-        /// <summary>Admin override flag.</summary>
-        public bool AdminMode;
+        /// <summary>Admin override level (0 = off).</summary>
+        public int AdminMode;
         /// <summary>Legacy bypass flag (serialized).</summary>
         public bool bypassComplete;
         /// <summary>Serialized username.</summary>
         public string username;
         /// <summary>Serialized user PIN.</summary>
-        public string userPin;
+        public int userPin;
         /// <summary>Display name shown to other users.</summary>
         public string displayName;
         /// <summary>True when the session is multi-user.</summary>
@@ -49,8 +50,18 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Thumbnail URL for the session.</summary>
         public string ImageURL;
 
-        /// <summary>Reset only the fields the legacy plugin reset between sessions.</summary>
-        public void ResetSessionValues()
+        /// <summary>Fired once the context has been populated/initialised.</summary>
+        public event Action OnInitialised;
+
+        /// <summary>Mark the context initialised and fire <see cref="OnInitialised"/>.</summary>
+        public void MarkInitialised()
+        {
+            Initialised = true;
+            OnInitialised?.Invoke();
+        }
+
+        /// <summary>Reset the fields written by portal/session traffic.</summary>
+        public void ResetPortalCommsFields()
         {
             isMultiuser = false;
             firstTimeLobby = true;
@@ -64,15 +75,15 @@ namespace PixoVR.TrainingCore.Platform
             ScheduledTime = string.Empty;
         }
 
-        /// <summary>Full reset incl. login state.</summary>
-        public void ResetAll()
+        /// <summary>Full reset including login state.</summary>
+        public void ResetSessionInfoFields()
         {
-            ResetSessionValues();
+            ResetPortalCommsFields();
             isInModule = false;
             isLoggedIn = false;
             isPotentialLeadUser = false;
             isCurrentLeadUser = false;
-            AdminMode = false;
+            AdminMode = 0;
         }
     }
 }

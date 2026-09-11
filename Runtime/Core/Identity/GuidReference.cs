@@ -51,6 +51,20 @@ namespace PixoVR.TrainingCore.Identity
             }
         }
 
+        /// <summary>Empty reference.</summary>
+        public GuidReference() { }
+
+        /// <summary>Reference pointing at an object (reads its <see cref="GuidComponent"/>).</summary>
+        public GuidReference(GameObject target)
+        {
+            var gc = target != null ? target.GetComponent<GuidComponent>() : null;
+            if (gc != null)
+            {
+                Guid = gc.GetGuid();
+                gameObject = target;
+            }
+        }
+
         /// <summary>The component of type <typeparamref name="T"/> on the resolved object, if any.</summary>
         public T GetComponent<T>() where T : Component => GameObject == null ? null : GameObject.GetComponent<T>();
 
