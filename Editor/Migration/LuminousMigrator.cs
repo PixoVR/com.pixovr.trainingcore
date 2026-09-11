@@ -78,6 +78,17 @@ namespace PixoVR.TrainingCore.Editor.Migration
                     File.WriteAllText(manifestPath, rewritten);
             }
 
+            if (options.RelocateThirdParty)
+                RelocateThirdPartyAssets(root, options.DryRun, result.ManifestNotes);
+
+            if (options.AddHighlightPlusDefine)
+            {
+                if (!options.DryRun)
+                    AddScriptingDefine("HIGHLIGHT_PLUS");
+                else
+                    result.ManifestNotes.Add("would add scripting define HIGHLIGHT_PLUS");
+            }
+
             if (!options.DryRun && options.DeleteLuminousPackages)
             {
                 var lp = Path.Combine(root, "Luminous Packages");
@@ -136,6 +147,123 @@ namespace PixoVR.TrainingCore.Editor.Migration
                     return guid;
             }
             return null;
+        }
+
+        /// <summary>Names of third-party asset folders relocated into Assets/Plugins.</summary>
+        public static readonly string[] RelocatableFolderNames = { "HighlightPlus", "Ultimate Replay", "Ultimate Replay 2.0" };
+
+        /// <summary>Loose third-party scripts relocated alongside (file name → plugin folder).</summary>
+        public static readonly (string File, string IntoFolder)[] RelocatableFiles =
+        {
+            ("HighlightPlusRenderPassFeature.cs", "HighlightPlus"),
+        };
+
+        private static void RelocateThirdPartyAssets(string root, bool dryRun, List<string> notes)
+        {
+            var luminousRoot = Path.Combine(root, "Luminous Packages");
+            if (!Directory.Exists(luminousRoot))
+                return;
+            var pluginsDir = Path.Combine(root, "Assets", "Plugins");
+            var found = new List<string>();
+            foreach (var name in RelocatableFolderNames)
+                found.AddRange(FindDirectoriesNamed(luminousRoot, name));
+            foreach (var dir in found)
+            {
+                var name = new DirectoryInfo(dir).Name;
+                var dest = Path.Combine(pluginsDir, name);
+                if (dryRun)
+                {
+                    notes?.Add($"would relocate {dir.Substring(root.Length).TrimStart('/', '\\')} → Assets/Plugins/{name}");
+                    continue;
+                }
+                if (Directory.Exists(dest))
+                    continue;
+                Directory.CreateDirectory(pluginsDir);
+                Directory.Move(dir, dest);
+                var meta = dir + ".meta";
+                if (File.Exists(meta))
+                    File.Move(meta, dest + ".meta");
+                notes?.Add($"relocated {name} → Assets/Plugins/{name}");
+            }
+            foreach (var (file, intoFolder) in RelocatableFiles)
+            {
+                foreach (var path in FindFilesNamed(luminousRoot, file))
+                {
+                    var destDir = Path.Combine(pluginsDir, intoFolder);
+                    var dest = Path.Combine(destDir, file);
+                    if (dryRun)
+                    {
+                        notes?.Add($"would relocate {path.Substring(root.Length).TrimStart('/', '\\')} → Assets/Plugins/{intoFolder}/{file}");
+                        continue;
+                    }
+                    if (File.Exists(dest))
+                        continue;
+                    Directory.CreateDirectory(destDir);
+                    File.Move(path, dest);
+                    var meta = path + ".meta";
+                    if (File.Exists(meta))
+                        File.Move(meta, dest + ".meta");
+                    notes?.Add($"relocated {file} → Assets/Plugins/{intoFolder}");
+                }
+            }
+        }
+
+        private static IEnumerable<string> FindFilesNamed(string root, string name)
+        {
+            var found = new List<string>();
+            var stack = new Stack<string>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var dir = stack.Pop();
+                foreach (var f in Directory.EnumerateFiles(dir))
+                    if (string.Equals(Path.GetFileName(f), name, StringComparison.Ordinal))
+                        found.Add(f);
+                foreach (var sub in Directory.EnumerateDirectories(dir))
+                    stack.Push(sub);
+            }
+            return found;
+        }
+
+        private static IEnumerable<string> FindDirectoriesNamed(string root, string name)
+        {
+            var found = new List<string>();
+            var stack = new Stack<string>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var dir = stack.Pop();
+                foreach (var sub in Directory.EnumerateDirectories(dir))
+                {
+                    if (string.Equals(new DirectoryInfo(sub).Name, name, StringComparison.Ordinal))
+                        found.Add(sub);
+                    else
+                        stack.Push(sub);
+                }
+            }
+            return found;
+        }
+
+        private static void AddScriptingDefine(string define)
+        {
+            foreach (BuildTargetGroup group in Enum.GetValues(typeof(BuildTargetGroup)))
+            {
+                if (group == BuildTargetGroup.Unknown)
+                    continue;
+                try
+                {
+                    var named = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(group);
+                    var symbols = PlayerSettings.GetScriptingDefineSymbols(named);
+                    if (symbols.Split(';').Contains(define))
+                        continue;
+                    PlayerSettings.SetScriptingDefineSymbols(named,
+                        string.IsNullOrEmpty(symbols) ? define : symbols + ";" + define);
+                }
+                catch (Exception)
+                {
+                    // group not installed/supported — skip
+                }
+            }
         }
 
         private static void WriteReport(List<MigrationReportEntry> report, string path)

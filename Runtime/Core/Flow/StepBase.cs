@@ -246,7 +246,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>See the interface/base contract.</summary>
         public override string ToString() => $"{StepNumber}: {Name}";
 
-        private void ExecuteActions(List<ActionBase> actionList)
+        /// <summary>Execute a list of actions.</summary>
+        protected void ExecuteActions(List<ActionBase> actionList)
         {
             if (actionList == null)
                 return;

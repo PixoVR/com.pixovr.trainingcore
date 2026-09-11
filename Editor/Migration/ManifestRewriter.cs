@@ -17,6 +17,13 @@ namespace PixoVR.TrainingCore.Editor.Migration
         /// <summary>Delete the "Luminous Packages" folder after rewriting.</summary>
         public bool DeleteLuminousPackages = false;
 
+        /// <summary>Move licensed third-party assets (HighlightPlus, Ultimate Replay) from
+        /// "Luminous Packages" into Assets/Plugins preserving guids.</summary>
+        public bool RelocateThirdParty = true;
+
+        /// <summary>Add HIGHLIGHT_PLUS to the project's scripting define symbols (all build targets).</summary>
+        public bool AddHighlightPlusDefine = true;
+
         /// <summary>Dependency spec for com.pixovr.trainingcore (version, "file:../path", or git URL).</summary>
         public string TrainingCoreDependency = "file:../com.pixovr.trainingcore";
 

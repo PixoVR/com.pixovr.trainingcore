@@ -100,7 +100,17 @@ namespace PixoVR.TrainingCore.Editor.Migration
 
                     if (mapping != null)
                     {
-                        if (mapping.IsMapped)
+                        if (mapping.Keep)
+                        {
+                            // Third-party asset (HighlightPlus, Ultimate Replay) relocated into the
+                            // project — the guid still resolves, so leave the line untouched.
+                            report?.Add(new MigrationReportEntry
+                            {
+                                File = fileName, Line = i + 1, From = mapping.Key,
+                                To = mapping.Key, Status = "kept (relocated)"
+                            });
+                        }
+                        else if (mapping.IsMapped)
                         {
                             var pixoGuid = resolve?.Invoke(mapping.PixoNs, mapping.PixoClass);
                             if (pixoGuid != null)

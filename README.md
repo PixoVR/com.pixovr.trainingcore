@@ -26,11 +26,31 @@ step-graph runtime (wave 2).
    |---|---|---|
    | Photon PUN2 (`PHOTON_UNITY_NETWORKING`) | asmdef `defineConstraints` | `Runtime/Photon` networking layer |
    | `com.pixovr.apexunitysdk` | `PIXO_APEX_SDK` | `Runtime/Apex` platform session |
-   | `com.unity.xr.interaction.toolkit` | `PIXO_XRI` | `Runtime/XRI` interaction behaviours |
+   | `com.unity.xr.interaction.toolkit` 3.x | `PIXO_XRI` (versionDefine) | `Runtime/XRI` interaction behaviours |
+   | HighlightPlus (Asset Store asset, project-owned) | `HIGHLIGHT_PLUS` scripting define | `Runtime/Highlight` `HighlightPlusHighlighter` |
+
+HighlightPlus is a licensed Asset Store asset — it is **not** part of this package. Drop it into
+`Assets/Plugins/HighlightPlus` and add `HIGHLIGHT_PLUS` to *Project Settings → Player →
+Scripting Define Symbols*. The migration tool does both automatically (see below).
 
 ## Migrating a Luminous project
 
-The editor migration tool (`Pixo > Training Core > Migrate from Luminous…`, wave 2) rewrites
+The editor migration tool (`Pixo > Training Core > Migrate from Luminous…`) rewrites
 `m_Script` refs and managed-reference `type:` blocks in scenes/prefabs/assets. Serialized
 field names and `serializedGuid` byte arrays are intentionally kept identical so saved data
 survives. See `DESIGN.md`.
+
+Options (`MigrationOptions` / migration window):
+
+- `DryRun` (default) — writes `Logs/luminous-migration-report.csv` without touching files.
+- `RelocateThirdParty` (default on) — moves `Luminous Packages/…/HighlightPlus`,
+  `…/Ultimate Replay`, `…/Ultimate Replay 2.0` and the loose
+  `HighlightPlusRenderPassFeature.cs` into `Assets/Plugins/<Name>/`, preserving `.meta`
+  GUIDs so existing `HighlightEffect`/`HighlightPlusRenderPassFeature` refs keep resolving
+  (reported as `kept (relocated)` in the CSV, not unmapped).
+- `AddHighlightPlusDefine` (default on) — adds `HIGHLIGHT_PLUS` to the scripting define
+  symbols of every installed build target group.
+- `DeleteLuminousPackages` (default off) — deletes `Luminous Packages/` after rewriting.
+
+Batchmode entry point: `-executeMethod PixoVR.TrainingCore.Editor.Migration.LuminousMigrator.RunFromCommandLine`
+with `-luminousProjectRoot <path>`, `-luminousDryRun`, `-luminousPackageSource <dep spec>`.

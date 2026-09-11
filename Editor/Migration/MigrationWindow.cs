@@ -24,6 +24,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
             _options.TrainingCoreDependency = EditorGUILayout.TextField("PixoVR package dep", _options.TrainingCoreDependency);
             _options.DryRun = EditorGUILayout.Toggle("Dry run (report only)", _options.DryRun);
             _options.DeleteLuminousPackages = EditorGUILayout.Toggle("Delete Luminous Packages/", _options.DeleteLuminousPackages);
+            _options.RelocateThirdParty = EditorGUILayout.Toggle("Relocate third-party (HighlightPlus…)", _options.RelocateThirdParty);
+            _options.AddHighlightPlusDefine = EditorGUILayout.Toggle("Add HIGHLIGHT_PLUS define", _options.AddHighlightPlusDefine);
 
             EditorGUILayout.Space();
             if (GUILayout.Button(_options.DryRun ? "Run dry-run" : "RUN MIGRATION"))

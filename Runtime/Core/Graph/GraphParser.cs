@@ -66,6 +66,11 @@ namespace PixoVR.TrainingCore.Graph
             foreach (var node in stepNodes)
             {
                 var step = Steps[node.GUID];
+                if (step is CorrectIncorrectStepBase)
+                {
+                    WireFlowOutputs(node, step);
+                    continue;
+                }
                 foreach (var outNode in node.GetStepOutputs(GameMode))
                 {
                     var target = outNode ?? start;
@@ -149,6 +154,17 @@ namespace PixoVR.TrainingCore.Graph
 
         private void WireFlowOutputs(StepBaseNode node, StepBase step)
         {
+            if (step is CorrectIncorrectStepBase ci && node is CorrectIncorrectStepBaseNode ciNode)
+            {
+                WireList(ciNode.GetCorrectOutputs(), ci.CorrectStepOutputs);
+                WireList(ciNode.GetIncorrectOutputs(), ci.IncorrectStepOutputs);
+                foreach (var target in ci.CorrectStepOutputs.Concat(ci.IncorrectStepOutputs))
+                {
+                    step.AddOuput(target);
+                    target.AddInput(step);
+                }
+                return;
+            }
             foreach (var outNode in node.GetStepOutputs(GameMode) ?? Enumerable.Empty<StepBaseNode>())
             {
                 if (outNode != null && Steps.TryGetValue(outNode.GUID, out var targetStep))
@@ -156,6 +172,13 @@ namespace PixoVR.TrainingCore.Graph
                     step.AddOuput(targetStep);
                     targetStep.AddInput(step);
                 }
+            }
+
+            void WireList(IEnumerable<StepBaseNode> nodes, List<StepBase> target)
+            {
+                foreach (var n in nodes ?? Enumerable.Empty<StepBaseNode>())
+                    if (n != null && Steps.TryGetValue(n.GUID, out var s))
+                        target.Add(s);
             }
         }
     }

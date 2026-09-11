@@ -483,4 +483,138 @@ namespace PixoVR.TrainingCore.Graph
 
     /// <summary>Marker interface for group nodes.</summary>
     public interface IGroupNode { }
+
+    /// <summary>Step node whose outputs split into correct and incorrect branches.</summary>
+    public abstract class CorrectIncorrectStepBaseNode : StepExecutionNode
+    {
+        /// <summary>Actions run when the step completes incorrectly.</summary>
+        [Output(null, true, name = "Incorrect Complete Actions", allowMultiple = true)]
+        public ActionLink OnFinishActionsIncorrect;
+
+        /// <summary>Actions run when the step completes correctly.</summary>
+        [Output(null, true, name = "Correct Complete Actions", allowMultiple = true)]
+        public ActionLink OnFinishActionsCorrect;
+
+        /// <summary>Actions run when the step starts.</summary>
+        [Output(null, true, name = "Start Actions", allowMultiple = true)]
+        public ActionLink OnStartActions;
+
+        /// <summary>Flow output taken on an incorrect answer.</summary>
+        [Output(null, true, name = "Incorrect")]
+        public ExecutionLink IncorrectOutput;
+
+        /// <summary>Flow output taken on a correct answer.</summary>
+        [Output(null, true, name = "Correct")]
+        public ExecutionLink CorrectOutput;
+
+        /// <summary>Step nodes on the correct output.</summary>
+        public IEnumerable<StepBaseNode> GetCorrectOutputs() => GetNodesOnPort<StepBaseNode>("CorrectOutput");
+
+        /// <summary>Step nodes on the incorrect output.</summary>
+        public IEnumerable<StepBaseNode> GetIncorrectOutputs() => GetNodesOnPort<StepBaseNode>("IncorrectOutput");
+
+        /// <inheritdoc/>
+        public override IEnumerable<StepBaseNode> GetStepOutputs() =>
+            GetCorrectOutputs().Concat(GetIncorrectOutputs());
+
+        /// <inheritdoc/>
+        public override IEnumerable<ActionNode> GetOnStartActionNodes(GameMode gameMode) =>
+            GetNodesOnPort<ActionNode>("OnStartActions").Where(n => n.IsIncludedInMode(gameMode));
+
+        /// <inheritdoc/>
+        public override IEnumerable<ActionNode> GetOnFinishActionNodes(GameMode gameMode) =>
+            GetNodesOnPort<ActionNode>("OnFinishActionsCorrect")
+                .Concat(GetNodesOnPort<ActionNode>("OnFinishActionsIncorrect"))
+                .Where(n => n.IsIncludedInMode(gameMode));
+    }
+
+    /// <summary>Legacy multiple-choice question step.</summary>
+    [Serializable]
+    [NodeMenuItem("Legacy/Steps/Question", null)]
+    public class QuestionNode : CorrectIncorrectStepBaseNode
+    {
+        /// <summary>Question UI prefab.</summary>
+        [HideInInspector]
+        public GameObject QuestionPrefab;
+
+        /// <summary>Question content.</summary>
+        [HideInInspector]
+        public Data.DisplayData QuestionData;
+
+        /// <summary>Placement settings for the question UI.</summary>
+        [HideInInspector]
+        public PlacerSettings DisplaySettings;
+
+        /// <summary>Placer foldout state.</summary>
+        [HideInInspector]
+        public bool PlacerFoldout = true;
+
+        /// <summary>Use the default placement settings.</summary>
+        [HideInInspector]
+        public bool UseDefaultSettings = true;
+
+        /// <summary>Prefab spawned per answer.</summary>
+        [HideInInspector]
+        public GameObject AnswerPrefab;
+
+        /// <summary>Candidate answers.</summary>
+        [SerializeField]
+        [HideInInspector]
+        public List<Data.Answer> Answers = new List<Data.Answer>();
+
+        /// <summary>Data foldout state.</summary>
+        [HideInInspector]
+        public bool DataFoldout = false;
+
+        /// <summary>Number of answers displayed.</summary>
+        [HideInInspector]
+        public int AnswerCount = 3;
+
+        /// <summary>Show answers in a random order.</summary>
+        [HideInInspector]
+        public bool RandomOrder = true;
+
+        private readonly string TargetDisplayName = "QuestionDisplay";
+
+        /// <inheritdoc/>
+        public override string name => "Question";
+
+        /// <summary>Resolved question display object.</summary>
+        public GameObject QuestionDisplay => Data?.Find(TargetDisplayName)?.ObjectReference?.GameObject;
+
+        /// <inheritdoc/>
+        public override StepBase Create() => new Flow.QuestionStep(this);
+
+        /// <inheritdoc/>
+        protected override void AddReferences() => Data?.Add(TargetDisplayName);
+    }
+
+    /// <summary>Plays a PlayableDirector timeline as a step.</summary>
+    [Serializable]
+    [NodeMenuItem("Legacy/Steps/Play Timeline", null)]
+    public class PlayTimelineStepNode : SingleFlowStepNode
+    {
+        private readonly string directorSavedReferenceName = "DirectorReference";
+
+        /// <summary>Timeline to play.</summary>
+        [SerializeField]
+        [HideInInspector]
+        public UnityEngine.Timeline.TimelineAsset TimelineAsset;
+
+        /// <summary>Director resolved via the "DirectorReference" saved property.</summary>
+        public UnityEngine.Playables.PlayableDirector PlayableDirector
+        {
+            get => GetSavedComponent<UnityEngine.Playables.PlayableDirector>(directorSavedReferenceName);
+            set => SetSavedComponent(directorSavedReferenceName, value);
+        }
+
+        /// <inheritdoc/>
+        public override string name => "Play Timeline";
+
+        /// <inheritdoc/>
+        public override StepBase Create() => new Flow.PlayTimelineStep(this);
+
+        /// <inheritdoc/>
+        protected override void AddReferences() => Data?.Add(directorSavedReferenceName);
+    }
 }

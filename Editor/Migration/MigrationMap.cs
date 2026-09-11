@@ -31,6 +31,9 @@ namespace PixoVR.TrainingCore.Editor.Migration
         /// <summary>Serialized field renames old→new.</summary>
         public Dictionary<string, string> Fields = new Dictionary<string, string>();
 
+        /// <summary>Keep the reference as-is (third-party asset relocated into the project).</summary>
+        public bool Keep;
+
         /// <summary>True when a Pixo target exists.</summary>
         public bool IsMapped => PixoClass != null;
 
@@ -95,6 +98,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 if (fields != null)
                     foreach (var p in fields.Properties())
                         m.Fields[p.Name] = p.Value.ToString();
+                m.Keep = t["keep"]?.ToObject<bool>() ?? false;
                 m.FileID = FileIDUtil.ComputeFileID(m.LuminousNs, m.LuminousClass);
                 map.Types.Add(m);
                 map.ManagedRefTypes[m.Key] = m;
@@ -119,6 +123,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 if (fields != null)
                     foreach (var p in fields.Properties())
                         m.Fields[p.Name] = p.Value.ToString();
+                m.Keep = s["keep"]?.ToObject<bool>() ?? false;
                 map.Types.Add(m);
                 if (m.ScriptGuid != null)
                     map.LooseScripts[m.ScriptGuid] = m;

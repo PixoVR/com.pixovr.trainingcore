@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PixoVR.TrainingCore.Events;
+using PixoVR.TrainingCore.GameModes;
 using PixoVR.TrainingCore.Graph;
 using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Interactions;
@@ -550,6 +551,206 @@ namespace PixoVR.TrainingCore.Flow
         {
             var mapping = OutputMappings.FirstOrDefault(m => m.Enum == enumIndex);
             return mapping?.Steps ?? new List<StepBase>();
+        }
+    }
+
+    /// <summary>Step that completes with a correct or incorrect outcome, choosing between two output sets.</summary>
+    [Serializable]
+    public class CorrectIncorrectStepBase : StepExecutionBase
+    {
+        /// <summary>Steps reached on a correct outcome.</summary>
+        [SerializeField]
+        private List<StepBase> correctStepOutputs;
+
+        /// <summary>Steps reached on an incorrect outcome.</summary>
+        [SerializeField]
+        private List<StepBase> incorrectStepOutputs;
+
+        /// <summary>Actions run on a correct outcome.</summary>
+        [SerializeField]
+        protected List<ActionBase> correctActions = new List<ActionBase>();
+
+        /// <summary>Actions run on an incorrect outcome.</summary>
+        [SerializeField]
+        protected List<ActionBase> incorrectActions = new List<ActionBase>();
+
+        private CorrectIncorrectStepBaseNode node;
+
+        /// <summary>Whether the outcome has been decided, and its value.</summary>
+        public bool? Outcome { get; private set; }
+
+        /// <summary>Steps wired to the correct branch.</summary>
+        public List<StepBase> CorrectStepOutputs
+        {
+            get => correctStepOutputs ??= new List<StepBase>();
+            set => correctStepOutputs = value;
+        }
+
+        /// <summary>Steps wired to the incorrect branch.</summary>
+        public List<StepBase> IncorrectStepOutputs
+        {
+            get => incorrectStepOutputs ??= new List<StepBase>();
+            set => incorrectStepOutputs = value;
+        }
+
+        /// <summary>Create from node.</summary>
+        public CorrectIncorrectStepBase(CorrectIncorrectStepBaseNode node)
+        {
+            this.node = node;
+            if (node != null)
+            {
+                GUID = node.GUID;
+                Name = node.name;
+            }
+        }
+
+        /// <summary>Parameterless ctor for serialization.</summary>
+        public CorrectIncorrectStepBase() { }
+
+        /// <inheritdoc/>
+        public override void Initialize(GraphData graph)
+        {
+            base.Initialize(graph);
+            var mode = GameModeManager.CurrentMode;
+            correctActions = node?.GetNodesOnPort<ActionNode>("OnFinishActionsCorrect")
+                .Where(n => n.IsIncludedInMode(mode)).Select(n => n.Create()).ToList() ?? correctActions;
+            incorrectActions = node?.GetNodesOnPort<ActionNode>("OnFinishActionsIncorrect")
+                .Where(n => n.IsIncludedInMode(mode)).Select(n => n.Create()).ToList() ?? incorrectActions;
+        }
+
+        /// <summary>Restrict the outputs to the correct branch and complete.</summary>
+        public virtual void OnCorrectEvent()
+        {
+            Outcome = true;
+            OutputSteps = CorrectStepOutputs.ToList();
+            ExecuteActions(correctActions);
+            OnStepCompleted();
+        }
+
+        /// <summary>Restrict the outputs to the incorrect branch and complete.</summary>
+        public virtual void OnIncorrectEvent()
+        {
+            Outcome = false;
+            OutputSteps = IncorrectStepOutputs.ToList();
+            ExecuteActions(incorrectActions);
+            OnStepCompleted();
+        }
+
+        /// <inheritdoc/>
+        public override List<ActionBase> GetAllActions()
+        {
+            var all = base.GetAllActions();
+            all.AddRange(correctActions);
+            all.AddRange(incorrectActions);
+            return all;
+        }
+    }
+
+    /// <summary>Multiple-choice question step; answers come from <see cref="QuizAnswer"/> components.</summary>
+    [Serializable]
+    public class QuestionStep : CorrectIncorrectStepBase
+    {
+        private GameObject questionPrefab;
+
+        [SerializeField]
+        private PlacerSettings settings;
+
+        [SerializeField]
+        private Data.DisplayData displayData;
+
+        private DisplayObjectAction displayAction;
+
+        [SerializeField]
+        private Data.AnswerData answerData;
+
+        /// <summary>The node this step was created from.</summary>
+        public QuestionNode QuestionNode { get; set; }
+
+        /// <summary>Create from node.</summary>
+        public QuestionStep(QuestionNode node) : base(node)
+        {
+            QuestionNode = node;
+            questionPrefab = node.QuestionPrefab;
+            settings = node.UseDefaultSettings ? null : node.DisplaySettings;
+            displayData = node.QuestionData;
+            answerData = new Data.AnswerData
+            {
+                Prefab = node.AnswerPrefab,
+                RandomOrder = node.RandomOrder,
+                DisplayCount = node.AnswerCount,
+                Answers = new List<Data.Answer>(node.Answers)
+            };
+        }
+
+        /// <summary>Parameterless ctor for serialization.</summary>
+        public QuestionStep() { }
+
+        /// <summary>Show the question UI and listen for an answer.</summary>
+        public override void OnEnter()
+        {
+            base.OnEnter();
+            ShowQuestion();
+        }
+
+        /// <summary>Spawn/show the question display object.</summary>
+        protected virtual void ShowQuestion()
+        {
+            var display = QuestionNode?.QuestionDisplay;
+            if (display != null)
+                display.SetActive(true);
+        }
+
+        /// <summary>Record an answer choice; completes the step on the matching branch.</summary>
+        public virtual void AnswerQuestion(bool correct)
+        {
+            if (correct)
+                OnCorrectEvent();
+            else
+                OnIncorrectEvent();
+        }
+
+        /// <inheritdoc/>
+        public override void OnExit()
+        {
+            var display = QuestionNode?.QuestionDisplay;
+            if (display != null)
+                display.SetActive(false);
+            base.OnExit();
+        }
+    }
+
+    /// <summary>Step that plays a <see cref="UnityEngine.Playables.PlayableDirector"/> timeline.</summary>
+    [Serializable]
+    public class PlayTimelineStep : StepExecutionBase
+    {
+        /// <summary>Director resolved from the node's scene reference.</summary>
+        public UnityEngine.Playables.PlayableDirector Director;
+
+        /// <summary>Timeline asset override.</summary>
+        public UnityEngine.Timeline.TimelineAsset Timeline;
+
+        /// <summary>Create from node.</summary>
+        public PlayTimelineStep(PlayTimelineStepNode node)
+        {
+            GUID = node.GUID;
+            Name = node.name;
+            Director = node.PlayableDirector;
+            Timeline = node.TimelineAsset;
+        }
+
+        /// <summary>Parameterless ctor for serialization.</summary>
+        public PlayTimelineStep() { }
+
+        /// <inheritdoc/>
+        public override void OnEnter()
+        {
+            base.OnEnter();
+            if (Director == null)
+            {
+                OnStepCompleted();
+                return;
+            }
+            Utility.TimelinePlayer.Play(Director, Timeline, onComplete: OnStepCompleted);
         }
     }
 }
