@@ -1,0 +1,10 @@
+Library/
+Temp/
+obj/
+bin/
+*.csproj
+*.sln
+*.user
+.vs/
+.idea/
+*.tgz
