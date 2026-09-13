@@ -42,7 +42,7 @@ namespace PixoVR.TrainingCore.XRI
 
         private static int LocalActorNumber()
         {
-            var id = Multiuser.NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer()?.Id;
+            var id = Multiuser.NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer?.Id;
             return int.TryParse(id, out var n) ? n : -1;
         }
 
@@ -226,8 +226,15 @@ namespace PixoVR.TrainingCore.XRI
         public Camera Headset;
     }
 
+    /// <summary>Controls for the player to manage its interaction state.</summary>
+    public interface IPlayerInteractionControls
+    {
+        /// <summary>Set active state of player interaction.</summary>
+        void SetInteractionState(bool active);
+    }
+
     /// <summary>Player interaction toggle driven by the step flow (replaces PlayerNetworkControlsOpenXR).</summary>
-    public class PlayerNetworkControls : MonoBehaviour
+    public class PlayerNetworkControls : MonoBehaviour, IPlayerInteractionControls
     {
         /// <summary>Direct interactors enabled/disabled together.</summary>
         public List<XRDirectInteractor> DirectInteractorsToToggle = new List<XRDirectInteractor>();
@@ -236,7 +243,7 @@ namespace PixoVR.TrainingCore.XRI
         public List<GameObject> ObjectsToToggle = new List<GameObject>();
 
         /// <summary>Fired when interaction state changes.</summary>
-        public Interactions.UnityBoolEvent OnSetInteractionState;
+        public Interactions.UnityBoolEvent OnSetInteractionState = new Interactions.UnityBoolEvent();
 
         /// <summary>Enable or disable player interaction.</summary>
         public virtual void SetInteractionState(bool state)

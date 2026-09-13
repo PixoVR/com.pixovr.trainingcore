@@ -158,7 +158,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
             ("HighlightPlusRenderPassFeature.cs", "HighlightPlus"),
         };
 
-        private static void RelocateThirdPartyAssets(string root, bool dryRun, List<string> notes)
+        public static void RelocateThirdPartyAssets(string root, bool dryRun, List<string> notes)
         {
             var luminousRoot = Path.Combine(root, "Luminous Packages");
             if (!Directory.Exists(luminousRoot))
@@ -208,7 +208,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
             }
         }
 
-        private static IEnumerable<string> FindFilesNamed(string root, string name)
+        public static IEnumerable<string> FindFilesNamed(string root, string name)
         {
             var found = new List<string>();
             var stack = new Stack<string>();
@@ -225,7 +225,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
             return found;
         }
 
-        private static IEnumerable<string> FindDirectoriesNamed(string root, string name)
+        public static IEnumerable<string> FindDirectoriesNamed(string root, string name)
         {
             var found = new List<string>();
             var stack = new Stack<string>();
@@ -266,7 +266,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
             }
         }
 
-        private static void WriteReport(List<MigrationReportEntry> report, string path)
+        public static void WriteReport(List<MigrationReportEntry> report, string path)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             using (var w = new StreamWriter(path))

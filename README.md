@@ -14,7 +14,7 @@ step-graph runtime (wave 2).
    `Packages/manifest.json`:
 
    ```json
-   "com.alelievr.NodeGraphProcessor": "https://github.com/alelievr/NodeGraphProcessor.git?path=/Assets/com.alelievr.NodeGraphProcessor#1.3.1",
+   "com.alelievr.node-graph-processor": "https://github.com.alelievr.node-graph-processor.git?path=/Assets/com.alelievr.node-graph-processor#1.3.1",
    "com.pixovr.trainingcore": "https://github.com/PixoVR/com.pixovr.trainingcore.git",
    ```
 

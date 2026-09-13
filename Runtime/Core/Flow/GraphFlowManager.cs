@@ -149,7 +149,19 @@ namespace PixoVR.TrainingCore.Flow
             }
         }
 
-        /// <summary>Skip forward one step.</summary>
+        /// <summary>Skip to the next step (Luminous name: SkipToNext).</summary>
+        public virtual void SkipToNext()
+        {
+            SkipNext();
+        }
+
+        /// <summary>Skip to the next step; <paramref name="sync"/> reserved for network sync.</summary>
+        public virtual void SkipToNext(bool sync) => SkipNext();
+
+        /// <summary>Skip to the previous step; <paramref name="sync"/> reserved for network sync.</summary>
+        public virtual void SkipToBack(bool sync) => SkipBack();
+
+        /// <summary>Skip to the next step.</summary>
         public virtual void SkipNext()
         {
             ActiveFlow?.SkipToNext();
@@ -157,7 +169,13 @@ namespace PixoVR.TrainingCore.Flow
             OnCurrentStepsChanged?.Invoke(CurrentSteps);
         }
 
-        /// <summary>Skip back one step.</summary>
+        /// <summary>Skip to the previous step (Luminous name: SkipToBack).</summary>
+        public virtual void SkipToBack()
+        {
+            SkipBack();
+        }
+
+        /// <summary>Skip to the previous step.</summary>
         public virtual void SkipBack()
         {
             ActiveFlow?.SkipToBack();

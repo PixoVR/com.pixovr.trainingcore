@@ -122,6 +122,15 @@ namespace PixoVR.TrainingCore.GameModes
         }
 
         /// <summary>Notify a completed step.</summary>
+        /// <summary>Remove all <see cref="OnModuleEnd"/> subscribers.</summary>
+        public static void ClearModuleEndEvent() => OnModuleEnd = null;
+
+        /// <summary>Remove all <see cref="OnModuleStart"/> subscribers.</summary>
+        public static void ClearModuleStartEvent() => OnModuleStart = null;
+
+        /// <summary>Remove all <see cref="OnModulePassed"/> subscribers.</summary>
+        public static void ClearModulePassedEvent() => OnModulePassed = null;
+
         public static void StepCompleted(string flowName, StepBase step) => OnStepComplete?.Invoke(flowName, step);
 
         /// <summary>Notify started steps.</summary>

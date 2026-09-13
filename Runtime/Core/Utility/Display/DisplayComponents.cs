@@ -63,6 +63,25 @@ namespace PixoVR.TrainingCore.Utility.Display
                 AudioClipPlaybackManager.Play(data.AudioSettings);
         }
 
+        private DisplayData displayedData;
+
+        /// <summary>Populate all slots from data (Luminous name: DisplayTextData).</summary>
+        public virtual void DisplayTextData(DisplayData data, AnswerData answerData = null)
+        {
+            displayedData = data;
+            SetContent(data);
+        }
+
+        /// <summary>The data currently displayed.</summary>
+        public virtual DisplayData GetDisplayedData() => displayedData;
+
+        /// <summary>Show or hide the body text.</summary>
+        public virtual void SetBodyTextState(bool state)
+        {
+            if (BodyText != null)
+                BodyText.gameObject.SetActive(state);
+        }
+
         /// <summary>Aim the connection line at a world point.</summary>
         public virtual void SetConnectionPoint(Vector3 worldPoint)
         {

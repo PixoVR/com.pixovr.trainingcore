@@ -262,6 +262,9 @@ namespace PixoVR.TrainingCore.Graph
     /// <summary>Manages exposed graph parameters (NodeGraphProcessor <see cref="ExposedParameter"/>).</summary>
     public class ExposedParameterManager
     {
+        /// <summary>Active parameter manager (assigned by the parser when a graph is parsed).</summary>
+        public static ExposedParameterManager Instance { get; set; }
+
         /// <summary>Fired when a parameter's value changes.</summary>
         public event Action OnParameterChanged;
 
@@ -279,6 +282,12 @@ namespace PixoVR.TrainingCore.Graph
         /// <summary>Find by name.</summary>
         public ExposedParameter Get(string parameterName) =>
             Parameters.FirstOrDefault(p => p.name == parameterName);
+
+        /// <summary>Set a parameter's value (static convenience).</summary>
+        public static void SetExposedParameter<T>(string parameterName, T newValue)
+        {
+            Instance?.SetValue(parameterName, newValue);
+        }
 
         /// <summary>Set a parameter's value.</summary>
         public void SetValue(string parameterName, object value)

@@ -21,7 +21,7 @@ namespace PixoVR.TrainingCore.Multiuser
     public class MultiuserPlayer
     {
         /// <summary>Transport-level user id.</summary>
-        public string Id;
+        public int Id;
         /// <summary>Display name.</summary>
         public string Name;
         /// <summary>True when the player is the session instructor/lead.</summary>
@@ -39,39 +39,50 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>Valve-name overlay enabled.</summary>
         public bool HasValveNamesActive;
         /// <summary>Platform identifier.</summary>
-        public string Platform;
+        public Data.PlayerPlatform Platform;
+
+        /// <summary>Create a player.</summary>
+        public MultiuserPlayer(int id, Data.PlayerPlatform platform, string name = "", bool instructor = false, bool isActive = true, bool isChecked = false)
+        {
+            Id = id;
+            Platform = platform;
+            Name = name;
+            IsInstructor = instructor;
+            IsActive = isActive;
+            IsSpotChecked = isChecked;
+        }
     }
 
     /// <summary>Instructor-facing per-user controls.</summary>
     public interface InstructorControls
     {
         /// <summary>Set a user's object-visible state.</summary>
-        void SetActiveState(string userId, bool state);
+        void SetActiveState(MultiuserPlayer player, bool targetState);
         /// <summary>Toggle a user's object-visible state.</summary>
-        void ToggleActiveState(string userId);
+        void ToggleActiveState(MultiuserPlayer player);
         /// <summary>Remove a user from the session.</summary>
-        void Remove(string userId);
+        void Remove(MultiuserPlayer player);
         /// <summary>Set a user's audio-muted state.</summary>
-        void SetAudioState(string userId, bool muted);
+        void SetAudioState(MultiuserPlayer player, bool state);
         /// <summary>Set a user's avatar-visible state.</summary>
-        void SetAvatarState(string userId, bool visible);
+        void SetAvatarState(MultiuserPlayer player, bool state);
         /// <summary>Toggle instructor spot-check on a user.</summary>
-        void SetPlayerSpotCheckStatus(string userId, bool state);
+        void SetPlayerSpotCheckStatus(MultiuserPlayer player, bool state);
         /// <summary>Enable/disable valve-name overlays for a user.</summary>
-        void SetValveNamesState(string userId, bool state);
+        void SetValveNamesState(MultiuserPlayer player, bool state);
         /// <summary>Mute/unmute all users.</summary>
         void SetAudioStateAll(bool muted);
         /// <summary>Show/hide all avatars.</summary>
         void SetAvatarStateAll(bool visible);
         /// <summary>Set highlight state for a user.</summary>
-        void SetHighlightState(string userId, bool highlighted);
+        void SetHighlightState(MultiuserPlayer player, bool state);
 
         /// <summary>Fired when a user's active state changes.</summary>
-        event Action<string, bool> OnActiveUserChanged;
+        event Action<MultiuserPlayer, bool> OnActiveUserChanged;
         /// <summary>Fired when a user's audio state changes.</summary>
-        event Action<string, bool> OnPlayerAudioStateChanged;
+        event Action<MultiuserPlayer, bool> OnPlayerAudioStateChanged;
         /// <summary>Fired when a user's avatar state changes.</summary>
-        event Action<string, bool> OnPlayerAvatarStateChanged;
+        event Action<MultiuserPlayer, bool> OnPlayerAvatarStateChanged;
         /// <summary>Fired when all users' audio state changes.</summary>
         event Action<bool> OnAudioStateAll;
         /// <summary>Fired when all users' avatar state changes.</summary>
@@ -81,34 +92,34 @@ namespace PixoVR.TrainingCore.Multiuser
     /// <summary>Implementation-neutral instructor controls; concrete transports subclass this.</summary>
     public abstract class NetworkInstructorControls : InstructorControls
     {
-        public abstract void SetActiveState(string userId, bool state);
-        public abstract void ToggleActiveState(string userId);
-        public abstract void Remove(string userId);
-        public abstract void SetAudioState(string userId, bool muted);
-        public abstract void SetAvatarState(string userId, bool visible);
-        public abstract void SetPlayerSpotCheckStatus(string userId, bool state);
-        public abstract void SetValveNamesState(string userId, bool state);
+        public abstract void SetActiveState(MultiuserPlayer player, bool targetState);
+        public abstract void ToggleActiveState(MultiuserPlayer player);
+        public abstract void Remove(MultiuserPlayer player);
+        public abstract void SetAudioState(MultiuserPlayer player, bool state);
+        public abstract void SetAvatarState(MultiuserPlayer player, bool state);
+        public abstract void SetPlayerSpotCheckStatus(MultiuserPlayer player, bool state);
+        public abstract void SetValveNamesState(MultiuserPlayer player, bool state);
         public abstract void SetAudioStateAll(bool muted);
         public abstract void SetAvatarStateAll(bool visible);
-        public abstract void SetHighlightState(string userId, bool highlighted);
+        public abstract void SetHighlightState(MultiuserPlayer player, bool state);
 
         
-        public event Action<string, bool> OnActiveUserChanged;
+        public event Action<MultiuserPlayer, bool> OnActiveUserChanged;
         
-        public event Action<string, bool> OnPlayerAudioStateChanged;
+        public event Action<MultiuserPlayer, bool> OnPlayerAudioStateChanged;
         
-        public event Action<string, bool> OnPlayerAvatarStateChanged;
+        public event Action<MultiuserPlayer, bool> OnPlayerAvatarStateChanged;
         
         public event Action<bool> OnAudioStateAll;
         
         public event Action<bool> OnAvatarStateAll;
 
         /// <summary>Raise <see cref="OnActiveUserChanged"/>.</summary>
-        protected void InvokeOnActiveUserChanged(string id, bool state) => OnActiveUserChanged?.Invoke(id, state);
+        protected void InvokeOnActiveUserChanged(MultiuserPlayer player, bool state) => OnActiveUserChanged?.Invoke(player, state);
         /// <summary>Raise <see cref="OnPlayerAudioStateChanged"/>.</summary>
-        protected void InvokeOnPlayerAudioStateChanged(string id, bool state) => OnPlayerAudioStateChanged?.Invoke(id, state);
+        protected void InvokeOnPlayerAudioStateChanged(MultiuserPlayer player, bool state) => OnPlayerAudioStateChanged?.Invoke(player, state);
         /// <summary>Raise <see cref="OnPlayerAvatarStateChanged"/>.</summary>
-        protected void InvokeOnPlayerAvatarStateChanged(string id, bool state) => OnPlayerAvatarStateChanged?.Invoke(id, state);
+        protected void InvokeOnPlayerAvatarStateChanged(MultiuserPlayer player, bool state) => OnPlayerAvatarStateChanged?.Invoke(player, state);
         /// <summary>Raise <see cref="OnAudioStateAll"/>.</summary>
         protected void InvokeOnAudioStateAll(bool state) => OnAudioStateAll?.Invoke(state);
         /// <summary>Raise <see cref="OnAvatarStateAll"/>.</summary>
@@ -181,5 +192,41 @@ namespace PixoVR.TrainingCore.Multiuser
         public static Action<ConnectionState> OnConnectionStateChanged;
         /// <summary>Fired when the instructor changes.</summary>
         public static Action<MultiuserPlayer> OnInstructorChanged;
+    }
+}
+
+namespace PixoVR.TrainingCore.Multiuser
+{
+    /// <summary>Helper extensions for <see cref="MultiuserPlayer"/>.</summary>
+    public static class MultiuserPlayerUtility
+    {
+        /// <summary>Indicates if a multiuser player is the local user.</summary>
+        public static bool IsLocal(this MultiuserPlayer player)
+        {
+            var local = NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer;
+            return player != null && local != null && player.Id == local.Id;
+        }
+    }
+}
+
+namespace PixoVR.TrainingCore.Multiuser
+{
+    /// <summary>Base controller for a networked avatar.</summary>
+    public abstract class AvatarControllerBase : MonoBehaviour
+    {
+        /// <summary>Player id of this avatar.</summary>
+        public int playerId;
+
+        /// <summary>Set avatar state.</summary>
+        public abstract void SetAvatarState(bool state);
+
+        /// <summary>Check if this avatar belongs to the local player.</summary>
+        public abstract bool IsMine();
+
+        /// <summary>Set audio state.</summary>
+        public abstract void SetAudioState(bool state);
+
+        /// <summary>Set the highlight state.</summary>
+        public abstract void SetHighlightState(bool state);
     }
 }

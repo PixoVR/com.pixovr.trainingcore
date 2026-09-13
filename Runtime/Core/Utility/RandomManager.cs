@@ -1,3 +1,4 @@
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -66,5 +67,57 @@ namespace PixoVR.TrainingCore.Utility
             Array.Copy(src, bytes, Math.Min(16, src.Length));
             return bytes;
         }
+    }
+}
+
+namespace PixoVR.TrainingCore.Utility
+{
+    /// <summary>List helpers used by step scripts.</summary>
+    public static class ListUtility
+    {
+        /// <summary>In-place Fisher-Yates shuffle.</summary>
+        public static void Shuffle<T>(this System.Collections.Generic.List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+    }
+}
+
+
+namespace PixoVR.TrainingCore.Utils
+{
+    /// <summary>Places players in a circle around a multiuser anchor.</summary>
+    public static class CircularPlayerPlacer
+    {
+        /// <summary>Calculate a player's spawn position.</summary>
+        /// <param name="anchorCenter">Center of the spawn circle.</param>
+        /// <param name="angleMin">Minimum placement angle (degrees).</param>
+        /// <param name="angleMax">Maximum placement angle (degrees).</param>
+        /// <param name="multiuserAnchorPosition">Optional anchor offset.</param>
+        /// <param name="spacingRadius">Circle radius.</param>
+        public static Vector3 CalculatePlayerLocation(Vector3 anchorCenter, float angleMin, float angleMax, Vector3 multiuserAnchorPosition = default, float spacingRadius = 0.4f)
+        {
+            float angle = UnityEngine.Random.Range(angleMin, angleMax) * Mathf.Deg2Rad;
+            var offset = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * spacingRadius;
+            return anchorCenter + multiuserAnchorPosition + offset;
+        }
+    }
+}
+
+
+namespace PixoVR.TrainingCore.Utils
+{
+    /// <summary>LayerMask helper extensions.</summary>
+    public static class LayerMaskExtensions
+    {
+        /// <summary>Add a layer index to a mask value.</summary>
+        public static LayerMask AddLayerToLayerMask(this LayerMask mask, int layer) => mask | (1 << layer);
+
+        /// <summary>Remove a layer index from a mask value.</summary>
+        public static LayerMask RemoveLayerFromLayerMask(this LayerMask mask, int layer) => mask & ~(1 << layer);
     }
 }

@@ -40,7 +40,7 @@ namespace PixoVR.TrainingCore.Photon
         }
 
         /// <inheritdoc/>
-        public override MultiuserPlayer GetMasterClient() => ToPlayer(PhotonNetwork.MasterClient);
+        public override MultiuserPlayer GetMasterClient => ToPlayer(PhotonNetwork.MasterClient);
 
         /// <inheritdoc/>
         public override void AttemptConnection()
@@ -82,9 +82,29 @@ namespace PixoVR.TrainingCore.Photon
         /// <inheritdoc/>
         public override void SetNewInstructor(MultiuserPlayer player)
         {
-            InstructorControls?.SetHighlightState(player?.Id, true);
+            InstructorControls?.SetHighlightState(player, true);
             OnInstructorChangedEvent?.Invoke(player);
             NetworkEvents.OnInstructorChanged?.Invoke(player);
+        }
+
+        /// <summary>OAuth token response payload (auth header fetch).</summary>
+        public class TokenResponse
+        {
+            /// <summary>Access token.</summary>
+            public string access_token;
+            /// <summary>Token type.</summary>
+            public string token_type;
+            /// <summary>Expiry seconds.</summary>
+            public int expires_in;
+            /// <summary>Scope.</summary>
+            public string scope;
+        }
+
+        /// <summary>State payload wrapper for RaiseEvent sync messages.</summary>
+        public class StateHolder
+        {
+            /// <summary>Serialized state.</summary>
+            public string State;
         }
 
         /// <summary>Map a Photon player to a <see cref="MultiuserPlayer"/>.</summary>
@@ -92,13 +112,8 @@ namespace PixoVR.TrainingCore.Photon
         {
             if (player == null)
                 return null;
-            return new MultiuserPlayer
-            {
-                Id = player.UserId ?? player.ActorNumber.ToString(),
-                Name = player.NickName,
-                IsInstructor = player.IsMasterClient,
-                Platform = "photon"
-            };
+            return new MultiuserPlayer(player.ActorNumber, Data.PlayerPlatform.VR,
+                name: player.NickName ?? "", instructor: player.IsMasterClient);
         }
 
         // ---- PUN callbacks → abstract events ----
@@ -152,7 +167,7 @@ namespace PixoVR.TrainingCore.Photon
         {
             CurrentRoom = new PhotonRoom();
             OnRoomJoinedEvent?.Invoke();
-            InProgressRoomJoined();
+            InProgressRoomJoined(null);
         }
 
         /// <summary>PUN join failed.</summary>
@@ -219,12 +234,15 @@ namespace PixoVR.TrainingCore.Photon
             ?? new List<MultiuserPlayer>();
 
         /// <inheritdoc/>
-        public override MultiuserPlayer GetLocalPlayer() =>
+        public override MultiuserPlayer GetLocalPlayer =>
             PhotonNetworkManager.ToPlayer(PhotonNetwork.LocalPlayer);
 
         /// <inheritdoc/>
-        public override MultiuserPlayer GetPlayer(string id) =>
-            GetNetworkPlayers().FirstOrDefault(p => p.Id == id);
+        public override MultiuserPlayer GetPlayer(int playerId) =>
+            GetNetworkPlayers().FirstOrDefault(p => p.Id == playerId);
+
+        /// <inheritdoc/>
+        public override void RemovePlayer(int playerId) { }
 
         /// <inheritdoc/>
         public override void AddProperty(string key, object value) => SetProperty(key, value);
@@ -252,10 +270,10 @@ namespace PixoVR.TrainingCore.Photon
             PhotonNetwork.CurrentRoom?.CustomProperties?.ContainsKey(key) == true;
 
         /// <inheritdoc/>
-        public override event Action<MultiuserPlayer> OnPlayerJoin { add { } remove { } }
+        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerJoin { add { } remove { } }
 
         /// <inheritdoc/>
-        public override event Action<MultiuserPlayer> OnPlayerExit { add { } remove { } }
+        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerExit { add { } remove { } }
 
         /// <inheritdoc/>
         public override event Action<MultiuserPlayer> OnMasterUserSwitched { add { } remove { } }
@@ -283,44 +301,44 @@ namespace PixoVR.TrainingCore.Photon
     public class PhotonInstructorControls : NetworkInstructorControls
     {
         /// <inheritdoc/>
-        public override void SetActiveState(string userId, bool state) =>
-            RaiseInstructorEvent("setActive", userId, state);
+        public override void SetActiveState(MultiuserPlayer player, bool state) =>
+            RaiseInstructorEvent("setActive", player?.Id.ToString() ?? "", state);
 
         /// <inheritdoc/>
-        public override void ToggleActiveState(string userId) =>
-            RaiseInstructorEvent("toggleActive", userId, true);
+        public override void ToggleActiveState(MultiuserPlayer player) =>
+            RaiseInstructorEvent("toggleActive", player?.Id.ToString() ?? "", true);
 
         /// <inheritdoc/>
-        public override void Remove(string userId) =>
-            RaiseInstructorEvent("remove", userId, true);
+        public override void Remove(MultiuserPlayer player) =>
+            RaiseInstructorEvent("remove", player?.Id.ToString() ?? "", true);
 
         /// <inheritdoc/>
-        public override void SetAudioState(string userId, bool muted) =>
-            RaiseInstructorEvent("audio", userId, muted);
+        public override void SetAudioState(MultiuserPlayer player, bool muted) =>
+            RaiseInstructorEvent("audio", player?.Id.ToString() ?? "", muted);
 
         /// <inheritdoc/>
-        public override void SetAvatarState(string userId, bool visible) =>
-            RaiseInstructorEvent("avatar", userId, visible);
+        public override void SetAvatarState(MultiuserPlayer player, bool visible) =>
+            RaiseInstructorEvent("avatar", player?.Id.ToString() ?? "", visible);
 
         /// <inheritdoc/>
-        public override void SetPlayerSpotCheckStatus(string userId, bool state) =>
-            RaiseInstructorEvent("spotCheck", userId, state);
+        public override void SetPlayerSpotCheckStatus(MultiuserPlayer player, bool state) =>
+            RaiseInstructorEvent("spotCheck", player?.Id.ToString() ?? "", state);
 
         /// <inheritdoc/>
-        public override void SetValveNamesState(string userId, bool state) =>
-            RaiseInstructorEvent("valveNames", userId, state);
+        public override void SetValveNamesState(MultiuserPlayer player, bool state) =>
+            RaiseInstructorEvent("valveNames", player?.Id.ToString() ?? "", state);
 
         /// <inheritdoc/>
         public override void SetAudioStateAll(bool muted) =>
-            RaiseInstructorEvent("audioAll", null, muted);
+            RaiseInstructorEvent("audioAll", "", muted);
 
         /// <inheritdoc/>
         public override void SetAvatarStateAll(bool visible) =>
-            RaiseInstructorEvent("avatarAll", null, visible);
+            RaiseInstructorEvent("avatarAll", "", visible);
 
         /// <inheritdoc/>
-        public override void SetHighlightState(string userId, bool highlighted) =>
-            RaiseInstructorEvent("highlight", userId, highlighted);
+        public override void SetHighlightState(MultiuserPlayer player, bool highlighted) =>
+            RaiseInstructorEvent("highlight", player?.Id.ToString() ?? "", highlighted);
 
         private static void RaiseInstructorEvent(string action, string userId, bool state)
         {

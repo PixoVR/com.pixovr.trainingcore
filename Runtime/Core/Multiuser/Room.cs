@@ -19,10 +19,13 @@ namespace PixoVR.TrainingCore.Multiuser
         public abstract List<MultiuserPlayer> GetNetworkPlayers();
 
         /// <summary>The local player.</summary>
-        public abstract MultiuserPlayer GetLocalPlayer();
+        public abstract MultiuserPlayer GetLocalPlayer { get; }
 
         /// <summary>Find a player by id.</summary>
-        public abstract MultiuserPlayer GetPlayer(string id);
+        public abstract MultiuserPlayer GetPlayer(int playerId);
+
+        /// <summary>Remove a player by id.</summary>
+        public abstract void RemovePlayer(int playerId);
 
         /// <summary>Add a room property.</summary>
         public abstract void AddProperty(string key, object value);
@@ -47,10 +50,16 @@ namespace PixoVR.TrainingCore.Multiuser
         public abstract bool HasProperty(string key);
 
         /// <summary>Fired when a player joins.</summary>
-        public abstract event Action<MultiuserPlayer> OnPlayerJoin;
+        public abstract event Action<Room, MultiuserPlayer> OnPlayerJoin;
         /// <summary>Fired when a player leaves.</summary>
-        public abstract event Action<MultiuserPlayer> OnPlayerExit;
+        public abstract event Action<Room, MultiuserPlayer> OnPlayerExit;
         /// <summary>Fired when the instructor/master switches.</summary>
         public abstract event Action<MultiuserPlayer> OnMasterUserSwitched;
+        /// <summary>Scene this room is currently in (room property).</summary>
+        public virtual string GetCurrentScene() => GetProperty("CurrentScene") as string;
+
+        /// <summary>Set the room's current scene property.</summary>
+        public virtual void SetCurrentScene(string sceneName) => SetProperty("CurrentScene", sceneName);
+
     }
 }

@@ -69,6 +69,9 @@ namespace PixoVR.TrainingCore
     /// <summary>Minimal UI coordinator: show/hide flow-driven UI roots.</summary>
     public class UserInterfaceManager : SingletonBehaviour<UserInterfaceManager>
     {
+        /// <summary>The main display object placer.</summary>
+        public Utility.Display.DisplayObjectPlacer MainDisplayer;
+
         /// <summary>Whether UI is currently visible.</summary>
         public bool IsVisible { get; private set; } = true;
 

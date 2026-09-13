@@ -54,6 +54,9 @@ namespace PixoVR.TrainingCore.XRI
         [NonSerialized]
         public XRISnapZone CurrentSnapZone;
 
+        /// <summary>True while the object sits in a snap zone.</summary>
+        public bool IsSnapped => CurrentSnapZone != null;
+
         /// <summary>Audio played on grab.</summary>
         public AudioSource Audio;
 
@@ -140,7 +143,7 @@ namespace PixoVR.TrainingCore.XRI
         public bool ResizeOnSnap;
 
         /// <summary>Scale applied when <see cref="ResizeOnSnap"/> is set.</summary>
-        public Vector3 ShrunkenSize = Vector3.one;
+        public float ShrunkenSize = 1f;
 
         /// <summary>The occupant must be placed by the player (no auto-snap).</summary>
         public bool MustBePlacedInSnapZone;
@@ -152,10 +155,10 @@ namespace PixoVR.TrainingCore.XRI
         public bool UseInteractablesAttachPoint;
 
         /// <summary>Only accept an object whose partnered prefab id matches.</summary>
-        public string OnlyAllowPartneredPrefabObjectId;
+        public bool OnlyAllowPartneredPrefabObjectId;
 
         /// <summary>Prefab spawned when <see cref="CloneOnUnsnap"/> destroys the occupant.</summary>
-        public GameObject PartneredPrefab;
+        public XRISnapBehaviour PartneredPrefab;
 
         /// <summary>Highlight the zone while a valid object hovers.</summary>
         public bool HighlightOnHover;
@@ -179,16 +182,19 @@ namespace PixoVR.TrainingCore.XRI
         public float DetachRange = 0.5f;
 
         /// <summary>Currently snapped object.</summary>
-        public GameObject CurrentSnappedObject;
+        public XRIGrabBehaviour CurrentSnappedObject;
+
+        /// <summary>True while an object occupies the zone.</summary>
+        public bool HasSnappedObject => CurrentSnappedObject != null;
 
         /// <summary>Fired when an object snaps in.</summary>
-        public UnityEvent OnSnap;
+        public UnityEvent<GameObject> OnSnap = new UnityEvent<GameObject>();
 
         /// <summary>Fired when the occupant is released.</summary>
         public UnityEvent OnUnsnap;
 
         /// <summary>Fired while unsnapping is in progress.</summary>
-        public UnityEvent OnUnsnapping;
+        public UnityEvent<GameObject> OnUnsnapping = new UnityEvent<GameObject>();
 
         /// <summary>Fired when a valid object hovers.</summary>
         public UnityEvent OnHoverEnter;
@@ -219,14 +225,17 @@ namespace PixoVR.TrainingCore.XRI
             var obj = (args.interactableObject as Component)?.gameObject;
             if (obj == null)
                 return;
-            if (EmptySnapZoneOnSnap && CurrentSnappedObject != null && CurrentSnappedObject != obj)
+            var grab = obj.GetComponent<XRIGrabBehaviour>();
+            if (EmptySnapZoneOnSnap && CurrentSnappedObject != null && CurrentSnappedObject.gameObject != obj)
                 Unsnap(CurrentSnappedObject);
-            CurrentSnappedObject = obj;
+            CurrentSnappedObject = grab;
+            if (grab != null)
+                grab.CurrentSnapZone = this;
             if (ResizeOnSnap)
-                obj.transform.localScale = ShrunkenSize;
+                obj.transform.localScale = Vector3.one * ShrunkenSize;
             if (DestroyObjectOnSnap)
                 Destroy(obj);
-            OnSnap?.Invoke();
+            OnSnap?.Invoke(obj);
         }
 
         private void OnSocketDeselect(SelectExitEventArgs args)
@@ -234,7 +243,7 @@ namespace PixoVR.TrainingCore.XRI
             var obj = (args.interactableObject as Component)?.gameObject;
             if (CloneOnUnsnap && PartneredPrefab != null && obj != null)
             {
-                Instantiate(PartneredPrefab, obj.transform.position, obj.transform.rotation);
+                Instantiate(PartneredPrefab.gameObject, obj.transform.position, obj.transform.rotation);
                 Destroy(obj);
             }
             CurrentSnappedObject = null;
@@ -248,19 +257,54 @@ namespace PixoVR.TrainingCore.XRI
         /// <inheritdoc/>
         public void Snap(GameObject snappedObject)
         {
-            CurrentSnappedObject = snappedObject;
+            var grab = snappedObject.GetComponent<XRIGrabBehaviour>();
+            CurrentSnappedObject = grab;
+            if (grab != null)
+                grab.CurrentSnapZone = this;
             PositionToSnapzone(snappedObject);
-            OnSnap?.Invoke();
+            OnSnap?.Invoke(snappedObject);
         }
 
         /// <inheritdoc/>
         public void Unsnap(GameObject snappedObject)
         {
-            OnUnsnapping?.Invoke();
-            if (CurrentSnappedObject == snappedObject)
+            OnUnsnapping?.Invoke(snappedObject);
+            if (CurrentSnappedObject != null && CurrentSnappedObject.gameObject == snappedObject)
+            {
+                CurrentSnappedObject.CurrentSnapZone = null;
                 CurrentSnappedObject = null;
+            }
             OnUnsnap?.Invoke();
         }
+
+        /// <summary>Snap a grabbable into this zone.</summary>
+        public void Snap(XRIGrabBehaviour interactable, bool animateSnap = true, bool invisible = false, bool invokeMiddleman = true)
+        {
+            if (interactable == null)
+                return;
+            Snap(interactable.gameObject);
+        }
+
+        /// <summary>Release a grabbable from this zone.</summary>
+        public void Unsnap(XRIGrabBehaviour interactable)
+        {
+            if (interactable == null)
+                return;
+            Unsnap(interactable.gameObject);
+        }
+
+        /// <summary>Apply the hover highlight material.</summary>
+        public void Highlight() { }
+
+        /// <summary>Remove the hover highlight.</summary>
+        public void Unhighlight() { }
+
+        /// <summary>True when <paramref name="position"/> is within attach distance of the zone.</summary>
+        public bool CheckWithinRange(Vector3 position) =>
+            Vector3.Distance(position, (AttachPoint != null ? AttachPoint : transform).position) <= DetachRange;
+
+        /// <summary>Whether a valid object is currently within attach range.</summary>
+        public bool WithinAttachRange { get; private set; }
 
         /// <inheritdoc/>
         public bool IsFree() => CurrentSnappedObject == null;

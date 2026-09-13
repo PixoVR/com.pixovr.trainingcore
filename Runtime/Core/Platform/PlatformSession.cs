@@ -8,18 +8,14 @@ namespace PixoVR.TrainingCore.Platform
     /// <summary>Lifecycle status of a training session on the platform.</summary>
     public enum SessionStatus
     {
-        /// <summary>Status not yet known.</summary>
-        Unknown,
-        /// <summary>Session is scheduled but not started.</summary>
-        Scheduled,
-        /// <summary>Session is running.</summary>
-        InProgress,
-        /// <summary>Session finished successfully.</summary>
-        Completed,
-        /// <summary>Session was cancelled.</summary>
-        Cancelled,
-        /// <summary>Session failed.</summary>
-        Failed
+        /// <summary>Session created but not yet scheduled.</summary>
+        Created,
+        /// <summary>Session scheduled, waiting to start.</summary>
+        Waiting,
+        /// <summary>Session currently running.</summary>
+        Active,
+        /// <summary>Session finished.</summary>
+        Complete
     }
 
     /// <summary>Contract for a platform backend session (authentication + progress reporting).</summary>
@@ -44,6 +40,32 @@ namespace PixoVR.TrainingCore.Platform
         event Action NoActiveSession;
         /// <summary>Session status update: session name, status, module scene.</summary>
         event Action<string, SessionStatus, string> StatusUpdated;
+        /// <summary>Fired when the user cancels a login/connect flow.</summary>
+        event Action Cancelled;
+        /// <summary>Fired when session details have been refreshed from the backend.</summary>
+        event Action SessionRefreshed;
+
+        /// <summary>Badge id of the connected user (empty when unknown).</summary>
+        string ConnectedBadgeId { get; set; }
+        /// <summary>Backend id of the connected user.</summary>
+        string ConnectedUserId { get; set; }
+        /// <summary>Module currently in progress (mirrors <see cref="SessionContext.Module"/>).</summary>
+        string CurrentModuleName { get; set; }
+        /// <summary>Module selected to start (mirrors <see cref="SessionContext.Module"/>).</summary>
+        string SelectedModuleName { get; set; }
+        /// <summary>Backend base address (informational, e.g. for linking hosted images).</summary>
+        string ServerBaseAddress { get; }
+        /// <summary>Current connection state.</summary>
+        Multiuser.ConnectionState State { get; }
+
+        /// <summary>Record the platform session id to join/track.</summary>
+        void SetSessionId(string sessionId);
+
+        /// <summary>Send a named session event to the backend (best-effort; no-op when unsupported).</summary>
+        Task SendEventAsync(string action, string target);
+
+        /// <summary>Legacy alias for <see cref="RefreshSessionAsync"/>.</summary>
+        Task RefreshSessionDetails();
 
         /// <summary>Username+password login.</summary>
         Task<bool> LoginAsync(string username, string password);
@@ -112,6 +134,10 @@ namespace PixoVR.TrainingCore.Platform
         public event Action NoActiveSession;
         /// <summary>See the interface/base contract.</summary>
         public event Action<string, SessionStatus, string> StatusUpdated;
+        /// <summary>See the interface/base contract.</summary>
+        public event Action Cancelled;
+        /// <summary>See the interface/base contract.</summary>
+        public event Action SessionRefreshed;
 
         /// <summary>Raise <see cref="Connected"/>.</summary>
         protected void InvokeConnected() => Connected?.Invoke();
@@ -124,6 +150,46 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Raise <see cref="StatusUpdated"/>.</summary>
         protected void InvokeStatusUpdated(string name, SessionStatus status, string moduleScene) =>
             StatusUpdated?.Invoke(name, status, moduleScene);
+        /// <summary>Raise <see cref="Cancelled"/>.</summary>
+        protected void InvokeCancelled() => Cancelled?.Invoke();
+        /// <summary>Raise <see cref="SessionRefreshed"/>.</summary>
+        protected void InvokeSessionRefreshed() => SessionRefreshed?.Invoke();
+
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string ConnectedBadgeId { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string ConnectedUserId { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string CurrentModuleName
+        {
+            get => SessionContext.Instance != null ? SessionContext.Instance.Module : null;
+            set { if (SessionContext.Instance != null) SessionContext.Instance.Module = value; }
+        }
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string SelectedModuleName
+        {
+            get => SessionContext.Instance != null ? SessionContext.Instance.Module : null;
+            set { if (SessionContext.Instance != null) SessionContext.Instance.Module = value; }
+        }
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string ServerBaseAddress => string.Empty;
+        /// <summary>See the interface/base contract.</summary>
+        public virtual Multiuser.ConnectionState State =>
+            IsConnected ? Multiuser.ConnectionState.Connected : Multiuser.ConnectionState.Disconnected;
+        /// <summary>See the interface/base contract.</summary>
+        public virtual void SetSessionId(string sessionId)
+        {
+            if (SessionContext.Instance != null)
+                SessionContext.Instance.SessionId = sessionId;
+        }
+        /// <summary>See the interface/base contract.</summary>
+        public virtual Task SendEventAsync(string action, string target)
+        {
+            Utility.Log.Warning($"SendEventAsync('{action}') not supported by this session provider");
+            return Task.CompletedTask;
+        }
+        /// <summary>See the interface/base contract.</summary>
+        public Task RefreshSessionDetails() => RefreshSessionAsync();
 
         /// <summary>See the interface/base contract.</summary>
         public abstract Task<bool> LoginAsync(string username, string password);
@@ -169,6 +235,28 @@ namespace PixoVR.TrainingCore.Platform
         public event Action NoActiveSession;
         /// <summary>See the interface/base contract.</summary>
         public event Action<string, SessionStatus, string> StatusUpdated;
+        /// <summary>See the interface/base contract.</summary>
+        public event Action Cancelled;
+        /// <summary>See the interface/base contract.</summary>
+        public event Action SessionRefreshed;
+        /// <summary>See the interface/base contract.</summary>
+        public string ConnectedBadgeId { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public string ConnectedUserId { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public string CurrentModuleName { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public string SelectedModuleName { get; set; }
+        /// <summary>See the interface/base contract.</summary>
+        public string ServerBaseAddress => string.Empty;
+        /// <summary>See the interface/base contract.</summary>
+        public Multiuser.ConnectionState State => Multiuser.ConnectionState.Disconnected;
+        /// <summary>See the interface/base contract.</summary>
+        public void SetSessionId(string sessionId) { }
+        /// <summary>See the interface/base contract.</summary>
+        public Task SendEventAsync(string action, string target) => Task.CompletedTask;
+        /// <summary>See the interface/base contract.</summary>
+        public Task RefreshSessionDetails() => Task.CompletedTask;
 
         /// <summary>See the interface/base contract.</summary>
         public Task<bool> LoginAsync(string username, string password) => Task.FromResult(false);

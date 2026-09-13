@@ -89,7 +89,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 deps["com.unity.nuget.newtonsoft-json"] = options.NewtonsoftVersion;
                 deps["com.unity.timeline"] = options.TimelineVersion;
                 deps["com.unity.ugui"] = options.UguiVersion;
-                deps["com.alelievr.nodegraphprocessor"] = options.NodeGraphProcessorDependency;
+                deps["com.alelievr.node-graph-processor"] = options.NodeGraphProcessorDependency;
             }
 
             if (root["scopedRegistries"] is JArray regs)

@@ -227,7 +227,23 @@ namespace PixoVR.TrainingCore.Apex
         public override Task RefreshSessionAsync()
         {
             var tcs = new TaskCompletionSource<bool>();
-            Client.Ping(ok => tcs.SetResult(ok));
+            Client.Ping(ok =>
+            {
+                if (ok)
+                    InvokeSessionRefreshed();
+                tcs.SetResult(ok);
+            });
+            return tcs.Task;
+        }
+
+        /// <inheritdoc/>
+        public override string ServerBaseAddress => ApexSystem.APIEndpoint;
+
+        /// <inheritdoc/>
+        public override Task SendEventAsync(string action, string target)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            Client.SendSimpleSessionEvent(action, target ?? string.Empty, null, ok => tcs.SetResult(ok));
             return tcs.Task;
         }
 
@@ -252,7 +268,7 @@ namespace PixoVR.TrainingCore.Apex
                 if (ok)
                 {
                     _sessionId = sessionId.ToString();
-                    InvokeStatusUpdated(_sessionId, SessionStatus.InProgress, module);
+                    InvokeStatusUpdated(_sessionId, SessionStatus.Active, module);
                 }
                 tcs.SetResult(ok);
             });
@@ -266,7 +282,7 @@ namespace PixoVR.TrainingCore.Apex
             var data = new SessionData(passed ? 100f : 0f, passed ? 1f : 0f, 0f, 100f, 0, true, passed);
             Client.CompleteSession(data, null, null, ok =>
             {
-                InvokeStatusUpdated(_sessionId, passed ? SessionStatus.Completed : SessionStatus.Failed, module);
+                InvokeStatusUpdated(_sessionId, passed ? SessionStatus.Complete : SessionStatus.Complete, module);
                 tcs.SetResult(ok);
             });
             return tcs.Task;

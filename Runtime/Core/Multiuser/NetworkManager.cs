@@ -8,6 +8,9 @@ namespace PixoVR.TrainingCore.Multiuser
     /// <summary>Abstract lobby provider (lists/joins rooms).</summary>
     public abstract class LobbyBase
     {
+        /// <summary>Get a lobby-listed room property.</summary>
+        public virtual object GetPropertyForRoom(string roomName, string propertyName) => null;
+
         /// <summary>Available rooms.</summary>
         public abstract List<string> GetRooms();
     }
@@ -66,12 +69,12 @@ namespace PixoVR.TrainingCore.Multiuser
         public abstract bool IsMasterClient { get; }
 
         /// <summary>Get the current master client player.</summary>
-        public abstract MultiuserPlayer GetMasterClient();
+        public abstract MultiuserPlayer GetMasterClient { get; }
 
         /// <summary>True when the local player is the instructor.</summary>
         public bool IsInstructor()
         {
-            var player = CurrentRoom?.GetLocalPlayer();
+            var player = CurrentRoom?.GetLocalPlayer;
             return player != null && player.IsInstructor;
         }
 
@@ -105,11 +108,14 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>Reset the local player's state on room exit.</summary>
         public virtual void ResetPlayer() { }
 
+        /// <summary>Reset a remote player's controls/position.</summary>
+        public virtual void ResetPlayer(MultiuserPlayer player) { }
+
         /// <summary>Replicate a spawned object to peers.</summary>
         public virtual void SyncSpawnedObject(GameObject spawned) { }
 
         /// <summary>Handle joining a room that is already in progress.</summary>
-        public virtual void InProgressRoomJoined() { }
+        public virtual void InProgressRoomJoined(string sceneToLoad) { }
 
         /// <summary>Start a late-join resync.</summary>
         public virtual void CatchUpResync() { }
