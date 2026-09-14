@@ -1,0 +1,17 @@
+{
+    "name": "PixoVR.TrainingCore.Apex",
+    "rootNamespace": "PixoVR.TrainingCore.Apex",
+    "references": [
+        "PixoVR.TrainingCore",
+        "PixoVR.ApexUnitySDK"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

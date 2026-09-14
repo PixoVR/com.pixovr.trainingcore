@@ -1,0 +1,22 @@
+{
+    "name": "PixoVR.TrainingCore.Editor",
+    "rootNamespace": "PixoVR.TrainingCore.Editor",
+    "references": [
+        "PixoVR.TrainingCore",
+        "com.alelievr.NodeGraphProcessor.Runtime",
+        "com.alelievr.NodeGraphProcessor.Editor",
+        "Newtonsoft.Json",
+        "Unity.Addressables.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

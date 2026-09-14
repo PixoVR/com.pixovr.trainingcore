@@ -1,0 +1,23 @@
+{
+    "name": "PixoVR.TrainingCore",
+    "rootNamespace": "PixoVR.TrainingCore",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Unity.Timeline",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Newtonsoft.Json",
+        "com.alelievr.NodeGraphProcessor.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
