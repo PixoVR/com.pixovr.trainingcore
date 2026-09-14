@@ -11,15 +11,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-        "PIXO_APEX_SDK"
-    ],
-    "versionDefines": [
-        {
-            "name": "com.pixovr.apexunitysdk",
-            "expression": "",
-            "define": "PIXO_APEX_SDK"
-        }
-    ],
+    "defineConstraints": [],
+    "versionDefines": [],
     "noEngineReferences": false
 }

@@ -102,11 +102,21 @@ namespace PixoVR.TrainingCore.Tests.Editor
         [Test]
         public void ManifestRewrite_OnSampleManifest()
         {
-            var sample = "/home/ubuntu/repos/sa-collect-gas-sample/Packages/manifest.json";
-            Assert.IsTrue(File.Exists(sample));
+            // Luminous-era manifest fixture (the real sample manifest is already migrated).
+            var fixture = @"{
+  ""dependencies"": {
+    ""com.luminous.core"": ""1.0.0"",
+    ""com.luminous.core.middlemen"": ""1.0.0"",
+    ""com.luminous.core.middlemen.interactiontoolkit"": ""1.0.0"",
+    ""com.unity.xr.interaction.toolkit"": ""2.0.0""
+  },
+  ""scopedRegistries"": [
+    { ""name"": ""Luminous"", ""url"": ""https://example.invalid"", ""scopes"": [""com.luminous""] }
+  ]
+}";
             var options = new MigrationOptions { TrainingCoreDependency = "file:../com.pixovr.trainingcore" };
             var notes = new List<string>();
-            var rewritten = ManifestRewriter.Rewrite(File.ReadAllText(sample), options, notes);
+            var rewritten = ManifestRewriter.Rewrite(fixture, options, notes);
 
             StringAssert.DoesNotContain("luminous", rewritten.ToLowerInvariant());
             StringAssert.Contains("com.pixovr.trainingcore", rewritten);

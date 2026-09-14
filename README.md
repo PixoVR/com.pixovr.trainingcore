@@ -15,17 +15,22 @@ step-graph runtime (wave 2).
 
    ```json
    "com.alelievr.node-graph-processor": "https://github.com.alelievr.node-graph-processor.git?path=/Assets/com.alelievr.node-graph-processor#1.3.1",
+   "com.pixovr.apexunitysdk": "https://github.com/PixoVR/com.pixovr.apexunitysdk.git",
    "com.pixovr.trainingcore": "https://github.com/PixoVR/com.pixovr.trainingcore.git",
    ```
 
-   Or via Package Manager → *Add package from git URL* (add NGP first).
+   Or via Package Manager → *Add package from git URL* (add NGP and the Apex SDK first).
+
+   `com.pixovr.apexunitysdk` is a **required** dependency — UPM cannot express git URLs
+   in a package's `dependencies`, so the consuming project's manifest must add it via
+   the git URL above. It provides `Runtime/Apex`'s `ApexPlatformSession`, the default
+   platform session (installed in-scene by `ApexPlatformBootstrap`).
 
 2. Optional integrations light up automatically when present:
 
    | Package | define | Enables |
    |---|---|---|
    | Photon PUN2 (`PHOTON_UNITY_NETWORKING`) | asmdef `defineConstraints` | `Runtime/Photon` networking layer |
-   | `com.pixovr.apexunitysdk` | `PIXO_APEX_SDK` | `Runtime/Apex` platform session |
    | `com.unity.xr.interaction.toolkit` 3.x | `PIXO_XRI` (versionDefine) | `Runtime/XRI` interaction behaviours |
    | HighlightPlus (Asset Store asset, project-owned) | `HIGHLIGHT_PLUS` scripting define | `Runtime/Highlight` `HighlightPlusHighlighter` |
 

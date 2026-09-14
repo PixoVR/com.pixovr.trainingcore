@@ -11,8 +11,13 @@ fresh code. Never paste decompiled bodies.
   `com.unity.addressables` 2.10.3, `com.unity.timeline` 1.8.13, `com.unity.ugui` 2.0.0,
   NodeGraphProcessor via git URL `https://github.com/alelievr/NodeGraphProcessor.git?path=/Assets/com.alelievr.NodeGraphProcessor#1.3.1`
   (git deps can't go in `dependencies`; document in README and provide `Samples~`/`manifest` snippet; asmdef references it by name).
+- Required deps: Apex SDK (`com.pixovr.apexunitysdk` — added by the consuming project's manifest
+  via git URL; UPM cannot express git deps) backs `Runtime/Apex`'s `ApexPlatformSession`, the
+  default platform session installed by `ApexPlatformBootstrap`.
+  `NullPlatformSession` exists for tests only — `PlatformSessionBase.EnsureActive()` installs it
+  with a `Log.Warning` when no provider is present.
 - Optional deps via `versionDefines` / `defineConstraints` (separate asmdefs, compile to nothing if absent):
-  Photon PUN2 (`PHOTON_UNITY_NETWORKING`), Apex SDK (`com.pixovr.apexunitysdk` → `PIXO_APEX_SDK`),
+  Photon PUN2 (`PHOTON_UNITY_NETWORKING`),
   XR Interaction Toolkit (`com.unity.xr.interaction.toolkit` → `PIXO_XRI`).
 
 ## Repo / package layout (repo root == package root, like com.pixovr.apexunitysdk)

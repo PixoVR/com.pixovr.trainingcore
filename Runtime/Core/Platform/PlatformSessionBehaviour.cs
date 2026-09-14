@@ -22,6 +22,7 @@ namespace PixoVR.TrainingCore.Platform
         {
             base.Awake();
             Context = SessionContext.Instance;
+            PlatformSessionBase.EnsureActive();
         }
 
         /// <summary>Fired once the context has been populated/initialised.</summary>

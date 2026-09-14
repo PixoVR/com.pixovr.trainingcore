@@ -107,6 +107,21 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Active session (the most recently installed provider).</summary>
         public static IPlatformSession Instance { get; protected set; }
 
+        /// <summary>
+        /// Returns the active session. When no provider has been installed (no
+        /// ApexPlatformBootstrap in scene), falls back to a <see cref="NullPlatformSession"/>
+        /// and logs a warning — the null provider exists for tests only.
+        /// </summary>
+        public static IPlatformSession EnsureActive()
+        {
+            if (Instance == null)
+            {
+                Utility.Log.Warning("No IPlatformSession installed — falling back to NullPlatformSession (tests only)");
+                Instance = new NullPlatformSession();
+            }
+            return Instance;
+        }
+
         /// <summary>Registers this provider as <see cref="Instance"/>.</summary>
         protected virtual void Awake() => Instance = this;
 
