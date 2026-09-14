@@ -99,6 +99,9 @@ namespace PixoVR.TrainingCore.Utility.Display
     /// <summary>Places a display object relative to the camera using <see cref="PlacerSettings"/>.</summary>
     public class DisplayObjectPlacer : MonoBehaviour
     {
+        /// <summary>Replace the placement settings.</summary>
+        public void ApplySettings(Settings.PlacerSettings settings) => Settings = settings;
+
         /// <summary>Placement settings.</summary>
         public PlacerSettings Settings;
 

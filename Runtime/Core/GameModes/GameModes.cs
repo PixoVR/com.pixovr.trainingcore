@@ -104,6 +104,9 @@ namespace PixoVR.TrainingCore.GameModes
         public static event ModuleChange OnModuleEnd;
 
         /// <summary>Report a failure raised by an interaction event; routed to the active fail handler.</summary>
+        /// <summary>Fail with a reason string (no step context).</summary>
+        public static void Fail(string failReason, int handlerIndex = -1) => Fail(null, failReason, handlerIndex);
+
         public static void Fail(InteractionEventArgs stepArgs)
         {
             var steps = Flow.GraphFlowManager.InstanceExists

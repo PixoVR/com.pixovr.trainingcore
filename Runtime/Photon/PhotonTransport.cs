@@ -456,22 +456,107 @@ namespace PixoVR.TrainingCore.Photon
         }
     }
 
-    /// <summary>Freeze behaviour wired to the local player's XR rig.</summary>
-    public class PhotonFreezeBehaviour : MonoBehaviour, IFreezeBehaviour
+    /// <summary>Freeze behaviour that syncs scene freezing over Photon (RaiseEvent 180).</summary>
+    public class PhotonFreezeBehaviour : IFreezeBehaviour, IOnEventCallback
     {
-        /// <summary>Objects disabled while frozen.</summary>
-        public List<GameObject> DisableWhileFrozen = new List<GameObject>();
+        private const int FreezeEvents = 180;
+        private readonly MonoBehaviour parent;
+        private readonly IFreezeBehaviour internalFreezeBehaviour;
+        private bool isFrozen;
+        private bool initiatedFreeze;
+        private readonly bool hasTimeout;
+        private readonly float timeoutDuration;
 
-        /// <summary>Frozen state.</summary>
-        public bool IsFrozen { get; private set; }
+        /// <summary>Create with a backend freeze behaviour.</summary>
+        public PhotonFreezeBehaviour(MonoBehaviour creator, IFreezeBehaviour freezeBehaviour)
+        {
+            parent = creator;
+            internalFreezeBehaviour = freezeBehaviour;
+            PhotonNetwork.AddCallbackTarget(this);
+        }
+
+        /// <summary>Create with a backend freeze behaviour and auto-unfreeze timeout.</summary>
+        public PhotonFreezeBehaviour(MonoBehaviour creator, IFreezeBehaviour freezeBehaviour, float timeout)
+            : this(creator, freezeBehaviour)
+        {
+            hasTimeout = true;
+            timeoutDuration = timeout;
+        }
+
+        /// <summary>Sends the unfreeze event if this user initiated a freeze and is being destroyed.</summary>
+        ~PhotonFreezeBehaviour()
+        {
+            if (isFrozen && initiatedFreeze)
+                Unfreeze();
+            PhotonNetwork.RemoveCallbackTarget(this);
+        }
 
         /// <inheritdoc/>
-        public void FreezePlayer(bool freeze)
+        public override void Freeze()
         {
-            IsFrozen = freeze;
-            foreach (var go in DisableWhileFrozen)
-                if (go != null)
-                    go.SetActive(!freeze);
+            if (NetworkManager.Instance != null && NetworkManager.Instance.InRoom)
+            {
+                PhotonNetwork.RaiseEvent(FreezeEvents, true, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
+                initiatedFreeze = true;
+            }
+            FreezeInternal();
+        }
+
+        private void FreezeInternal()
+        {
+            if (isFrozen)
+                return;
+            if (internalFreezeBehaviour != null)
+            {
+                internalFreezeBehaviour.IsJoiningUser = IsJoiningUser;
+                internalFreezeBehaviour.Freeze();
+            }
+            isFrozen = true;
+            if (hasTimeout && parent != null)
+                parent.StartCoroutine(AutoUnfreeze());
+        }
+
+        private System.Collections.IEnumerator AutoUnfreeze()
+        {
+            yield return new WaitForSecondsRealtime(timeoutDuration);
+            UnfreezeInternal(true);
+        }
+
+        /// <inheritdoc/>
+        public override void Unfreeze()
+        {
+            if (NetworkManager.Instance != null && NetworkManager.Instance.InRoom)
+            {
+                PhotonNetwork.RaiseEvent(FreezeEvents, false, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable);
+                initiatedFreeze = false;
+            }
+            UnfreezeInternal();
+        }
+
+        private void UnfreezeInternal(bool timeout = false)
+        {
+            if (!isFrozen)
+                return;
+            if (internalFreezeBehaviour != null)
+            {
+                internalFreezeBehaviour.IsJoiningUser = IsJoiningUser;
+                internalFreezeBehaviour.Unfreeze();
+            }
+            isFrozen = false;
+        }
+
+        /// <summary>Photon event callback.</summary>
+        public void OnEvent(EventData photonEvent)
+        {
+            if (photonEvent.Code != FreezeEvents)
+                return;
+            if (photonEvent.CustomData is bool freeze)
+            {
+                if (freeze)
+                    FreezeInternal();
+                else
+                    UnfreezeInternal();
+            }
         }
     }
 }

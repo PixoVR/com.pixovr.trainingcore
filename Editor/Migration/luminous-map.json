@@ -925,8 +925,8 @@
     "class": "DesktopFreezeBehaviour"
    },
    "pixo": {
-    "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonFreezeBehaviour"
+    "ns": "PixoVR.TrainingCore.Utility",
+    "class": "DesktopFreezeBehaviour"
    }
   },
   {
@@ -1499,8 +1499,8 @@
     "class": "OculusFreezeBehaviour"
    },
    "pixo": {
-    "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonFreezeBehaviour"
+    "ns": "PixoVR.TrainingCore.XRI",
+    "class": "OculusFreezeBehaviour"
    }
   },
   {

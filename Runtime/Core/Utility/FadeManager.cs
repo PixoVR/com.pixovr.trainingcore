@@ -54,6 +54,26 @@ namespace PixoVR.TrainingCore.Utility
             fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
         }
 
+        /// <summary>Fade using explicit settings.</summary>
+        public void FadeCanvasGroup(Settings.FadeSettings settings)
+        {
+            EnsureOverlay();
+            if (settings != null)
+                fadeImage.color = settings.UseCustomColor ? settings.FadeColor : Color.black;
+            float duration = settings?.FadeDuration ?? 0.5f;
+            targetAlpha = settings?.TargetAlpha ?? 1f;
+            if (fadeCoroutine != null)
+                StopCoroutine(fadeCoroutine);
+            fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
+        }
+
+        /// <summary>Fade using explicit settings and invoke a completion callback.</summary>
+        public void FadeCanvasGroup(Settings.FadeSettings settings, System.Action onFadeComplete)
+        {
+            FadeCanvasGroup(settings);
+            onFadeComplete?.Invoke();
+        }
+
         /// <summary>Convenience: fade to black.</summary>
         public void FadeToBlack() => Fade(true);
 
@@ -71,6 +91,30 @@ namespace PixoVR.TrainingCore.Utility
             }
             CurrentOpacity = targetAlpha;
             fadeImage.color = new Color(0f, 0f, 0f, CurrentOpacity);
+        }
+    }
+}
+
+namespace PixoVR.TrainingCore.Utility
+{
+    /// <summary>Freezes a desktop user by disabling UI event systems and pausing time.</summary>
+    public class DesktopFreezeBehaviour : Multiuser.IFreezeBehaviour
+    {
+        /// <inheritdoc/>
+        public override void Freeze()
+        {
+            if (!IsJoiningUser)
+                System.Array.ForEach(EventSystems, x => x.enabled = false);
+            FadeManager.Instance?.FadeCanvasGroup(new Settings.FadeSettings(false, Color.black, IsJoiningUser ? 0f : 0.6f, IsJoiningUser ? 0.0f : 0.8f, true));
+            Time.timeScale = 0;
+        }
+
+        /// <inheritdoc/>
+        public override void Unfreeze()
+        {
+            System.Array.ForEach(EventSystems, x => x.enabled = true);
+            FadeManager.Instance?.FadeCanvasGroup(new Settings.FadeSettings(false, Color.black, 0.6f, 0.0f, true));
+            Time.timeScale = 1;
         }
     }
 }

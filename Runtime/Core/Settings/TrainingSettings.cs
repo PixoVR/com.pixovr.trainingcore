@@ -27,6 +27,16 @@ namespace PixoVR.TrainingCore.Settings
         /// <summary>Defaults.</summary>
         public FadeSettings() { }
 
+        /// <summary>Parameterised ctor.</summary>
+        public FadeSettings(bool useCustomColor, Color fadeColor, float fadeDuration, float targetAlpha, bool useUnscaledTime)
+        {
+            UseCustomColor = useCustomColor;
+            FadeColor = fadeColor;
+            FadeDuration = fadeDuration;
+            TargetAlpha = targetAlpha;
+            UseUnscaledTime = useUnscaledTime;
+        }
+
         /// <summary>Copy ctor.</summary>
         public FadeSettings(FadeSettings copy)
         {

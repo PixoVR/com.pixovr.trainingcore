@@ -12,6 +12,9 @@ namespace PixoVR.TrainingCore.Utility
     {
         private readonly Dictionary<Guid, System.Random> _rngs = new Dictionary<Guid, System.Random>();
 
+        /// <summary>Re-seed all RNGs (clears named generators).</summary>
+        public virtual void ResetRandoms() => _rngs.Clear();
+
         /// <summary>Next value from the anonymous RNG.</summary>
         public double Next() => Next(Guid.Empty);
 

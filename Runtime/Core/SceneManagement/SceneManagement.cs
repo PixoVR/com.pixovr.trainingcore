@@ -80,8 +80,8 @@ namespace PixoVR.TrainingCore.SceneManagement
         /// <summary>Optional editor-only override.</summary>
         public AssetReference EditorEnvrionmentToLoad;
 
-        /// <summary>Set when the environment finished loading.</summary>
-        public bool LoadingDone { get; private set; }
+        /// <summary>Invoked when the environment finished loading.</summary>
+        public Action LoadingDone;
 
         /// <summary>Instantiated environment root.</summary>
         public GameObject EnvironmentObject { get; private set; }
@@ -105,7 +105,7 @@ namespace PixoVR.TrainingCore.SceneManagement
             reference.InstantiateAsync(transform).Completed += handle =>
             {
                 EnvironmentObject = handle.Result;
-                LoadingDone = true;
+                LoadingDone?.Invoke();
             };
         }
 
@@ -116,7 +116,7 @@ namespace PixoVR.TrainingCore.SceneManagement
             {
                 CurrentEnvironment?.ReleaseInstance(EnvironmentObject);
                 EnvironmentObject = null;
-                LoadingDone = false;
+                
             }
         }
     }

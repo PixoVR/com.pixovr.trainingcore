@@ -42,8 +42,7 @@ namespace PixoVR.TrainingCore.XRI
 
         private static int LocalActorNumber()
         {
-            var id = Multiuser.NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer?.Id;
-            return int.TryParse(id, out var n) ? n : -1;
+            return Multiuser.NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer?.Id ?? -1;
         }
 
         private void HandleGrab() => OnGrab?.Invoke(LocalActorNumber());

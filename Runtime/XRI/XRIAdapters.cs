@@ -496,3 +496,41 @@ namespace PixoVR.TrainingCore.XRI
         public virtual void SetFreeze(bool state) => frozen = state;
     }
 }
+
+namespace PixoVR.TrainingCore.XRI
+{
+    /// <summary>Freezes an XR user by disabling the interaction manager and UI event systems.</summary>
+    public class OculusFreezeBehaviour : Multiuser.IFreezeBehaviour
+    {
+        private readonly XRInteractionManager xrInteractionManager;
+
+        /// <summary>Create for a given interaction manager.</summary>
+        public OculusFreezeBehaviour(XRInteractionManager xrIntMan)
+        {
+            xrInteractionManager = xrIntMan;
+        }
+
+        /// <inheritdoc/>
+        public override void Freeze()
+        {
+            if (!IsJoiningUser)
+            {
+                System.Array.ForEach(EventSystems, x => x.enabled = false);
+                if (xrInteractionManager != null)
+                    xrInteractionManager.enabled = false;
+            }
+            Utility.FadeManager.Instance?.FadeCanvasGroup(new PixoVR.TrainingCore.Settings.FadeSettings(false, Color.black, IsJoiningUser ? 0f : 0.6f, IsJoiningUser ? 0.0f : 0.8f, true));
+            Time.timeScale = 0;
+        }
+
+        /// <inheritdoc/>
+        public override void Unfreeze()
+        {
+            System.Array.ForEach(EventSystems, x => x.enabled = true);
+            if (xrInteractionManager != null)
+                xrInteractionManager.enabled = true;
+            Utility.FadeManager.Instance?.FadeCanvasGroup(new PixoVR.TrainingCore.Settings.FadeSettings(false, Color.black, 0.6f, 0.0f, true));
+            Time.timeScale = 1;
+        }
+    }
+}

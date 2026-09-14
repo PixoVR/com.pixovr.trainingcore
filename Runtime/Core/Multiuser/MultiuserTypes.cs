@@ -127,10 +127,25 @@ namespace PixoVR.TrainingCore.Multiuser
     }
 
     /// <summary>Freeze/unfreeze behaviour attached to the local player rig.</summary>
-    public interface IFreezeBehaviour
+    public abstract class IFreezeBehaviour
     {
-        /// <summary>Freeze (true) or release (false) the local player's locomotion.</summary>
-        void FreezePlayer(bool freeze);
+        /// <summary>UI event systems disabled while frozen.</summary>
+        public UnityEngine.EventSystems.EventSystem[] EventSystems { get; set; }
+
+        /// <summary>Whether this user is the newly joining user.</summary>
+        public bool IsJoiningUser { get; set; }
+
+        /// <summary>Freeze the scene.</summary>
+        public abstract void Freeze();
+
+        /// <summary>Unfreeze the scene.</summary>
+        public abstract void Unfreeze();
+
+        /// <summary>Collects all event systems for toggling.</summary>
+        protected IFreezeBehaviour()
+        {
+            EventSystems = UnityEngine.Object.FindObjectsOfType<UnityEngine.EventSystems.EventSystem>();
+        }
     }
 
     /// <summary>Arguments passed to a step's interaction handler (multiuser path).</summary>

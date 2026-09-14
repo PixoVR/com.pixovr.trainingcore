@@ -31,6 +31,30 @@ namespace PixoVR.TrainingCore.Flow
         internal void SetDefaultFailHandlerGuid(string guid) => defaultFailHandlerGuid = guid;
 
         /// <summary>Create a fresh iterator over this data.</summary>
+        /// <summary>Get a main-flow step by breadth-first index from the root.</summary>
+        public StepBase GetStepByIndex(int index)
+        {
+            if (mainFlowRoot == null || index < 0)
+                return null;
+            var visited = new HashSet<StepBase>();
+            var queue = new Queue<StepBase>();
+            queue.Enqueue(mainFlowRoot);
+            int i = 0;
+            while (queue.Count > 0)
+            {
+                var step = queue.Dequeue();
+                if (step == null || !visited.Add(step))
+                    continue;
+                if (i == index)
+                    return step;
+                i++;
+                foreach (var next in step.OutputSteps ?? new List<StepBase>())
+                    if (next != null && !visited.Contains(next))
+                        queue.Enqueue(next);
+            }
+            return null;
+        }
+
         public virtual GraphIterator GetIterator() => new GraphIterator(this);
     }
 
