@@ -28,48 +28,7 @@ namespace PixoVR.TrainingCore.Utility
         public virtual void Unhighlight() => IsHighlighted = false;
     }
 
-    /// <summary>UnityEvent-style invokable scene actions (enable/disable objects).</summary>
-    public class InvokableActions : MonoBehaviour
-    {
-        /// <summary>Activate a GameObject.</summary>
-        public void EnableObjectAction(GameObject target)
-        {
-            if (target != null)
-                target.SetActive(true);
-        }
 
-        /// <summary>Deactivate a GameObject.</summary>
-        public void DisableObjectAction(GameObject target)
-        {
-            if (target != null)
-                target.SetActive(false);
-        }
-    }
-
-    /// <summary>Drives a <see cref="PlayableDirector"/> to the start/end of a timeline.</summary>
-    public class TimelineMiddleman : MonoBehaviour
-    {
-        /// <summary>The bound director.</summary>
-        [SerializeField]
-        private PlayableDirector TargetDirector;
-
-        /// <summary>Resume playback.</summary>
-        public virtual void Play() => TargetDirector?.Play();
-
-        /// <summary>Jump to the first frame.</summary>
-        public virtual void SetToStart()
-        {
-            if (TargetDirector != null)
-                TargetDirector.time = 0;
-        }
-
-        /// <summary>Jump to the last frame.</summary>
-        public virtual void SetToEnd()
-        {
-            if (TargetDirector != null && TargetDirector.playableAsset != null)
-                TargetDirector.time = TargetDirector.playableAsset.duration;
-        }
-    }
 
     /// <summary>Static timeline helpers: play, jump to first/last frame.</summary>
     public static class TimelinePlayer

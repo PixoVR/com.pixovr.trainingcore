@@ -316,42 +316,5 @@ namespace PixoVR.TrainingCore.Apex
         }
     }
 
-    /// <summary>Configuration for <see cref="ApexPlatformSession"/> — holds no secrets.</summary>
-    [CreateAssetMenu(fileName = "ApexCredentialsConfig", menuName = "TrainingCore/Apex Credentials Config")]
-    public class ApexCredentialsConfig : ScriptableObject
-    {
-        /// <summary>Apex scenario id.</summary>
-        public string ScenarioId;
 
-        /// <summary>Device serial used by QuickID login.</summary>
-        public string DeviceSerialNumber;
-
-        /// <summary>Scenario name (informational).</summary>
-        public string ScenarioName;
-
-        /// <summary>Optional login token override.</summary>
-        public string Token;
-    }
-
-    /// <summary>Installs an <see cref="ApexPlatformSession"/> as the active <see cref="PlatformSessionBase.Instance"/>.</summary>
-    public class ApexPlatformBootstrap : MonoBehaviour
-    {
-        /// <summary>The session component to install.</summary>
-        public ApexPlatformSession Session;
-
-        /// <summary>Optional config asset to apply.</summary>
-        public ApexCredentialsConfig Config;
-
-        private void Awake()
-        {
-            var session = Session != null ? Session : GetComponent<ApexPlatformSession>();
-            if (session == null)
-            {
-                session = gameObject.AddComponent<ApexPlatformSession>();
-            }
-            if (Config != null)
-                session.Config = Config;
-            // PlatformSessionBase.Awake sets Instance; ensure this component exists before the flow starts.
-        }
-    }
 }
