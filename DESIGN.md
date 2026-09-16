@@ -6,9 +6,10 @@ read `BEHAVIOUR.md`/`GRAPH-FORMAT.md`/stubs to learn what a type must do and whi
 fresh code. Never paste decompiled bodies.
 
 ## Targets & dependencies
-- Unity **6000.3.15f1** (`"unity": "6000.3"`), C# 9, `PixoVR.TrainingCore` root namespace.
-- Hard deps (package.json `dependencies`): `com.unity.inputsystem` 1.20.0, `com.unity.nuget.newtonsoft-json` 3.2.1,
-  `com.unity.addressables` 2.10.3, `com.unity.timeline` 1.8.13, `com.unity.ugui` 2.0.0,
+- Unity **2021.3 LTS** (`"unity": "2021.3"`, matching the apexunitysdk 2021.1 minimum), C# 9, `PixoVR.TrainingCore` root namespace.
+- Hard deps (package.json `dependencies`): `com.unity.inputsystem` 1.15.0, `com.unity.nuget.newtonsoft-json` 3.2.1,
+  `com.unity.addressables` 1.28.0, `com.unity.timeline` 1.8.9, `com.unity.textmeshpro` 3.0.9
+  (ugui is a built-in module on 2021.3; ugui 2.0.0 exists only on Unity 6),
   NodeGraphProcessor via git URL `https://github.com/alelievr/NodeGraphProcessor.git?path=/Assets/com.alelievr.NodeGraphProcessor#1.3.1`
   (git deps can't go in `dependencies`; document in README and provide `Samples~`/`manifest` snippet; asmdef references it by name).
 - Required deps: Apex SDK (`com.pixovr.apexunitysdk` — added by the consuming project's manifest
@@ -135,6 +136,6 @@ namespace PixoVR.TrainingCore.Interactions { /* InteractableBase : MonoBehaviour
 - `LuminousMigrator.MigrateProject(root)`: for every `.unity/.prefab/.asset` YAML, replace `m_Script: {fileID: <luminousFileID>, guid: <any of the 5 dll guids>, type: 3}` with `{fileID: 11500000, guid: <ours>, type: 3}`; rewrite managed-reference `type:` blocks; report unmapped. Also removes `com.luminous.*` from manifest.json and the Luminous scoped registry. Runnable from menu `Pixo/Training Core/Migrate from Luminous…` and from batchmode (`-executeMethod PixoVR.TrainingCore.Editor.Migration.LuminousMigrator.RunFromCommandLine`).
 
 ## Verification (no Unity license on the box)
-- `~/unity-harness/build.sh <dir>` compiles each asmdef folder against Unity 6000.3.15f1 DLLs + deps; 0 errors required per asmdef.
+- `~/unity-harness/build.sh <dir>` compiles each asmdef folder against Unity 2021.3 DLLs + deps; 0 errors required per asmdef.
 - Pure-logic NUnit tests (GuidRegistry, EventBus, CommandHistory, GraphIterator, GraphParser on a fixture graph, LuminousMigrator on fixture YAML) run with `dotnet test` in the harness.
 - Full Unity import/compile/play verification happens in the sa-collect-gas-sample upgrade PR.

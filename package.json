@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "displayName": "PixoVR Training Core",
   "description": "Clean re-implementation of the LuminousCore training runtime: guid identity, event bus, undoable commands, interaction middlemen, session/platform layer, multiuser abstractions, step-graph runtime.",
-  "unity": "6000.3",
+  "unity": "2021.3",
   "documentationUrl": "https://github.com/PixoVR/com.pixovr.trainingcore",
   "changelogUrl": "https://github.com/PixoVR/com.pixovr.trainingcore/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/PixoVR/com.pixovr.trainingcore/blob/main/LICENSE.md",
@@ -24,10 +24,10 @@
   "type": "library",
   "dependencies": {
     "com.pixovr.apexunitysdk": "1.8.0",
-    "com.unity.inputsystem": "1.20.0",
+    "com.unity.inputsystem": "1.15.0",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
-    "com.unity.addressables": "2.10.3",
-    "com.unity.timeline": "1.8.13",
-    "com.unity.ugui": "2.0.0"
+    "com.unity.addressables": "1.28.0",
+    "com.unity.timeline": "1.8.9",
+    "com.unity.textmeshpro": "3.0.9"
   }
 }

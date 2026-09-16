@@ -31,19 +31,20 @@ namespace PixoVR.TrainingCore.Editor.Migration
         public string[] Extensions = { ".unity", ".prefab", ".asset", ".playable", ".controller" };
 
         /// <summary>Manifest dependency version for Addressables.</summary>
-        public string AddressablesVersion = "2.10.3";
+        public string AddressablesVersion = "1.28.0";
 
         /// <summary>Manifest dependency version for the Input System.</summary>
-        public string InputSystemVersion = "1.20.0";
+        public string InputSystemVersion = "1.15.0";
 
         /// <summary>Manifest dependency version for Newtonsoft Json.</summary>
         public string NewtonsoftVersion = "3.2.1";
 
         /// <summary>Manifest dependency version for Timeline.</summary>
-        public string TimelineVersion = "1.8.13";
+        public string TimelineVersion = "1.8.9";
 
-        /// <summary>Manifest dependency version for ugui/TMP.</summary>
-        public string UguiVersion = "2.0.0";
+        /// <summary>Manifest dependency version for TextMeshPro (ugui is a built-in
+        /// 1.0.0 module on Unity 2021.3, so TMP ships as a separate package).</summary>
+        public string TextMeshProVersion = "3.0.9";
 
         /// <summary>NodeGraphProcessor git dependency spec.</summary>
         public string NodeGraphProcessorDependency =
@@ -88,7 +89,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 deps["com.unity.inputsystem"] = options.InputSystemVersion;
                 deps["com.unity.nuget.newtonsoft-json"] = options.NewtonsoftVersion;
                 deps["com.unity.timeline"] = options.TimelineVersion;
-                deps["com.unity.ugui"] = options.UguiVersion;
+                deps["com.unity.textmeshpro"] = options.TextMeshProVersion;
                 deps["com.alelievr.node-graph-processor"] = options.NodeGraphProcessorDependency;
             }
 

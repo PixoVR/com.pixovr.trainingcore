@@ -1,7 +1,8 @@
 # PixoVR Training Core
 
 Pixo-owned re-implementation of the LuminousCore training stack (`com.luminous.core` DLLs +
-`com.luminous.core.middlemen*`), targeting Unity **6000.3.15f1**.
+`com.luminous.core.middlemen*`), targeting Unity **2021.3 LTS** (matching the
+`com.pixovr.apexunitysdk` minimum of 2021.1).
 
 Provides: per-object GUID identity, an interaction event bus, undoable command history,
 platform-agnostic interaction middlemen (grab/snap/tap/teleport/valve/gaze), a platform
@@ -14,7 +15,7 @@ step-graph runtime (wave 2).
    `Packages/manifest.json`:
 
    ```json
-   "com.alelievr.node-graph-processor": "https://github.com.alelievr.node-graph-processor.git?path=/Assets/com.alelievr.node-graph-processor#1.3.1",
+   "com.alelievr.node-graph-processor": "https://github.com/alelievr/NodeGraphProcessor.git?path=/Assets/com.alelievr.NodeGraphProcessor#1.3.1",
    "com.pixovr.apexunitysdk": "https://github.com/PixoVR/com.pixovr.apexunitysdk.git",
    "com.pixovr.trainingcore": "https://github.com/PixoVR/com.pixovr.trainingcore.git",
    ```
@@ -31,7 +32,7 @@ step-graph runtime (wave 2).
    | Package | define | Enables |
    |---|---|---|
    | Photon PUN2 (`PHOTON_UNITY_NETWORKING`) | asmdef `defineConstraints` | `Runtime/Photon` networking layer |
-   | `com.unity.xr.interaction.toolkit` 3.x | `PIXO_XRI` (versionDefine) | `Runtime/XRI` interaction behaviours |
+   | `com.unity.xr.interaction.toolkit` 3.x (pin 3.0.8 on 2021.3 — later 3.0.x patches require Unity 6000) | `PIXO_XRI` (versionDefine) | `Runtime/XRI` interaction behaviours |
    | HighlightPlus (Asset Store asset, project-owned) | `HIGHLIGHT_PLUS` scripting define + asmdef named `HighlightPlus` | `Runtime/Highlight` `HighlightPlusHighlighter` |
 
 HighlightPlus is a licensed Asset Store asset — it is **not** part of this package. Drop it into
