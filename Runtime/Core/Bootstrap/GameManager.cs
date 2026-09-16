@@ -43,15 +43,24 @@ namespace PixoVR.TrainingCore
             base.Awake();
             if (NetworkManager.InstanceExists)
                 NetworkManager.Instance.ResetRandoms();
+            else if (RandomManager.InstanceExists)
+                RandomManager.Instance.ResetRandoms();
         }
 
-        private IEnumerator Start()
-        {
-            yield return StartupRoutine(GameModeManager.CurrentMode);
-        }
+        private void Start() => Launch();
 
         /// <summary>Re-run the startup sequence.</summary>
-        public void Relaunch() => StartCoroutine(Start());
+        public void Relaunch() => Launch();
+
+        private Coroutine startupCoroutine;
+
+        private void Launch()
+        {
+            if (startupCoroutine != null)
+                StopCoroutine(startupCoroutine);
+            Started = false;
+            startupCoroutine = StartCoroutine(StartupRoutine(GameModeManager.CurrentMode));
+        }
 
         /// <summary>Initialise the step counter for a new run.</summary>
         public void InitializeStepCounter(int startStep = 0)
@@ -64,9 +73,14 @@ namespace PixoVR.TrainingCore
         public IEnumerator StartupRoutine(GameMode mode)
         {
             if (FadeManager.InstanceExists)
+            {
                 FadeManager.Instance.FadeToBlack();
+                yield return new WaitForSeconds(FadeDuration);
+            }
             else
+            {
                 Log.Warning("Missing fade manager.", LogCategory.GameManagerLogic);
+            }
 
             if (FlowManager == null)
                 FlowManager = FindObjectOfType<GraphFlowManager>();
@@ -83,7 +97,8 @@ namespace PixoVR.TrainingCore
 
             if (EnvironmentLoader == null)
                 EnvironmentLoader = FindObjectOfType<EnvironmentLoader>();
-            if (EnvironmentLoader != null && EnvironmentLoader.CurrentEnvironment != null &&
+            if (EnvironmentLoader != null && EnvironmentLoader.EnvironmentObject == null &&
+                EnvironmentLoader.CurrentEnvironment != null &&
                 EnvironmentLoader.CurrentEnvironment.RuntimeKeyIsValid())
             {
                 var loaded = false;

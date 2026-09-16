@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +13,7 @@ namespace PixoVR.TrainingCore.Tests
             var m = typeof(GameManager).GetMethod("Start",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             Assert.IsNotNull(m, "missing non-public Start");
-            Assert.AreEqual(typeof(IEnumerator), m.ReturnType);
+            Assert.AreEqual(typeof(void), m.ReturnType);
         }
 
         [Test]

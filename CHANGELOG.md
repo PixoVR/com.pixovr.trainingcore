@@ -4,8 +4,10 @@
 ### Fixed
 - `GameManager` now runs the startup sequence from `Start` (fade to black, environment
   load wait, `OnInitalSetUp`, step-counter init, `FlowManager.Initialize`/`StartGraph`,
-  network-sync wait, fade to clear) and exposes `Relaunch()`. `EventBus` is intentionally
-  not reset there: scene `ObservableSubject`s register in `OnEnable` before `Start` runs.
+  network-sync wait, fade to clear) and exposes `Relaunch()`; overlapping launches are
+  cancelled, only one environment is instantiated, and `NetworkManager.ResetRandoms`
+  delegates to `RandomManager`. `EventBus` is intentionally not reset there: scene
+  `ObservableSubject`s register in `OnEnable` before `Start` runs.
 - Scene loading no longer destroys the boot scene: `SceneLoading.Load` always loads
   additively and only unloads scenes it previously loaded, keeping the Unity-booted
   scene (PlatformSessionBehaviour, NetworkManager, XR rig) resident — matching the
