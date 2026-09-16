@@ -225,15 +225,33 @@ namespace PixoVR.TrainingCore.Flow
                 return;
             }
             GraphFlowManager.Instance.Tick += OnTick;
+            subscribed = true;
             OnTick();
         }
 
         /// <inheritdoc/>
         public override void OnExit()
         {
+            UnsubscribeTick();
+            base.OnExit();
+        }
+
+        /// <inheritdoc/>
+        public override void UnregisterListeners()
+        {
+            UnsubscribeTick();
+            base.UnregisterListeners();
+        }
+
+        private bool subscribed;
+
+        private void UnsubscribeTick()
+        {
+            if (!subscribed)
+                return;
+            subscribed = false;
             if (GraphFlowManager.InstanceExists)
                 GraphFlowManager.Instance.Tick -= OnTick;
-            base.OnExit();
         }
 
         private void OnTick()
@@ -243,7 +261,10 @@ namespace PixoVR.TrainingCore.Flow
                 return;
             var target = useTransform && locationTransform != null ? locationTransform.position : location;
             if (Vector3.Distance(camera.transform.position, target) <= validDistance)
+            {
+                UnsubscribeTick();
                 OnStepCompleted();
+            }
         }
 
         /// <inheritdoc/>
