@@ -351,7 +351,8 @@ namespace PixoVR.TrainingCore.Commands
         }
 
         /// <inheritdoc/>
-        public override CommandBase GetInverse() => new FadeCommand(new FadeSettings(Settings));
+        public override CommandBase GetInverse() =>
+            new FadeCommand(new FadeSettings(Settings) { TargetAlpha = captured ? initialOpacity : 0f });
     }
 
     /// <summary>Record-only marker for a float property change (used by undo history).</summary>
@@ -422,33 +423,5 @@ namespace PixoVR.TrainingCore.Commands
 
         /// <inheritdoc/>
         public override string ToString() => $"GenericInteraction {Args?.EventId} on {SubjectId}";
-    }
-
-    /// <summary>Test-only command invoking a callback with the new value (parity with Luminous's test helper).</summary>
-    [Serializable]
-    public sealed class TestCommand : CommandBase
-    {
-        /// <summary>Invoked on execute with the new value.</summary>
-        public Action<int> callback;
-        /// <summary>New value.</summary>
-        public int newVal;
-        /// <summary>Old value.</summary>
-        public int oldVal;
-
-        /// <summary>Initializes the command.</summary>
-        public TestCommand(int newVal, int oldVal) : base(string.Empty)
-        {
-            this.newVal = newVal;
-            this.oldVal = oldVal;
-        }
-
-        /// <inheritdoc/>
-        public override void Execute() => callback?.Invoke(newVal);
-
-        /// <inheritdoc/>
-        public override void Unexecute() => callback?.Invoke(oldVal);
-
-        /// <inheritdoc/>
-        public override string ToString() => $"TestCommand {oldVal} -> {newVal}";
     }
 }

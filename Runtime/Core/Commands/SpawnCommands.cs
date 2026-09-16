@@ -142,7 +142,9 @@ namespace PixoVR.TrainingCore.Commands
 
         public SpawnHandCoachCommand(Interactions.HandCoachBase prefab, Transform spawnLocation,
             string animationName, float startDelay)
-            : base(prefab != null ? prefab.gameObject : null)
+            : base(prefab != null ? prefab.gameObject : null, null,
+                spawnLocation != null ? spawnLocation.position : default,
+                spawnLocation != null ? spawnLocation.rotation : Quaternion.identity)
         {
             SpawnLocation = spawnLocation;
             AnimationName = animationName;

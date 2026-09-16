@@ -1082,16 +1082,6 @@
     "ns": "PixoVR.TrainingCore.Interactions",
     "class": "HandCoachBase"
    }
-  },
-  {
-   "luminous": {
-    "ns": "Luminous.Core.Command",
-    "class": "TestCommand"
-   },
-   "pixo": {
-    "ns": "PixoVR.TrainingCore.Commands",
-    "class": "TestCommand"
-   }
   }
  ],
  "scripts": [
