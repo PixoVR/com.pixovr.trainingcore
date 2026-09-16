@@ -150,12 +150,40 @@ namespace PixoVR.TrainingCore.Flow
             return result;
         }
 
+        /// <summary>
+        /// Replace conditionals with their inputs (recursively) so that stepping backwards never
+        /// lands on a pass-through conditional.
+        /// </summary>
+        private List<StepBase> Collapse(List<StepBase> steps)
+        {
+            var result = new List<StepBase>();
+            var visited = new HashSet<StepBase>();
+            var queue = new Queue<StepBase>(steps ?? new List<StepBase>());
+            while (queue.Count > 0)
+            {
+                var s = queue.Dequeue();
+                if (s == null || !visited.Add(s))
+                    continue;
+                if (s is ConditionalStepBase conditional)
+                {
+                    foreach (var i in conditional.InputSteps)
+                        if (i != null)
+                            queue.Enqueue(i);
+                }
+                else
+                {
+                    result.Add(s);
+                }
+            }
+            return result;
+        }
+
         /// <summary>Rewind all current steps to their inputs.</summary>
         public void PreviousSteps()
         {
             var prev = CurrentSteps.SelectMany(s => s?.InputSteps ?? new List<StepBase>())
                 .Where(s => s != null).Distinct().ToList();
-            SetCurrentSteps(prev);
+            SetCurrentSteps(Collapse(prev));
         }
 
         /// <summary>Force the active step set.</summary>

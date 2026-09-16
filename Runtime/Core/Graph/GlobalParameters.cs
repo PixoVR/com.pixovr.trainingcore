@@ -64,7 +64,7 @@ namespace PixoVR.TrainingCore.Graph
                 }
             }
 
-            if (param.GetValueType().IsValueType)
+            if (value == null && param.GetValueType().IsValueType)
                 value = Activator.CreateInstance(param.GetValueType());
             param.Initialize(name, value);
             Data.Add(new GlobalParameter(param));

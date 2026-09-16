@@ -533,6 +533,7 @@ namespace PixoVR.TrainingCore.Flow
             UnregisterListeners();
             foreach (var step in GroupedSteps)
                 step?.OnExit();
+            displayShown = false;
             base.OnExit();
         }
 

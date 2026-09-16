@@ -22,10 +22,24 @@ namespace PixoVR.TrainingCore.Graph
         public GlobalParameterManager()
         {
             parameters = Resources.Load<GlobalParameters>(GlobalParameterFileName);
+            CaptureInitialValues();
         }
 
         /// <summary>Inject a parameters asset (tests / non-Resources setups).</summary>
-        public void SetParameters(GlobalParameters globalParameters) => parameters = globalParameters;
+        public void SetParameters(GlobalParameters globalParameters)
+        {
+            parameters = globalParameters;
+            CaptureInitialValues();
+        }
+
+        private void CaptureInitialValues()
+        {
+            if (parameters?.Data == null)
+                return;
+            foreach (var entry in parameters.Data)
+                if (entry?.Parameter != null && entry.InitialValue == null)
+                    entry.InitialValue = entry.Parameter.value;
+        }
 
         /// <summary>The loaded asset (may be null).</summary>
         public GlobalParameters Parameters => parameters;
@@ -36,7 +50,7 @@ namespace PixoVR.TrainingCore.Graph
             if (parameters?.Data == null)
                 return;
             foreach (var entry in parameters.Data)
-                if (entry?.Parameter != null)
+                if (entry?.Parameter != null && entry.InitialValue != null)
                     entry.Parameter.value = entry.InitialValue;
         }
 

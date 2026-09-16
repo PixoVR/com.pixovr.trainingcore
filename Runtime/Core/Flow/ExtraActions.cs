@@ -410,7 +410,7 @@ namespace PixoVR.TrainingCore.Flow
             relativeToTransform = node.TargetTransform;
             settings = node.PlacerSettings;
             completeColor = node.CompleteColor;
-            placer = node.Placer != null ? node.Placer : UnityEngine.Object.FindFirstObjectByType<Utility.Display.ArrowPlacer>();
+            placer = node.Placer != null ? node.Placer : UnityEngine.Object.FindObjectOfType<Utility.Display.ArrowPlacer>();
         }
 
         /// <inheritdoc/>
