@@ -52,6 +52,9 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Whether a user is logged in to the platform (not a session join).</summary>
         bool IsLoggedIn { get; }
 
+        /// <summary>Clears the logged-in user state (no SDK logout exists).</summary>
+        void ClearUser();
+
         /// <summary>Fetch the org modules available to the current user.</summary>
         void GetCurrentUserModules(System.Action<bool, System.Collections.Generic.IReadOnlyList<OrgModule>> done);
     }
@@ -69,7 +72,13 @@ namespace PixoVR.TrainingCore.Apex
         public string UserId { get; private set; }
 
         /// <inheritdoc/>
-        public bool IsLoggedIn => ApexSystem.CurrentUser != null || !string.IsNullOrEmpty(UserId);
+        public bool IsLoggedIn => !string.IsNullOrEmpty(UserId);
+
+        /// <inheritdoc/>
+        public void ClearUser()
+        {
+            UserId = null;
+        }
 
         /// <inheritdoc/>
         public void Login(string user, string pass, Action<bool, string> done)
@@ -456,8 +465,10 @@ namespace PixoVR.TrainingCore.Apex
         /// <inheritdoc/>
         public override Task DisconnectAsync()
         {
-            InvokeDisconnected();
+            _userId = null;
             _sessionId = null;
+            Client?.ClearUser();
+            InvokeDisconnected();
             return Task.CompletedTask;
         }
     }
