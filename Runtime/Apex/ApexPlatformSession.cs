@@ -196,25 +196,37 @@ namespace PixoVR.TrainingCore.Apex
                         }
                     }
                 }
-                instance.OnGetUserModulesSuccess.RemoveListener(onIds);
+                DetachIds();
                 Finish();
             };
             onIdsFail = _ =>
             {
-                instance.OnGetUserModulesFailed.RemoveListener(onIdsFail);
+                DetachIds();
                 Finish();
             };
             onMods = list =>
             {
                 all = list;
-                instance.OnGetOrganizationModulesSuccess.RemoveListener(onMods);
+                DetachMods();
                 Finish();
             };
             onModsFail = _ =>
             {
-                instance.OnGetOrganizationModulesFailed.RemoveListener(onModsFail);
+                DetachMods();
                 Finish();
             };
+
+            void DetachIds()
+            {
+                instance.OnGetUserModulesSuccess.RemoveListener(onIds);
+                instance.OnGetUserModulesFailed.RemoveListener(onIdsFail);
+            }
+
+            void DetachMods()
+            {
+                instance.OnGetOrganizationModulesSuccess.RemoveListener(onMods);
+                instance.OnGetOrganizationModulesFailed.RemoveListener(onModsFail);
+            }
 
             instance.OnGetUserModulesSuccess.AddListener(onIds);
             instance.OnGetUserModulesFailed.AddListener(onIdsFail);
@@ -223,14 +235,12 @@ namespace PixoVR.TrainingCore.Apex
 
             if (!ApexSystem.GetCurrentUserModules())
             {
-                instance.OnGetUserModulesSuccess.RemoveListener(onIds);
-                instance.OnGetUserModulesFailed.RemoveListener(onIdsFail);
+                DetachIds();
                 Finish();
             }
             if (!ApexSystem.GetModulesList(null))
             {
-                instance.OnGetOrganizationModulesSuccess.RemoveListener(onMods);
-                instance.OnGetOrganizationModulesFailed.RemoveListener(onModsFail);
+                DetachMods();
                 Finish();
             }
         }
