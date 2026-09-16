@@ -11,6 +11,7 @@ namespace PixoVR.TrainingCore.Utility
         private Image fadeImage;
         private Coroutine fadeCoroutine;
         private float targetAlpha;
+        private System.Action pendingCallback;
 
         /// <summary>Current overlay opacity (0–1).</summary>
         public float CurrentOpacity { get; private set; }
@@ -49,29 +50,32 @@ namespace PixoVR.TrainingCore.Utility
             var settings = TrainingConfig.Instance != null ? TrainingConfig.Instance.FadeSettings : null;
             float duration = settings != null ? settings.FadeDuration : 0.5f;
             targetAlpha = toBlack ? 1f : 0f;
-            if (fadeCoroutine != null)
-                StopCoroutine(fadeCoroutine);
-            fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
+            StartFade(duration, null);
         }
 
         /// <summary>Fade using explicit settings.</summary>
-        public void FadeCanvasGroup(Settings.FadeSettings settings)
+        public void FadeCanvasGroup(Settings.FadeSettings settings) => FadeCanvasGroup(settings, null);
+
+        /// <summary>Fade using explicit settings and invoke a completion callback once the target alpha is reached.</summary>
+        public void FadeCanvasGroup(Settings.FadeSettings settings, System.Action onFadeComplete)
         {
             EnsureOverlay();
             if (settings != null)
                 fadeImage.color = settings.UseCustomColor ? settings.FadeColor : Color.black;
             float duration = settings?.FadeDuration ?? 0.5f;
             targetAlpha = settings?.TargetAlpha ?? 1f;
-            if (fadeCoroutine != null)
-                StopCoroutine(fadeCoroutine);
-            fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
+            StartFade(duration, onFadeComplete);
         }
 
-        /// <summary>Fade using explicit settings and invoke a completion callback.</summary>
-        public void FadeCanvasGroup(Settings.FadeSettings settings, System.Action onFadeComplete)
+        /// <summary>Starts a new fade; a fade that gets replaced fires its callback immediately so waiting steps never hang.</summary>
+        private void StartFade(float duration, System.Action onFadeComplete)
         {
-            FadeCanvasGroup(settings);
-            onFadeComplete?.Invoke();
+            if (fadeCoroutine != null)
+                StopCoroutine(fadeCoroutine);
+            var replaced = pendingCallback;
+            pendingCallback = onFadeComplete;
+            replaced?.Invoke();
+            fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
         }
 
         /// <summary>Convenience: fade to black.</summary>
@@ -80,17 +84,27 @@ namespace PixoVR.TrainingCore.Utility
         /// <summary>Convenience: fade back to clear.</summary>
         public void FadeToClear() => Fade(false);
 
+        private void SetOpacity(float alpha)
+        {
+            CurrentOpacity = alpha;
+            var color = fadeImage.color;
+            color.a = alpha;
+            fadeImage.color = color;
+        }
+
         private IEnumerator FadeCoroutine(float duration)
         {
             float start = CurrentOpacity;
             for (float t = 0f; t < duration; t += Time.deltaTime)
             {
-                CurrentOpacity = Mathf.Lerp(start, targetAlpha, t / duration);
-                fadeImage.color = new Color(0f, 0f, 0f, CurrentOpacity);
+                SetOpacity(Mathf.Lerp(start, targetAlpha, t / duration));
                 yield return null;
             }
-            CurrentOpacity = targetAlpha;
-            fadeImage.color = new Color(0f, 0f, 0f, CurrentOpacity);
+            SetOpacity(targetAlpha);
+            fadeCoroutine = null;
+            var callback = pendingCallback;
+            pendingCallback = null;
+            callback?.Invoke();
         }
     }
 }

@@ -19,11 +19,22 @@ namespace PixoVR.TrainingCore.Graph
         [NonSerialized]
         public object InitialValue;
 
+        /// <summary>Whether <see cref="InitialValue"/> has been captured (a captured value may legitimately be null).</summary>
+        [NonSerialized]
+        public bool HasInitialValue;
+
         /// <summary>Create from a parameter (captures its current value).</summary>
         public GlobalParameter(ExposedParameter parameter)
         {
             Parameter = parameter;
-            InitialValue = parameter?.value;
+            CaptureInitialValue();
+        }
+
+        /// <summary>Record the parameter's current value as the reset target.</summary>
+        public void CaptureInitialValue()
+        {
+            InitialValue = Parameter?.value;
+            HasInitialValue = Parameter != null;
         }
 
         /// <summary>Parameterless ctor for serialization.</summary>
