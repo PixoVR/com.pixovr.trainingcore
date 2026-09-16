@@ -9,6 +9,7 @@ using PixoVR.TrainingCore.Interactions;
 using PixoVR.TrainingCore.Settings;
 using PixoVR.TrainingCore.Utility.Display;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace PixoVR.TrainingCore.Graph
 {
@@ -225,7 +226,12 @@ namespace PixoVR.TrainingCore.Graph
     }
 
     /// <summary>Step node that branches (conditional).</summary>
-    public abstract class ConditionalStepNode : StepBaseNode { }
+    public abstract class ConditionalStepNode : StepBaseNode
+    {
+        /// <summary>Branch key → output nodes (default: single branch 0 = all outputs).</summary>
+        public virtual IEnumerable<(int key, IEnumerable<StepBaseNode> nodes)> GetOutputBranches() =>
+            new List<(int, IEnumerable<StepBaseNode>)> { (0, GetStepOutputs()) };
+    }
 
     /// <summary>Conditional whose outputs are chosen dynamically at runtime.</summary>
     public abstract class DynamicConditionalStepNode : ConditionalStepNode
@@ -234,11 +240,109 @@ namespace PixoVR.TrainingCore.Graph
         [Input(name = "Start", allowMultiple = true)]
         public ExecutionLink executed;
 
+        /// <summary>Dynamic output port 1.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes1")]
+        public ExecutionLink Executes1;
+
+        /// <summary>Dynamic output port 2.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes2")]
+        public ExecutionLink Executes2;
+
+        /// <summary>Dynamic output port 3.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes3")]
+        public ExecutionLink Executes3;
+
+        /// <summary>Dynamic output port 4.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes4")]
+        public ExecutionLink Executes4;
+
+        /// <summary>Dynamic output port 5.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes5")]
+        public ExecutionLink Executes5;
+
+        /// <summary>Dynamic output port 6.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes6")]
+        public ExecutionLink Executes6;
+
+        /// <summary>Dynamic output port 7.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes7")]
+        public ExecutionLink Executes7;
+
+        /// <summary>Dynamic output port 8.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes8")]
+        public ExecutionLink Executes8;
+
+        /// <summary>Dynamic output port 9.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes9")]
+        public ExecutionLink Executes9;
+
+        /// <summary>Dynamic output port 10.</summary>
+        [Output(allowMultiple = true)]
+        [FormerlySerializedAs("executes10")]
+        public ExecutionLink Executes10;
+
+        /// <summary>Bookkeeping for the dynamic ports.</summary>
+        [HideInInspector]
+        [SerializeField]
+        public List<DynamicPort> DynamicPorts;
+
+        /// <summary>Number of bound ports.</summary>
+        public int UsedPorts => GetUsedPorts().Count();
+
         /// <inheritdoc/>
         public override IEnumerable<StepBaseNode> GetInputFlowNodes() => GetNodesOnPort<StepBaseNode>("executed", false);
 
         /// <summary>Pick the output nodes at runtime.</summary>
         public abstract IEnumerable<StepBaseNode> ChooseOutputNodes();
+
+        /// <summary>All dynamic ports (lazily initialized).</summary>
+        public IEnumerable<DynamicPort> GetAllDynamicPorts() =>
+            DynamicPorts ??= Enumerable.Range(1, 10).Select(i => new DynamicPort($"Executes{i}")).ToList();
+
+        /// <summary>Bound dynamic ports.</summary>
+        public IEnumerable<DynamicPort> GetUsedPorts() => GetAllDynamicPorts().Where(p => p.IsUsed());
+
+        /// <summary>First unbound port.</summary>
+        protected DynamicPort GetFreePort() => GetAllDynamicPorts().FirstOrDefault(p => !p.IsUsed());
+
+        /// <summary>Bind a free port; false when all are taken.</summary>
+        public bool TryBindFreePort(out DynamicPort port)
+        {
+            port = GetFreePort();
+            port?.Bind();
+            return port != null;
+        }
+
+        /// <summary>Outputs wired to a dynamic port.</summary>
+        public IEnumerable<StepBaseNode> GetStepOutputs(DynamicPort port) =>
+            port == null ? Enumerable.Empty<StepBaseNode>() : GetNodesOnPort<StepBaseNode>(port.FieldName);
+
+        /// <inheritdoc/>
+        public override IEnumerable<StepBaseNode> GetStepOutputs() =>
+            GetUsedPorts().SelectMany(GetStepOutputs);
+
+        /// <summary>Free one port by field name.</summary>
+        public void ResetPort(string fieldName) =>
+            GetAllDynamicPorts().FirstOrDefault(d => d.FieldName == fieldName)?.Reset();
+
+        /// <summary>Free all ports.</summary>
+        public void ResetPorts() => GetAllDynamicPorts().ToList().ForEach(p => p.Reset());
+
+        /// <inheritdoc/>
+        public override void OnNodeCreated()
+        {
+            base.OnNodeCreated();
+            DynamicPorts ??= GetAllDynamicPorts().ToList();
+        }
     }
 
     /// <summary>Conditional node whose outputs map to enum values via dynamic ports.</summary>
@@ -259,5 +363,11 @@ namespace PixoVR.TrainingCore.Graph
                 return GetNodesOnPort<StepBaseNode>(port.FieldName);
             return Enumerable.Empty<StepBaseNode>();
         }
+
+        /// <inheritdoc/>
+        public override IEnumerable<(int key, IEnumerable<StepBaseNode> nodes)> GetOutputBranches() =>
+            enumToPortDictionary
+                .Select(kv => (kv.Key, GetStepOutputsFor(kv.Key)))
+                .ToList();
     }
 }

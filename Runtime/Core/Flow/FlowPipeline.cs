@@ -89,6 +89,9 @@ namespace PixoVR.TrainingCore.Flow
         private readonly List<Action<StepBase>> onStepEntered = new List<Action<StepBase>>();
         private readonly List<Action<StepBase>> onStepExited = new List<Action<StepBase>>();
 
+        /// <summary>Per conditional: the input steps actually traversed into it, so rewinding follows the real path.</summary>
+        private readonly Dictionary<StepBase, HashSet<StepBase>> conditionalPredecessors = new Dictionary<StepBase, HashSet<StepBase>>();
+
         /// <summary>Create an iterator over data.</summary>
         public GraphIterator(GraphData graphData) => Data = graphData;
 
@@ -96,7 +99,7 @@ namespace PixoVR.TrainingCore.Flow
         public void StartIterator()
         {
             Started = true;
-            SetCurrentSteps(new List<StepBase> { Data.mainFlowRoot });
+            SetCurrentSteps(Expand(new List<StepBase> { Data.mainFlowRoot }));
         }
 
         /// <summary>Restart from the root.</summary>
@@ -107,15 +110,100 @@ namespace PixoVR.TrainingCore.Flow
             VisitedNodes.Clear();
             currentStepGuids.Clear();
             visitedStepGuids.Clear();
-            SetCurrentSteps(new List<StepBase> { Data.mainFlowRoot });
+            conditionalPredecessors.Clear();
+            SetCurrentSteps(Expand(new List<StepBase> { Data.mainFlowRoot }));
         }
 
         /// <summary>Advance all current steps to their outputs.</summary>
         public void NextSteps()
         {
-            var next = CurrentSteps.SelectMany(s => s?.OutputSteps ?? new List<StepBase>())
-                .Where(s => s != null).Distinct().ToList();
-            SetCurrentSteps(next);
+            var next = new List<StepBase>();
+            foreach (var s in CurrentSteps.Where(s => s != null))
+                foreach (var o in s.GetStepOutputs() ?? new List<StepBase>())
+                {
+                    if (o == null)
+                        continue;
+                    RecordPredecessor(o, s);
+                    if (!next.Contains(o))
+                        next.Add(o);
+                }
+            SetCurrentSteps(Expand(next));
+        }
+
+        private void RecordPredecessor(StepBase step, StepBase from)
+        {
+            if (!(step is ConditionalStepBase))
+                return;
+            if (!conditionalPredecessors.TryGetValue(step, out var set))
+                conditionalPredecessors[step] = set = new HashSet<StepBase>();
+            set.Add(from);
+        }
+
+        /// <summary>
+        /// Replace conditionals with their chosen branches (recursively). Conditionals are
+        /// pass-through: visited, but never part of <see cref="CurrentSteps"/>.
+        /// </summary>
+        private List<StepBase> Expand(List<StepBase> steps)
+        {
+            var result = new List<StepBase>();
+            var visited = new HashSet<StepBase>();
+            var queue = new Queue<StepBase>(steps ?? new List<StepBase>());
+            while (queue.Count > 0)
+            {
+                var s = queue.Dequeue();
+                if (s == null || !visited.Add(s))
+                    continue;
+                if (s is ConditionalStepBase conditional)
+                {
+                    if (!visitedStepGuids.Contains(s.GUID))
+                        visitedStepGuids.Add(s.GUID);
+                    if (!VisitedNodes.Contains(s))
+                        VisitedNodes.Add(s);
+                    foreach (var o in conditional.Choose() ?? new List<StepBase>())
+                        if (o != null)
+                        {
+                            RecordPredecessor(o, s);
+                            queue.Enqueue(o);
+                        }
+                }
+                else
+                {
+                    result.Add(s);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Replace conditionals with their inputs (recursively) so that stepping backwards never
+        /// lands on a pass-through conditional.
+        /// </summary>
+        private List<StepBase> Collapse(List<StepBase> steps)
+        {
+            var result = new List<StepBase>();
+            var visited = new HashSet<StepBase>();
+            var queue = new Queue<StepBase>(steps ?? new List<StepBase>());
+            while (queue.Count > 0)
+            {
+                var s = queue.Dequeue();
+                if (s == null || !visited.Add(s))
+                    continue;
+                if (s is ConditionalStepBase conditional)
+                {
+                    var inputs = conditionalPredecessors.TryGetValue(s, out var traversed) && traversed.Count > 0
+                        ? (IEnumerable<StepBase>)traversed
+                        : conditional.InputSteps;
+                    foreach (var i in inputs)
+                        if (i != null)
+                            queue.Enqueue(i);
+                    conditionalPredecessors.Remove(s);
+                }
+                else
+                {
+                    result.Add(s);
+                }
+            }
+            return result;
         }
 
         /// <summary>Rewind all current steps to their inputs.</summary>
@@ -123,7 +211,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             var prev = CurrentSteps.SelectMany(s => s?.InputSteps ?? new List<StepBase>())
                 .Where(s => s != null).Distinct().ToList();
-            SetCurrentSteps(prev);
+            SetCurrentSteps(Collapse(prev));
         }
 
         /// <summary>Force the active step set.</summary>
@@ -220,6 +308,15 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>The iterator driving this flow.</summary>
         public GraphIterator FlowIterator;
 
+        /// <summary>Forwards-skip strategy over <see cref="FlowIterator"/>.</summary>
+        public ForwardSkippingBehaviour ForwardSkip => forwardSkip ??= new ForwardSkippingBehaviour(FlowIterator);
+
+        /// <summary>Backwards-skip strategy over <see cref="FlowIterator"/>.</summary>
+        public BackwardSkippingBehaviour BackwardSkip => backwardSkip ??= new BackwardSkippingBehaviour(FlowIterator);
+
+        private ForwardSkippingBehaviour forwardSkip;
+        private BackwardSkippingBehaviour backwardSkip;
+
         /// <summary>Fired when the current step set changes.</summary>
         public event Action OnFlowChanged;
 
@@ -277,9 +374,7 @@ namespace PixoVR.TrainingCore.Flow
             if (FlowIterator == null)
                 return;
             PreCurrentNodeChanged?.Invoke(new StepGroup(FlowIterator.CurrentSteps));
-            foreach (var s in FlowIterator.CurrentSteps.ToList())
-                s?.SkipForwards();
-            FlowIterator.NextSteps();
+            ForwardSkip.SkipOneStep();
         }
 
         /// <summary>Go back one step.</summary>
@@ -288,9 +383,7 @@ namespace PixoVR.TrainingCore.Flow
             if (FlowIterator == null)
                 return;
             PreCurrentNodeChanged?.Invoke(new StepGroup(FlowIterator.CurrentSteps));
-            foreach (var s in FlowIterator.CurrentSteps.ToList())
-                s?.SkipBackwards();
-            FlowIterator.PreviousSteps();
+            BackwardSkip.SkipOneStep();
         }
 
         /// <summary>Mark the flow finished.</summary>

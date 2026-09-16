@@ -1082,6 +1082,1416 @@
     "ns": "PixoVR.TrainingCore.Interactions",
     "class": "HandCoachBase"
    }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FailHandlerIndexUpdater"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "FailHandlerIndexUpdater"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FailHandlerFlow"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FailHandlerFlow"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FlowBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FlowBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "NormalFlow"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "NormalFlow"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "BackwardSkippingBehavior"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "BackwardSkippingBehaviour"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ForwardSkippingBehaviour"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ForwardSkippingBehaviour"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SkippingBehaviorBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SkippingBehaviourBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GlobalParameter"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GlobalParameter"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GlobalParameterManager"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GlobalParameterManager"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ActionBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ActionBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "AddGlobalExceptionAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "AddGlobalExceptionAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "AudioAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "AudioAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "DisplayObjectAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "DisplayObjectAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FadeAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FadeAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FailAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FailAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GenericAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GenericAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HandCoachAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "HandCoachAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HighlightAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "HighlightAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InstructionalArrowAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "InstructionalArrowAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "LoadSceneAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "LoadSceneAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "LogAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "LogAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "PlayTimelineAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "PlayTimelineAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "RemoveGlobalExceptionAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "RemoveGlobalExceptionAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetColorAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetColorAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetComponentStateAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetComponentStateAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetGameObjectActiveStateAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetGameObjectActiveStateAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetGameObjectMaterialAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetGameObjectMaterialAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetGameObjectPositionAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetGameObjectPositionAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetHandMenuTextAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetHandMenuTextAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetHighlightZonesAction"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetHighlightZonesAction"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "UndoActionEntryOption"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "UndoActionEntryOption"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "IGroupNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "IGroupNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "IGroupStepContainer"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "IGroupStepContainer"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "AndGroupStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "AndGroupStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "BlankStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "BlankStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "CollideObjectsStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "CollideObjectsStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ComparisonConditionalStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ComparisonConditionalStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ConditionalStepBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ConditionalStepBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "CorrectIncorrectStepBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "CorrectIncorrectStepBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "DynamicEnumConditionalStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "DynamicEnumConditionalStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "EnumCondtionalStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "EnumConditionalStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FadeStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FadeStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FailHandlerStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "FailHandlerStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GameModeConditionalStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GameModeConditionalStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GazeObjectStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GazeObjectStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GenericStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GenericStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GrabObjectStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GrabObjectStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GroupedInfoPointsStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GroupedInfoPointsStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HandMenuStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "HandMenuStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "IfConditionalStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "IfConditionalStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InfoPointStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "InfoPointStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InputActionStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "InputActionStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "MoveToPositionStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "MoveToPositionStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "PlayTimelineStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "PlayTimelineStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "QuestionStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "QuestionStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "RandomStepConditional"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "RandomStepConditional"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ShowDisplayGroupStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ShowDisplayGroupStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ShowDisplayStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ShowDisplayStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SingleObjectInteractionStepBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SingleObjectInteractionStepBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SnapObjectStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SnapObjectStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SnapOnZoneStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SnapOnZoneStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "StepBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "StepBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "StepExecutionBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "StepExecutionBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "StepGroup"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "StepGroup"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "TapObjectStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "TapObjectStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "TeleportLocationStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "TeleportLocationStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "UseObjectStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "UseObjectStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ValveTurnStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ValveTurnStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "WaitDurationStep"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "WaitDurationStep"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "WeightedOutputSteps"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "WeightedOutputSteps"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphReferencesManager"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GraphReferencesManager"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GuidReference"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Identity",
+    "class": "GuidReference"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "NodeData"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "NodeData"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "NodeSavedProperty"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "NodeSavedProperty"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "Reference"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "Reference"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SceneReferences"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SceneReferences"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "EnumToStepMapping"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "EnumToStepMapping"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GameModeData"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.GameModes",
+    "class": "GameModeData"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "VisitedStepGuidList"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "VisitedStepGuidList"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ActionLink"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ActionLink"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FadeActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "FadeActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FailActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "FailActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HandCoachActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "HandCoachActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InstructionArrowActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "InstructionArrowActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "LogActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "LogActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "PlayTimelineActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "PlayTimelineActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetBoolParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetBoolParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetColorParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetColorParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetDoubleParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetDoubleParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetFloatParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetFloatParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetIntParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetIntParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetLongParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetLongParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetStringParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetStringParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetVector2ParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetVector2ParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetVector3ParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetVector3ParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetVector4ParameterActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetVector4ParameterActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetColorActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetColorActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetGameObjectMaterialActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetGameObjectMaterialActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetGameObjectPositionActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetGameObjectPositionActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetHighlightZonesActionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetHighlightZonesActionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "UndoOnStepNodeEntry"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "UndoOnStepNodeEntry"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "LuminousBaseNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "TrainingBaseNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "StepBaseNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "StepBaseNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GroupNodeFunctionality"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GroupNodeFunctionality"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "BlankStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "BlankStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ComparisonConditionalNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ComparisonConditionalNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ConditionalStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ConditionalStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "DynamicEnumConditionalStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "DynamicEnumConditionalStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "DynamicPort"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "DynamicPort"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "EnumConditionalStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "EnumConditionalStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GameModeStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GameModeStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "RandomStepConditionalNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "RandomStepConditionalNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "CorrectIncorrectStepBaseNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "CorrectIncorrectStepBaseNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "DynamicConditionalStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "DynamicConditionalStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ExecutionLink"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ExecutionLink"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "FadeStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "FadeStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GlobalParameterNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GlobalParameterNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GroupedInfoPointsStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GroupedInfoPointsStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ShowDisplayGroupStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ShowDisplayGroupStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HandMenuStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "HandMenuStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "IfStepConditionalNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "IfStepConditionalNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InfoPointStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "InfoPointStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InputActionStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "InputActionStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "MoveToPositionStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "MoveToPositionStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ObjectInteractionStepNodeBase"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ObjectInteractionStepNodeBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SingleFlowStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SingleFlowStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "StepExecutionNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "StepExecutionNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ExposedParameterManager"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "ExposedParameterManager"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GlobalParameters"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GlobalParameters"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphData"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GraphData"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphParser"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GraphParser"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ConditionalStepResolver"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ConditionalStepResolver"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphIterator"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "GraphIterator"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphExtensions"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GraphExtensions"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "GraphUtility"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "GraphUtility"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "ActionReference"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "ActionReference"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetExposedParameterAction`1"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Flow",
+    "class": "SetExposedParameterAction`1"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "SetExposedParameterActionNodeBase`1"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "SetExposedParameterActionNodeBase`1"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Data",
+    "class": "HighlightZoneData"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Data",
+    "class": "HighlightZoneData"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Observer.SubjectEvents",
+    "class": "HandMenuStateChangeEventArgs"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Events",
+    "class": "HandMenuStateChangeEventArgs"
+   }
   }
  ],
  "scripts": [

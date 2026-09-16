@@ -48,6 +48,10 @@ namespace PixoVR.TrainingCore.Graph
             Actions.Clear();
             FailureSteps.Clear();
 
+            if (ExposedParameterManager.Instance == null)
+                ExposedParameterManager.Instance = new ExposedParameterManager();
+            ExposedParameterManager.Instance.AddParameters(graph);
+
             RebindReferences();
 
             var stepNodes = graph.nodes.OfType<StepBaseNode>()
@@ -125,13 +129,38 @@ namespace PixoVR.TrainingCore.Graph
                 WireFlowOutputs(handlerNode, handlerStep);
             }
 
-            // group nodes: attach grouped steps to their group step
-            foreach (var groupNode in stepNodes.OfType<AndGroupStepNode>())
+            // conditional steps: fill branch mappings and register with the resolver
+            foreach (var node in stepNodes.OfType<ConditionalStepNode>())
             {
-                if (Steps[groupNode.GUID] is AndGroupStep groupStep)
-                    groupStep.GroupedSteps = groupNode.GetStepOutputs(GameMode)
+                if (!(Steps[node.GUID] is ConditionalStepBase conditional))
+                    continue;
+                foreach (var branch in node.GetOutputBranches())
+                {
+                    var steps = (branch.nodes ?? Enumerable.Empty<StepBaseNode>())
+                        .Select(n => n != null && Steps.TryGetValue(n.GUID, out var s) ? s : null)
+                        .Where(s => s != null).ToList();
+                    conditional.OutputMappings.Add(new EnumToStepMapping { Enum = branch.key, Steps = steps });
+                }
+                Resolver.AddConditional(conditional);
+            }
+
+            // group nodes: attach grouped steps to their group step
+            foreach (var groupNode in stepNodes.OfType<IGroupNode>().Cast<StepBaseNode>())
+            {
+                if (!(Steps[groupNode.GUID] is IGroupStepContainer container))
+                    continue;
+                var groupFn = groupNode is AndGroupStepNode a ? a.groupNodeFunctionality
+                    : groupNode is GroupedInfoPointsStepNode g ? g.GroupNodeFunctionality
+                    : groupNode is ShowDisplayGroupStepNode d ? d.GroupNodeFunctionality
+                    : null;
+                var grouped = groupFn?.GroupedStepGuids?
+                    .Select(g => Steps.TryGetValue(g ?? "", out var s) ? s : null)
+                    .Where(s => s != null).ToList();
+                if (grouped == null || grouped.Count == 0)
+                    grouped = groupNode.GetStepOutputs(GameMode)
                         .Select(n => Steps.TryGetValue(n?.GUID ?? "", out var s) ? s : null)
                         .Where(s => s != null).ToList();
+                container.SetGroupedSteps(grouped);
             }
 
             return graphData;
@@ -279,9 +308,44 @@ namespace PixoVR.TrainingCore.Graph
                 Parameters.AddRange(graph.exposedParameters);
         }
 
-        /// <summary>Find by name.</summary>
+        /// <summary>Find by name; falls back to global parameters.</summary>
         public ExposedParameter Get(string parameterName) =>
-            Parameters.FirstOrDefault(p => p.name == parameterName);
+            Parameters.FirstOrDefault(p => p.name == parameterName)
+            ?? GlobalParameterManager.Instance.GetParameter(parameterName);
+
+        /// <summary>
+        /// The exposed parameter connected to a node's input port, if any (graph parameter by
+        /// guid, or a global parameter via a <see cref="GlobalParameterNode"/>).
+        /// </summary>
+        public static ExposedParameter ResolveConnectedParameter(TrainingBaseNode node, string portFieldName)
+        {
+            if (node == null)
+                return null;
+            foreach (var edge in node.GetEdgesForInputPort(portFieldName))
+            {
+                if (edge.outputNode is GlobalParameterNode globalNode)
+                {
+                    var p = GlobalParameterManager.Instance.GetParameter(globalNode.ParameterName);
+                    if (p != null)
+                        return p;
+                }
+                else if (edge.outputNode is ParameterNode parameterNode)
+                {
+                    var p = Instance?.Parameters?.FirstOrDefault(x => x.guid == parameterNode.parameterGUID)
+                            ?? parameterNode.parameter;
+                    if (p != null)
+                        return p;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Value for a node's input port: the connected parameter's current value, else the
+        /// serialized literal. Used at parse/choose time so values resolve lazily.
+        /// </summary>
+        public static object ResolvePortValue(TrainingBaseNode node, string portFieldName, object literal) =>
+            ResolveConnectedParameter(node, portFieldName)?.value ?? literal;
 
         /// <summary>Set a parameter's value (static convenience).</summary>
         public static void SetExposedParameter<T>(string parameterName, T newValue)
