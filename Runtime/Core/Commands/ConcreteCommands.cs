@@ -5,20 +5,49 @@ using UnityEngine;
 
 namespace PixoVR.TrainingCore.Commands
 {
-    /// <summary>Records a grab; unexecute forces an ungrab.</summary>
+    /// <summary>Records a grab; captures the initial pose on execute, restores it and forces an ungrab on unexecute.</summary>
     public sealed class GrabCommand : CommandBase
     {
         /// <summary>Reference to the grabbed subject.</summary>
         public ObservableSubject Subject;
 
+        private Vector3 initialPosition;
+        private Quaternion initialRotation;
+        private Vector3 initialScale;
+        private Transform initialParent;
+        private bool captured;
+
         public GrabCommand(string subjectId) : base(subjectId) { }
 
+        /// <summary>Bind the subject and capture its initial pose.</summary>
+        public GrabCommand(ObservableSubject subject) : base(subject?.Id)
+        {
+            Subject = subject;
+        }
+
         
-        public override void Execute() { }
+        public override void Execute()
+        {
+            var t = Subject?.transform;
+            if (t == null || captured)
+                return;
+            initialPosition = t.position;
+            initialRotation = t.rotation;
+            initialScale = t.localScale;
+            initialParent = t.parent;
+            captured = true;
+        }
 
         
         public override void Unexecute()
         {
+            var t = Subject?.transform;
+            if (t != null && captured)
+            {
+                t.SetParent(initialParent);
+                t.SetPositionAndRotation(initialPosition, initialRotation);
+                t.localScale = initialScale;
+            }
             Subject?.GetComponent<Grabbable>()?.Ungrab();
         }
     }
@@ -142,16 +171,37 @@ namespace PixoVR.TrainingCore.Commands
         }
     }
 
-    /// <summary>Command that only marks that a step's timeline was skipped (no world state).</summary>
+    /// <summary>Jumps a timeline to its last frame; unexecute returns to the first frame.</summary>
     public sealed class SkipTimelineCommand : CommandBase
     {
+        /// <summary>Director being skipped.</summary>
+        public UnityEngine.Playables.PlayableDirector Director;
+
+        /// <summary>Optional asset override.</summary>
+        public UnityEngine.Timeline.TimelineAsset Asset;
+
         public SkipTimelineCommand(string subjectId) : base(subjectId) { }
 
-        
-        public override void Execute() { }
+        public SkipTimelineCommand(UnityEngine.Playables.PlayableDirector director,
+            UnityEngine.Timeline.TimelineAsset asset) : base(string.Empty)
+        {
+            Director = director;
+            Asset = asset;
+        }
 
         
-        public override void Unexecute() { }
+        public override void Execute()
+        {
+            if (Director != null)
+                Utility.TimelinePlayer.SetToLastFrame(Director, Asset);
+        }
+
+        
+        public override void Unexecute()
+        {
+            if (Director != null)
+                Utility.TimelinePlayer.SetToFirstFrame(Director, Asset);
+        }
     }
 
     /// <summary>Command tracking a UI/menu visibility toggle.</summary>

@@ -812,6 +812,306 @@
     "ns": "PixoVR.TrainingCore.Graph",
     "class": "InfoPointStepNode"
    }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "BaseCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "CommandBase"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "CommandManager"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "CommandHistory"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "DestroyPlacedArrowCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "DestroyPlacedArrowCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "DestroySpawnedObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "DestroySpawnedObjectCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "DisplayInteractionCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "DisplayInteractionCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "DisplayObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "DisplayObjectCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "FadeCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "FadeCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "FloatChangedCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "FloatChangedCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "GenericActionCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "GenericActionCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "GenericInteractionCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "GenericInteractionCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "GrabObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "GrabCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "HandMenuStateChangedCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "HandMenuStateChangedCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "HighlightObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "HighlightObjectCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "PlaceArrowCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "PlaceArrowCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetColorCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetColorCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetComponentStateCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetComponentStateCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetHandMenuTextCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetHandMenuTextCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetObjectActiveStateCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetObjectActiveStateCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetObjectMaterialCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetObjectMaterialCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SetObjectPositionCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SetObjectPositionCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SkipTimelineCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SkipTimelineCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SkipToBackCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SkipToBackCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SkipToNextCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SkipToNextCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SnapObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SnapCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SpawnCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SpawnCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "SpawnHandCoachCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "SpawnHandCoachCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "TeleportMovementCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "TeleportMovementCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "UseObjectCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "UseObjectCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Command",
+    "class": "ValveTurnCommand"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Commands",
+    "class": "ValveTurnCommand"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.Core.Interactions",
+    "class": "HandCoachMiddleman"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Interactions",
+    "class": "HandCoachBase"
+   }
   }
  ],
  "scripts": [

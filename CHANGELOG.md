@@ -2,6 +2,12 @@
 
 ## [0.1.0] - Unreleased
 ### Fixed
+- `GameManager` now runs the startup sequence from `Start` (fade to black, environment
+  load wait, `OnInitalSetUp`, step-counter init, `FlowManager.Initialize`/`StartGraph`,
+  network-sync wait, fade to clear) and exposes `Relaunch()`; overlapping launches are
+  cancelled, only one environment is instantiated, and `NetworkManager.ResetRandoms`
+  delegates to `RandomManager`. `EventBus` is intentionally not reset there: scene
+  `ObservableSubject`s register in `OnEnable` before `Start` runs.
 - Scene loading no longer destroys the boot scene: `SceneLoading.Load` always loads
   additively and only unloads scenes it previously loaded, keeping the Unity-booted
   scene (PlatformSessionBehaviour, NetworkManager, XR rig) resident — matching the
@@ -23,5 +29,14 @@
   is installed — the null provider is intended for tests only.
 
 ### Added
+- Command layer parity: `ObjectStateCommands` (SetColor, SetObjectMaterial, SetObjectPosition,
+  SetComponentState, HighlightObject, SetHandMenuText, GenericAction, Fade, FloatChanged,
+  DisplayInteraction, GenericInteraction), `SpawnCommands` (Spawn, DestroySpawnedObject,
+  DisplayObject, SpawnHandCoach, PlaceArrow, DestroyPlacedArrow) and `FlowCommands`
+  (SkipToNext/SkipToBack); `GrabCommand` now captures/restores the grabbed pose and
+  `SkipTimelineCommand` gained a `PlayableDirector`/`TimelineAsset` ctor;
+  `CommandHistory` gained `ExecuteAndRecord`/`PrintHistory`; `luminous-map.json` maps
+  `Luminous.Core.Command.*` onto these types.
+- `HandCoachBase`/`HandCoach` interaction components (maps `Luminous.Core.Interactions.HandCoachMiddleman`).
 - Initial package scaffold.
 - Core runtime: Identity (GuidComponent/GuidRegistry/GuidReference), Events (ObservableSubject/Subject/EventBus/InteractionEventArgs), Commands (ICommand/CommandHistory + concrete commands), Interactions middlemen + I*Behaviour interfaces, Platform (IPlatformSession/SessionContext), Multiuser abstractions, GameModes, SceneManagement, Settings, Utility.
