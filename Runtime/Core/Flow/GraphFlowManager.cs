@@ -55,6 +55,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Fired after a backward skip.</summary>
         public event Action OnSkipBackwardsCompleted;
 
+        /// <summary>Fired every Update; steps needing polling (e.g. MoveToPositionStep) subscribe.</summary>
+        public event Action Tick;
+
         /// <summary>Active flow.</summary>
         public FlowBase ActiveFlow => _activeFlow;
 
@@ -195,6 +198,8 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         private void OnIteratorChanged() => OnCurrentStepsChanged?.Invoke(CurrentSteps);
+
+        private void Update() => Tick?.Invoke();
 
         private void OnEnable()
         {

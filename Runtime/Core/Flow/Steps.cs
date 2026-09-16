@@ -474,7 +474,7 @@ namespace PixoVR.TrainingCore.Flow
 
     /// <summary>"AND Group": completes when all/required grouped child steps complete.</summary>
     [Serializable]
-    public class AndGroupStep : StepExecutionBase
+    public class AndGroupStep : StepExecutionBase, IGroupStepContainer
     {
         /// <summary>Grouped steps.</summary>
         public List<StepBase> GroupedSteps = new List<StepBase>();
@@ -486,6 +486,9 @@ namespace PixoVR.TrainingCore.Flow
         public int StepsToComplete;
 
         private int completedCount;
+
+        /// <inheritdoc/>
+        public void SetGroupedSteps(List<StepBase> steps) => GroupedSteps = steps ?? new List<StepBase>();
 
         /// <summary>Create from node.</summary>
         public AndGroupStep(AndGroupStepNode node)
@@ -539,19 +542,25 @@ namespace PixoVR.TrainingCore.Flow
         public string FailIndex;
     }
 
-    /// <summary>Conditional step: defers output choice to a resolver.</summary>
+    /// <summary>Conditional step: picks outputs at runtime via <see cref="Choose"/>.</summary>
     [Serializable]
     public class ConditionalStepBase : StepBase
     {
-        /// <summary>Candidate output sets; picked by the resolver.</summary>
+        /// <summary>Candidate output sets keyed by branch index.</summary>
         public List<EnumToStepMapping> OutputMappings = new List<EnumToStepMapping>();
 
-        /// <summary>Pick outputs for a chosen enum index.</summary>
+        /// <summary>Runtime branch choice (default: every wired output).</summary>
+        public virtual List<StepBase> Choose() => OutputSteps;
+
+        /// <summary>Pick outputs for a chosen branch key.</summary>
         public virtual List<StepBase> ChooseOutput(int enumIndex)
         {
             var mapping = OutputMappings.FirstOrDefault(m => m.Enum == enumIndex);
             return mapping?.Steps ?? new List<StepBase>();
         }
+
+        /// <inheritdoc/>
+        public override List<StepBase> GetStepOutputs() => Choose();
     }
 
     /// <summary>Step that completes with a correct or incorrect outcome, choosing between two output sets.</summary>
