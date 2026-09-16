@@ -48,6 +48,14 @@ The editor migration tool (`Pixo > Training Core > Migrate from Luminous…`) re
 field names and `serializedGuid` byte arrays are intentionally kept identical so saved data
 survives. See `DESIGN.md`.
 
+Graph coverage includes the Luminous step nodes `InputActionStepNode`, `HandMenuStepNode`
+and `InfoPointStepNode` (`Luminous.GraphSystem` → `PixoVR.TrainingCore.Graph`, same class
+names and serialized fields). The platform layer also exposes the portal catalog API the
+lobby code expects: `IPlatformSession.GetUserScenarios()` (`UserScenarios`/`Scenario`/
+`Module`/`SessionDescription` in `PixoVR.TrainingCore.Platform`), `GetStatusAsync`,
+`ModuleInfoStartedAsync`/`ModuleInfoEndedAsync`, and `StudentNickname`; the Apex provider
+populates the catalog from `GetCurrentUserModules()`/`GetModulesList()` after login.
+
 Options (`MigrationOptions` / migration window):
 
 - `DryRun` (default) — writes `Logs/luminous-migration-report.csv` without touching files.

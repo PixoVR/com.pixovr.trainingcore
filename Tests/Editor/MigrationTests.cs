@@ -31,7 +31,9 @@ namespace PixoVR.TrainingCore.Tests.Editor
                     { ""luminous"": { ""ns"": ""Luminous.Core"", ""class"": ""Renamer"" },
                       ""pixo"": { ""ns"": ""PixoVR.TrainingCore.Core"", ""class"": ""Renamer"" },
                       ""fields"": { ""oldName"": ""newName"" } },
-                    { ""luminous"": { ""ns"": ""Luminous.Mystery"", ""class"": ""Unknown"" }, ""pixo"": null }
+                    { ""luminous"": { ""ns"": ""Luminous.Mystery"", ""class"": ""Unknown"" }, ""pixo"": null },
+                    { ""luminous"": { ""ns"": ""Luminous.GraphSystem"", ""class"": ""InputActionStepNode"" },
+                      ""pixo"": { ""ns"": ""PixoVR.TrainingCore.Graph"", ""class"": ""InputActionStepNode"" } }
                 ],
                 ""scripts"": []
             }";
@@ -50,6 +52,18 @@ namespace PixoVR.TrainingCore.Tests.Editor
             var report = new List<MigrationReportEntry>();
             var output = YamlRewriter.Rewrite(yaml, BuildMap(), PixoGuidResolver, report, "f.asset");
             StringAssert.Contains("type: {class: TrainingGraph, ns: PixoVR.TrainingCore.Graph, asm: PixoVR.TrainingCore}", output);
+            Assert.AreEqual("mapped", report[0].Status);
+        }
+
+        [Test]
+        public void Rewrite_ManagedRef_InputActionStepNode()
+        {
+            var yaml =
+                "--- !u!114 &1\n" +
+                "  type: {class: InputActionStepNode, ns: Luminous.GraphSystem, asm: CoreSystemRuntime}\n";
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildMap(), PixoGuidResolver, report, "f.asset");
+            StringAssert.Contains("type: {class: InputActionStepNode, ns: PixoVR.TrainingCore.Graph, asm: PixoVR.TrainingCore}", output);
             Assert.AreEqual("mapped", report[0].Status);
         }
 

@@ -53,6 +53,8 @@ namespace PixoVR.TrainingCore.Platform
         string CurrentModuleName { get; set; }
         /// <summary>Module selected to start (mirrors <see cref="SessionContext.Module"/>).</summary>
         string SelectedModuleName { get; set; }
+        /// <summary>Display nickname of the connected student.</summary>
+        string StudentNickname { get; set; }
         /// <summary>Backend base address (informational, e.g. for linking hosted images).</summary>
         string ServerBaseAddress { get; }
         /// <summary>Current connection state.</summary>
@@ -87,6 +89,18 @@ namespace PixoVR.TrainingCore.Platform
 
         /// <summary>Report that a module run ended.</summary>
         Task ModuleEndedAsync(string mode, string scenario, string module, bool passed);
+
+        /// <summary>Refresh the status of a session by id.</summary>
+        Task GetStatusAsync(string sessionId);
+
+        /// <summary>Report that a module's info/details display started.</summary>
+        Task ModuleInfoStartedAsync(string sessionId, string module);
+
+        /// <summary>Report that a module's info/details display ended.</summary>
+        Task ModuleInfoEndedAsync(string sessionId, string module);
+
+        /// <summary>The portal catalog (scenarios + scheduled sessions) for the connected user.</summary>
+        UserScenarios GetUserScenarios();
 
         /// <summary>Report that a step started.</summary>
         Task StepStartedAsync(StepBase step);
@@ -189,6 +203,12 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>See the interface/base contract.</summary>
         public virtual string ServerBaseAddress => string.Empty;
         /// <summary>See the interface/base contract.</summary>
+        public virtual string StudentNickname { get; set; }
+
+        /// <summary>Catalog returned by <see cref="GetUserScenarios"/> (never null).</summary>
+        protected UserScenarios Catalog = new UserScenarios();
+
+        /// <summary>See the interface/base contract.</summary>
         public virtual Multiuser.ConnectionState State =>
             IsConnected ? Multiuser.ConnectionState.Connected : Multiuser.ConnectionState.Disconnected;
         /// <summary>See the interface/base contract.</summary>
@@ -228,6 +248,24 @@ namespace PixoVR.TrainingCore.Platform
         public abstract Task StepFailedAsync(StepBase step, string reason);
         /// <summary>See the interface/base contract.</summary>
         public abstract Task DisconnectAsync();
+
+        /// <summary>Default: report the session as active (providers without a status endpoint).</summary>
+        public virtual Task GetStatusAsync(string sessionId)
+        {
+            InvokeStatusUpdated(sessionId, SessionStatus.Active, CurrentModuleName);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>Default: forward to <see cref="SendEventAsync"/> as "module_info_started".</summary>
+        public virtual Task ModuleInfoStartedAsync(string sessionId, string module) =>
+            SendEventAsync("module_info_started", module);
+
+        /// <summary>Default: forward to <see cref="SendEventAsync"/> as "module_info_ended".</summary>
+        public virtual Task ModuleInfoEndedAsync(string sessionId, string module) =>
+            SendEventAsync("module_info_ended", module);
+
+        /// <summary>See the interface/base contract.</summary>
+        public virtual UserScenarios GetUserScenarios() => Catalog;
     }
 
     /// <summary>No-op platform session used when no backend is configured; calls log only.</summary>
@@ -265,6 +303,8 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>See the interface/base contract.</summary>
         public string ServerBaseAddress => string.Empty;
         /// <summary>See the interface/base contract.</summary>
+        public string StudentNickname { get; set; }
+        /// <summary>See the interface/base contract.</summary>
         public Multiuser.ConnectionState State => Multiuser.ConnectionState.Disconnected;
         /// <summary>See the interface/base contract.</summary>
         public void SetSessionId(string sessionId) { }
@@ -295,6 +335,14 @@ namespace PixoVR.TrainingCore.Platform
         public Task StepFailedAsync(StepBase step, string reason) => Task.CompletedTask;
         /// <summary>See the interface/base contract.</summary>
         public Task DisconnectAsync() => Task.CompletedTask;
+        /// <summary>See the interface/base contract.</summary>
+        public Task GetStatusAsync(string sessionId) => Task.CompletedTask;
+        /// <summary>See the interface/base contract.</summary>
+        public Task ModuleInfoStartedAsync(string sessionId, string module) => Task.CompletedTask;
+        /// <summary>See the interface/base contract.</summary>
+        public Task ModuleInfoEndedAsync(string sessionId, string module) => Task.CompletedTask;
+        /// <summary>See the interface/base contract.</summary>
+        public UserScenarios GetUserScenarios() => new UserScenarios();
     }
 
     /// <summary>Static platform-level events mirrored from the active session.</summary>

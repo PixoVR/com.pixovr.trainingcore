@@ -617,4 +617,61 @@ namespace PixoVR.TrainingCore.Graph
         /// <inheritdoc/>
         protected override void AddReferences() => Data?.Add(directorSavedReferenceName);
     }
+
+    /// <summary>"Input Action" step node: completes when the bound input action performs.</summary>
+    [Serializable]
+    [NodeMenuItem("Legacy/Steps/Input Action", null)]
+    public class InputActionStepNode : SingleFlowStepNode
+    {
+        /// <summary>Input action that completes the step when performed.</summary>
+        [HideInInspector]
+        public UnityEngine.InputSystem.InputActionReference Input;
+
+        /// <inheritdoc/>
+        public override string name => "Input Action";
+
+        /// <inheritdoc/>
+        public override StepBase Create() => new InputActionStep(this);
+    }
+
+    /// <summary>"Hand Menu" step node: completes when the hand menu reaches the required open state.</summary>
+    [Serializable]
+    [NodeMenuItem("Legacy/Steps/Hand Menu", null)]
+    public class HandMenuStepNode : SingleFlowStepNode
+    {
+        /// <summary>Menu-open state that completes the step.</summary>
+        [HideInInspector]
+        public bool ShouldOpen;
+
+        /// <inheritdoc/>
+        public override string name => "Hand Menu";
+
+        /// <inheritdoc/>
+        public override StepBase Create() => new HandMenuStep(this);
+    }
+
+    /// <summary>"Info Point" step node: correct/incorrect outcome from a bound info point.</summary>
+    [Serializable]
+    [NodeMenuItem("Legacy/Steps/Info Point", null)]
+    public class InfoPointStepNode : CorrectIncorrectStepBaseNode
+    {
+        /// <summary>Saved-property name for the info point.</summary>
+        private readonly string infoPointSavedReferenceName = "InfoPointSavedRef";
+
+        /// <summary>Bound info-point component.</summary>
+        public InfoPointBase InfoPoint
+        {
+            get => GetSavedComponent<InfoPointBase>(infoPointSavedReferenceName);
+            set => SetSavedComponent(infoPointSavedReferenceName, value);
+        }
+
+        /// <inheritdoc/>
+        public override string name => "Info Point";
+
+        /// <inheritdoc/>
+        public override StepBase Create() => new InfoPointStep(this);
+
+        /// <inheritdoc/>
+        protected override void AddReferences() => Data?.Add(infoPointSavedReferenceName);
+    }
 }

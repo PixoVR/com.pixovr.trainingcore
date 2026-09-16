@@ -782,6 +782,36 @@
     "ns": "PixoVR.TrainingCore.HandMenu",
     "class": "HandMenuBase"
    }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InputActionStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "InputActionStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "HandMenuStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "HandMenuStepNode"
+   }
+  },
+  {
+   "luminous": {
+    "ns": "Luminous.GraphSystem",
+    "class": "InfoPointStepNode"
+   },
+   "pixo": {
+    "ns": "PixoVR.TrainingCore.Graph",
+    "class": "InfoPointStepNode"
+   }
   }
  ],
  "scripts": [
