@@ -49,6 +49,9 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Current user id.</summary>
         string UserId { get; }
 
+        /// <summary>Whether a user is logged in to the platform (not a session join).</summary>
+        bool IsLoggedIn { get; }
+
         /// <summary>Fetch the org modules available to the current user.</summary>
         void GetCurrentUserModules(System.Action<bool, System.Collections.Generic.IReadOnlyList<OrgModule>> done);
     }
@@ -64,6 +67,9 @@ namespace PixoVR.TrainingCore.Apex
 
         /// <inheritdoc/>
         public string UserId { get; private set; }
+
+        /// <inheritdoc/>
+        public bool IsLoggedIn => ApexSystem.CurrentUser != null || !string.IsNullOrEmpty(UserId);
 
         /// <inheritdoc/>
         public void Login(string user, string pass, Action<bool, string> done)
@@ -236,7 +242,10 @@ namespace PixoVR.TrainingCore.Apex
         private string _userId;
 
         /// <inheritdoc/>
-        public override bool IsConnected => Client != null && Client.IsSessionInProgress;
+        public override bool IsConnected => Client != null && Client.IsLoggedIn;
+
+        /// <inheritdoc/>
+        public override string ConnectedUserId { get => UserId; set => _userId = value; }
 
         /// <inheritdoc/>
         public override string UserId => _userId ?? Client?.UserId;
