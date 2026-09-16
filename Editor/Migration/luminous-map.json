@@ -380,7 +380,7 @@
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Apex",
-    "class": "ApexCredentialsConfig"
+    "class": "ApexCredentialsLoader"
    }
   },
   {
