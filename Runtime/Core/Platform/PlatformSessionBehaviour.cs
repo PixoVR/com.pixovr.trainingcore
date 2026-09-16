@@ -22,7 +22,15 @@ namespace PixoVR.TrainingCore.Platform
         {
             base.Awake();
             Context = SessionContext.Instance;
+            if (Context == null)
+                Context = gameObject.AddComponent<SessionContext>();
             PlatformSessionBase.EnsureActive();
+        }
+
+        private void Start()
+        {
+            if (!Context.Initialised)
+                Context.MarkInitialised();
         }
 
         /// <summary>Fired once the context has been populated/initialised.</summary>

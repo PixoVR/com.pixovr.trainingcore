@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PixoVR.TrainingCore.Utility
 {
-    /// <summary>MonoBehaviour singleton: survives scene loads, destroys duplicates.</summary>
+    /// <summary>MonoBehaviour singleton: lazily resolved, destroys duplicates.</summary>
     /// <typeparam name="T">Concrete component type.</typeparam>
     public class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehaviour
     {

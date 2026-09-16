@@ -2,6 +2,13 @@
 
 ## [0.1.0] - Unreleased
 ### Fixed
+- Scene loading no longer destroys the boot scene: `SceneLoading.Load` always loads
+  additively and only unloads scenes it previously loaded, keeping the Unity-booted
+  scene (PlatformSessionBehaviour, NetworkManager, XR rig) resident — matching the
+  legacy plugin's behaviour. `SceneLoader` is a plain `MonoBehaviour` again with the
+  serialized `LoadOnStart`/`AdditiveScene`/`SceneName` contract restored.
+- `PlatformSessionBehaviour` auto-creates a `SessionContext` when none exists and fires
+  `PersistenceInitialised` from `Start`, so lobby UI waiting on session init unblocks.
 - `PixoVR.TrainingCore.HighlightPlus` now references the `HighlightPlus` assembly so the
   adapter compiles against the project-side HighlightPlus asmdef (still gated on the
   `HIGHLIGHT_PLUS` scripting define).
