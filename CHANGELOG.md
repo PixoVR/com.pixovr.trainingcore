@@ -20,6 +20,7 @@
   `HIGHLIGHT_PLUS` scripting define).
 
 ### Changed
+- Retarget to Unity 2021.3 LTS (matches com.pixovr.apexunitysdk minimum); Addressables 1.28.0, Input System 1.15.0, Timeline 1.8.9, TextMeshPro 3.0.9 (ugui 2.0.0 dependency dropped).
 - Split every `MonoBehaviour`/`ScriptableObject`/`EditorWindow`/`Editor` class into its own `<ClassName>.cs` so `m_Script` references resolve to the intended type (71 UnityEngine.Object classes; renamed files kept their .meta GUIDs).
 - `LuminousMigrator.ResolvePixoGuid` now only accepts a class whose file name matches (required for correct MonoScript binding).
 - Apex Unity SDK (`com.pixovr.apexunitysdk`) is now a required dependency (consuming projects
