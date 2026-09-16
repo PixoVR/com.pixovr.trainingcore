@@ -40,6 +40,9 @@ namespace PixoVR.TrainingCore.SceneManagement
         public static Action<string> OnLoadCompleted;
 
         /// <summary>Load the configured <see cref="SceneName"/>.</summary>
+        public void LoadScene() => LoadScene(SceneName);
+
+        /// <summary>Load the configured <see cref="SceneName"/>.</summary>
         public void LoadConfiguredScene() => LoadScene(SceneName);
 
         /// <summary>Load a scene asynchronously.</summary>
