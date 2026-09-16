@@ -48,6 +48,10 @@ namespace PixoVR.TrainingCore.Graph
             Actions.Clear();
             FailureSteps.Clear();
 
+            if (ExposedParameterManager.Instance == null)
+                ExposedParameterManager.Instance = new ExposedParameterManager();
+            ExposedParameterManager.Instance.AddParameters(graph);
+
             RebindReferences();
 
             var stepNodes = graph.nodes.OfType<StepBaseNode>()

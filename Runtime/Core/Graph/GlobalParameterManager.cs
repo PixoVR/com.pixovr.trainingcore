@@ -37,8 +37,8 @@ namespace PixoVR.TrainingCore.Graph
             if (parameters?.Data == null)
                 return;
             foreach (var entry in parameters.Data)
-                if (entry?.Parameter != null && entry.InitialValue == null)
-                    entry.InitialValue = entry.Parameter.value;
+                if (entry?.Parameter != null && !entry.HasInitialValue)
+                    entry.CaptureInitialValue();
         }
 
         /// <summary>The loaded asset (may be null).</summary>
@@ -50,7 +50,7 @@ namespace PixoVR.TrainingCore.Graph
             if (parameters?.Data == null)
                 return;
             foreach (var entry in parameters.Data)
-                if (entry?.Parameter != null && entry.InitialValue != null)
+                if (entry?.Parameter != null && entry.HasInitialValue)
                     entry.Parameter.value = entry.InitialValue;
         }
 

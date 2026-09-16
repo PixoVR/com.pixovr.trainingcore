@@ -89,6 +89,9 @@ namespace PixoVR.TrainingCore.Flow
         private readonly List<Action<StepBase>> onStepEntered = new List<Action<StepBase>>();
         private readonly List<Action<StepBase>> onStepExited = new List<Action<StepBase>>();
 
+        /// <summary>Per conditional: the input steps actually traversed into it, so rewinding follows the real path.</summary>
+        private readonly Dictionary<StepBase, HashSet<StepBase>> conditionalPredecessors = new Dictionary<StepBase, HashSet<StepBase>>();
+
         /// <summary>Create an iterator over data.</summary>
         public GraphIterator(GraphData graphData) => Data = graphData;
 
@@ -107,15 +110,33 @@ namespace PixoVR.TrainingCore.Flow
             VisitedNodes.Clear();
             currentStepGuids.Clear();
             visitedStepGuids.Clear();
+            conditionalPredecessors.Clear();
             SetCurrentSteps(Expand(new List<StepBase> { Data.mainFlowRoot }));
         }
 
         /// <summary>Advance all current steps to their outputs.</summary>
         public void NextSteps()
         {
-            var next = CurrentSteps.SelectMany(s => s?.GetStepOutputs() ?? new List<StepBase>())
-                .Where(s => s != null).Distinct().ToList();
+            var next = new List<StepBase>();
+            foreach (var s in CurrentSteps.Where(s => s != null))
+                foreach (var o in s.GetStepOutputs() ?? new List<StepBase>())
+                {
+                    if (o == null)
+                        continue;
+                    RecordPredecessor(o, s);
+                    if (!next.Contains(o))
+                        next.Add(o);
+                }
             SetCurrentSteps(Expand(next));
+        }
+
+        private void RecordPredecessor(StepBase step, StepBase from)
+        {
+            if (!(step is ConditionalStepBase))
+                return;
+            if (!conditionalPredecessors.TryGetValue(step, out var set))
+                conditionalPredecessors[step] = set = new HashSet<StepBase>();
+            set.Add(from);
         }
 
         /// <summary>
@@ -140,7 +161,10 @@ namespace PixoVR.TrainingCore.Flow
                         VisitedNodes.Add(s);
                     foreach (var o in conditional.Choose() ?? new List<StepBase>())
                         if (o != null)
+                        {
+                            RecordPredecessor(o, s);
                             queue.Enqueue(o);
+                        }
                 }
                 else
                 {
@@ -166,9 +190,13 @@ namespace PixoVR.TrainingCore.Flow
                     continue;
                 if (s is ConditionalStepBase conditional)
                 {
-                    foreach (var i in conditional.InputSteps)
+                    var inputs = conditionalPredecessors.TryGetValue(s, out var traversed) && traversed.Count > 0
+                        ? (IEnumerable<StepBase>)traversed
+                        : conditional.InputSteps;
+                    foreach (var i in inputs)
                         if (i != null)
                             queue.Enqueue(i);
+                    conditionalPredecessors.Remove(s);
                 }
                 else
                 {

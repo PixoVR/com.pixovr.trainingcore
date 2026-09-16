@@ -479,11 +479,28 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Grouped steps.</summary>
         public List<StepBase> GroupedSteps = new List<StepBase>();
 
+        /// <summary>Require every grouped step.</summary>
+        public bool CompleteAll = true;
+
+        /// <summary>Required count when not completing all.</summary>
+        public int StepsToComplete;
+
         private int completedCount;
         private bool displayShown;
 
         /// <summary>Create from node.</summary>
-        public ShowDisplayGroupStep(ShowDisplayGroupStepNode node) : base(node) { }
+        public ShowDisplayGroupStep(ShowDisplayGroupStepNode node) : base(node)
+        {
+            CompleteAll = node.AndSettings?.NeedToCompleteAll ?? true;
+            StepsToComplete = node.AndSettings?.NumberOfStepsToComplete ?? 0;
+        }
+
+        private int RequiredCount(int total)
+        {
+            if (CompleteAll || StepsToComplete <= 0)
+                return total;
+            return Mathf.Min(StepsToComplete, total);
+        }
 
         /// <inheritdoc/>
         public void SetGroupedSteps(List<StepBase> steps) => GroupedSteps = steps ?? new List<StepBase>();
@@ -511,7 +528,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             step.StepCompleted -= OnGroupedStepCompleted;
             completedCount++;
-            if (completedCount < GroupedSteps.Count(s => s != null))
+            if (completedCount < RequiredCount(GroupedSteps.Count(s => s != null)))
                 return;
             if (displayShown)
                 return;

@@ -154,7 +154,7 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void OnStepForward() => Act();
+        public override void OnStepForward() { }
 
         /// <inheritdoc/>
         public override void Undo() => actionCommand?.Unexecute();
@@ -195,7 +195,7 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void OnStepForward() => Act();
+        public override void OnStepForward() { }
 
         /// <inheritdoc/>
         public override void Undo() => lastSetMaterialCommand?.Unexecute();
@@ -242,7 +242,7 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void OnStepForward() => Act();
+        public override void OnStepForward() { }
 
         /// <inheritdoc/>
         public override void Undo() => lastCommand?.Unexecute();
@@ -281,7 +281,7 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void OnStepForward() => Act();
+        public override void OnStepForward() { }
 
         /// <inheritdoc/>
         public override void Undo()
