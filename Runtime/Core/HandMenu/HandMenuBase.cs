@@ -18,9 +18,6 @@ namespace PixoVR.TrainingCore.HandMenu
         /// <summary>Whether the menu is open.</summary>
         public bool isOpen { get; set; }
 
-        /// <summary>Fired from <see cref="SetStateTo"/> with the new open state.</summary>
-        public event System.Action<bool> StateChanged;
-
         /// <summary>The active hand-menu instance.</summary>
         public static HandMenuBase Instance { get; set; }
 
@@ -43,7 +40,8 @@ namespace PixoVR.TrainingCore.HandMenu
             else
                 CloseMenu();
             OnHandMenuStateChanged();
-            StateChanged?.Invoke(open);
+            if (Subject != null)
+                EventBus.Instance.Publish(Subject.Id, new HandMenuStateChangeEventArgs(Subject, open));
         }
 
         /// <summary>Toggle the open state.</summary>

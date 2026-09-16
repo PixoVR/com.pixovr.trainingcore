@@ -2,6 +2,7 @@ using System.Collections;
 using PixoVR.TrainingCore.Commands;
 using PixoVR.TrainingCore.Flow;
 using PixoVR.TrainingCore.GameModes;
+using PixoVR.TrainingCore.Graph;
 using PixoVR.TrainingCore.Multiuser;
 using PixoVR.TrainingCore.SceneManagement;
 using PixoVR.TrainingCore.Utility;
@@ -112,6 +113,7 @@ namespace PixoVR.TrainingCore
             SafeInvoke(OnInitalSetUp);
 
             CommandHistory.Instance.Reset();
+            GlobalParameterManager.Instance.Reset();
             InitializeStepCounter(StartStep);
             FlowManager.Initialize(mode);
             SafeInvoke(OnGraphLoaded);

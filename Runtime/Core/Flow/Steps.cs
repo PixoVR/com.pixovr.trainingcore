@@ -4,7 +4,6 @@ using System.Linq;
 using PixoVR.TrainingCore.Events;
 using PixoVR.TrainingCore.GameModes;
 using PixoVR.TrainingCore.Graph;
-using PixoVR.TrainingCore.HandMenu;
 using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Interactions;
 using PixoVR.TrainingCore.Settings;
@@ -475,7 +474,7 @@ namespace PixoVR.TrainingCore.Flow
 
     /// <summary>"AND Group": completes when all/required grouped child steps complete.</summary>
     [Serializable]
-    public class AndGroupStep : StepExecutionBase
+    public class AndGroupStep : StepExecutionBase, IGroupStepContainer
     {
         /// <summary>Grouped steps.</summary>
         public List<StepBase> GroupedSteps = new List<StepBase>();
@@ -487,6 +486,9 @@ namespace PixoVR.TrainingCore.Flow
         public int StepsToComplete;
 
         private int completedCount;
+
+        /// <inheritdoc/>
+        public void SetGroupedSteps(List<StepBase> steps) => GroupedSteps = steps ?? new List<StepBase>();
 
         /// <summary>Create from node.</summary>
         public AndGroupStep(AndGroupStepNode node)
@@ -540,19 +542,25 @@ namespace PixoVR.TrainingCore.Flow
         public string FailIndex;
     }
 
-    /// <summary>Conditional step: defers output choice to a resolver.</summary>
+    /// <summary>Conditional step: picks outputs at runtime via <see cref="Choose"/>.</summary>
     [Serializable]
     public class ConditionalStepBase : StepBase
     {
-        /// <summary>Candidate output sets; picked by the resolver.</summary>
+        /// <summary>Candidate output sets keyed by branch index.</summary>
         public List<EnumToStepMapping> OutputMappings = new List<EnumToStepMapping>();
 
-        /// <summary>Pick outputs for a chosen enum index.</summary>
+        /// <summary>Runtime branch choice (default: every wired output).</summary>
+        public virtual List<StepBase> Choose() => OutputSteps;
+
+        /// <summary>Pick outputs for a chosen branch key.</summary>
         public virtual List<StepBase> ChooseOutput(int enumIndex)
         {
             var mapping = OutputMappings.FirstOrDefault(m => m.Enum == enumIndex);
             return mapping?.Steps ?? new List<StepBase>();
         }
+
+        /// <inheritdoc/>
+        public override List<StepBase> GetStepOutputs() => Choose();
     }
 
     /// <summary>Step that completes with a correct or incorrect outcome, choosing between two output sets.</summary>
@@ -753,188 +761,5 @@ namespace PixoVR.TrainingCore.Flow
             }
             Utility.TimelinePlayer.Play(Director, Timeline, onComplete: OnStepCompleted);
         }
-    }
-
-    /// <summary>"Input Action": completes when the bound input action performs.</summary>
-    [Serializable]
-    public class InputActionStep : StepExecutionBase
-    {
-        /// <summary>Input action that completes the step.</summary>
-        public UnityEngine.InputSystem.InputActionReference inputAction;
-
-        private UnityEngine.InputSystem.InputAction _action;
-
-        /// <summary>Create from node.</summary>
-        public InputActionStep(InputActionStepNode node)
-        {
-            GUID = node.GUID;
-            Name = node.name;
-            IsSkipPoint = node.IsSkipPoint;
-            inputAction = node.Input;
-        }
-
-        /// <summary>Parameterless ctor for serialization.</summary>
-        public InputActionStep() { }
-
-        /// <inheritdoc/>
-        public override void OnEnter()
-        {
-            base.OnEnter();
-            _action = inputAction != null ? inputAction.action : null;
-            if (_action == null)
-            {
-                OnStepCompleted();
-                return;
-            }
-            _action.performed += OnPerformed;
-            _action.Enable();
-        }
-
-        /// <inheritdoc/>
-        public override void UnregisterListeners()
-        {
-            if (_action != null)
-            {
-                _action.performed -= OnPerformed;
-                _action = null;
-            }
-        }
-
-        private void OnPerformed(UnityEngine.InputSystem.InputAction.CallbackContext _) => OnStepCompleted();
-
-        /// <inheritdoc/>
-        public override string GetDefaultDescription() => $"Press {inputAction?.name ?? "input action"}";
-    }
-
-    /// <summary>"Hand Menu": completes when the hand menu reaches the required open state.</summary>
-    [Serializable]
-    public class HandMenuStep : StepExecutionBase
-    {
-        /// <summary>Menu-open state that completes the step.</summary>
-        public bool stateRequired;
-
-        /// <summary>Create from node.</summary>
-        public HandMenuStep(HandMenuStepNode node)
-        {
-            GUID = node.GUID;
-            Name = node.name;
-            IsSkipPoint = node.IsSkipPoint;
-            stateRequired = node.ShouldOpen;
-            AddInherentFailExceptions();
-        }
-
-        /// <summary>Parameterless ctor for serialization.</summary>
-        public HandMenuStep() { }
-
-        /// <summary>Fail when the menu is moved to the opposite of the required state.</summary>
-        public void AddInherentFailExceptions() =>
-            FailExceptions.Add(new Exceptions.HandMenuFailException(!stateRequired));
-
-        /// <inheritdoc/>
-        public override void OnEnter()
-        {
-            base.OnEnter();
-            var menu = HandMenuBase.Instance;
-            if (menu == null)
-                return;
-            menu.StateChanged += OnMenuStateChanged;
-            if (menu.isOpen == stateRequired)
-                OnStepCompleted();
-        }
-
-        /// <inheritdoc/>
-        public override void UnregisterListeners()
-        {
-            var menu = HandMenuBase.Instance;
-            if (menu != null)
-                menu.StateChanged -= OnMenuStateChanged;
-        }
-
-        /// <summary>Complete when the required state is reached.</summary>
-        public void EventUpdate()
-        {
-            var menu = HandMenuBase.Instance;
-            if (menu != null && menu.isOpen == stateRequired)
-                OnStepCompleted();
-        }
-
-        /// <inheritdoc/>
-        public override void SkipForwards()
-        {
-            var menu = HandMenuBase.Instance;
-            if (menu != null)
-                menu.UndoStateTo(stateRequired);
-            base.SkipForwards();
-        }
-
-        /// <inheritdoc/>
-        public override string GetDefaultDescription() => $"{(stateRequired ? "Open" : "Close")} the hand menu";
-
-        private void OnMenuStateChanged(bool open)
-        {
-            if (open == stateRequired)
-                OnStepCompleted();
-        }
-    }
-
-    /// <summary>"Info Point": completes correct/incorrect from the bound info point's outcome.</summary>
-    [Serializable]
-    public class InfoPointStep : CorrectIncorrectStepBase
-    {
-        /// <summary>Bound info-point component.</summary>
-        [NonSerialized]
-        public InfoPointBase infoPoint;
-
-        /// <summary>Fired when the interaction reports an outcome.</summary>
-        public event Action<bool> OnInfoPointCompleted;
-
-        /// <summary>Fired when the info point reverts.</summary>
-        public event Action OnInfoPointReverted;
-
-        /// <summary>Create from node.</summary>
-        public InfoPointStep(InfoPointStepNode node) : base(node)
-        {
-            IsSkipPoint = node.IsSkipPoint;
-            infoPoint = node.InfoPoint;
-        }
-
-        /// <summary>Parameterless ctor for serialization.</summary>
-        public InfoPointStep() { }
-
-        /// <inheritdoc/>
-        public override void OnEnter()
-        {
-            base.OnEnter();
-            if (infoPoint == null)
-                return;
-            infoPoint.CompleteInteraction += OnInteractionCompleted;
-            infoPoint.OnReverted += OnRevertHandler;
-        }
-
-        /// <inheritdoc/>
-        public override void UnregisterListeners()
-        {
-            if (infoPoint != null)
-            {
-                infoPoint.CompleteInteraction -= OnInteractionCompleted;
-                infoPoint.OnReverted -= OnRevertHandler;
-            }
-        }
-
-        /// <summary>Handle an outcome report from the bound info point.</summary>
-        public void OnInteractionCompleted(bool correct)
-        {
-            OnInfoPointCompleted?.Invoke(correct);
-            if (correct)
-                OnCorrectEvent();
-            else
-                OnIncorrectEvent();
-        }
-
-        /// <summary>Handle a revert report from the bound info point.</summary>
-        public void OnRevertHandler() => OnInfoPointReverted?.Invoke();
-
-        /// <inheritdoc/>
-        public override string GetDefaultDescription() => $"Interact with {infoPoint?.name ?? "info point"}";
     }
 }

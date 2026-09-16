@@ -217,6 +217,21 @@ namespace PixoVR.TrainingCore.Events
         }
     }
 
+    /// <summary>Raised when the hand menu open state changes.</summary>
+    public class HandMenuStateChangeEventArgs : ObjectInteractionEventArgs
+    {
+        /// <summary>New open state.</summary>
+        public bool State;
+
+        public HandMenuStateChangeEventArgs(ObservableSubject subject, bool state) : base(subject)
+        {
+            State = state;
+        }
+
+        /// <inheritdoc/>
+        public override string ToString() => $"HandMenuStateChange({SubjectId}, state={State})";
+    }
+
     /// <summary>Raised when a display element (info point / UI) is interacted with.</summary>
     public class DisplayInteractionEventArgs : InteractionEventArgs
     {

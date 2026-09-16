@@ -38,5 +38,29 @@
   `CommandHistory` gained `ExecuteAndRecord`/`PrintHistory`; `luminous-map.json` maps
   `Luminous.Core.Command.*` onto these types.
 - `HandCoachBase`/`HandCoach` interaction components (maps `Luminous.Core.Interactions.HandCoachMiddleman`).
+- Graph coverage parity with `Luminous.GraphSystem` runtime:
+  - Conditional steps + nodes: `IfConditionalStep`/`IfStepConditionalNode`,
+    `ComparisonConditionalStep`/`ComparisonConditionalNode`,
+    `RandomStepConditional`/`RandomStepConditionalNode` (weighted dynamic ports),
+    `EnumConditionalStep` (maps the `EnumCondtionalStep` typo), `GameModeConditionalStep`/
+    `GameModeStepNode`, `DynamicEnumConditionalStep`/`DynamicEnumConditionalStepNode`.
+    `ConditionalStepNode.GetOutputBranches` feeds `GraphParser` → `OutputMappings` and
+    `GraphIterator` expands conditionals (marking them visited) instead of entering them.
+  - Steps + nodes: `BlankStep`, `FadeStep`, `HandMenuStep`, `InputActionStep`,
+    `MoveToPositionStep` (polled via the new `GraphFlowManager.Tick`),
+    `InfoPointStep`, `GroupedInfoPointsStep`, `ShowDisplayGroupStep`; `IGroupStepContainer`
+    generalizes parser group wiring to every `IGroupNode`.
+  - Actions + nodes: `FadeAction`, `LogAction`, `FailAction`, `SetColorAction`,
+    `SetGameObjectMaterialAction`, `SetGameObjectPositionAction`, `SetHighlightZonesAction`
+    (+ `HighlightZoneData`), `PlayTimelineAction`, `HandCoachAction`,
+    `InstructionalArrowAction`, and `SetExposedParameterAction<T>` with the ten concrete
+    parameter-setter nodes.
+  - Global parameters: `GlobalParameters` ScriptableObject, `GlobalParameterManager`
+    (reset on `GameManager` startup), `GlobalParameterNode`, and
+    `ExposedParameterManager.ResolvePortValue` for lazy parameter-bound input ports.
+  - `SkippingBehaviourBase`/`ForwardSkippingBehaviour`/`BackwardSkippingBehaviour`
+    extracted from `FlowBase`; `GraphUtility.GetStepsStartingFrom` /
+    `GraphExtensions.ToSteps`; `luminous-map.json` now maps all implemented
+    `Luminous.GraphSystem` runtime types.
 - Initial package scaffold.
 - Core runtime: Identity (GuidComponent/GuidRegistry/GuidReference), Events (ObservableSubject/Subject/EventBus/InteractionEventArgs), Commands (ICommand/CommandHistory + concrete commands), Interactions middlemen + I*Behaviour interfaces, Platform (IPlatformSession/SessionContext), Multiuser abstractions, GameModes, SceneManagement, Settings, Utility.

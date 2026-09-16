@@ -319,6 +319,13 @@ namespace PixoVR.TrainingCore.Flow
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => Steps.GetEnumerator();
     }
 
+    /// <summary>A step that hosts a set of grouped child steps (set at parse time).</summary>
+    public interface IGroupStepContainer
+    {
+        /// <summary>Assign the grouped steps.</summary>
+        void SetGroupedSteps(List<StepBase> steps);
+    }
+
     /// <summary>Serializable list of visited step GUIDs (used in FlowSavedData).</summary>
     [Serializable]
     public class VisitedStepGuidList : IEnumerable<string>
