@@ -31,6 +31,26 @@ namespace PixoVR.TrainingCore.Commands
         /// <summary>Fired when undo/redo crosses a step boundary.</summary>
         public event Action<int> OnStepChanged;
 
+        /// <summary>Execute a command and record it.</summary>
+        public void ExecuteAndRecord(ICommand command)
+        {
+            if (command == null)
+                return;
+            command.Execute();
+            Record(command);
+        }
+
+        /// <summary>Print the executed history, oldest first.</summary>
+        public string PrintHistory()
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var c in executed.Reverse())
+                sb.AppendLine($"[{c.StepId}] {c.GetType().Name} {c}");
+            var text = sb.ToString();
+            Log.Info(text, LogCategory.GameManagerLogic);
+            return text;
+        }
+
         /// <summary>Record a command that was already executed.</summary>
         public void Record(ICommand command)
         {

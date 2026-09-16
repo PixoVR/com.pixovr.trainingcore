@@ -28,5 +28,14 @@
   is installed — the null provider is intended for tests only.
 
 ### Added
+- Command layer parity: `ObjectStateCommands` (SetColor, SetObjectMaterial, SetObjectPosition,
+  SetComponentState, HighlightObject, SetHandMenuText, GenericAction, Fade, FloatChanged,
+  DisplayInteraction, GenericInteraction), `SpawnCommands` (Spawn, DestroySpawnedObject,
+  DisplayObject, SpawnHandCoach, PlaceArrow, DestroyPlacedArrow) and `FlowCommands`
+  (SkipToNext/SkipToBack); `GrabCommand` now captures/restores the grabbed pose and
+  `SkipTimelineCommand` gained a `PlayableDirector`/`TimelineAsset` ctor;
+  `CommandHistory` gained `ExecuteAndRecord`/`PrintHistory`; `luminous-map.json` maps
+  `Luminous.Core.Command.*` onto these types.
+- `HandCoachBase`/`HandCoach` interaction components (maps `Luminous.Core.Interactions.HandCoachMiddleman`).
 - Initial package scaffold.
 - Core runtime: Identity (GuidComponent/GuidRegistry/GuidReference), Events (ObservableSubject/Subject/EventBus/InteractionEventArgs), Commands (ICommand/CommandHistory + concrete commands), Interactions middlemen + I*Behaviour interfaces, Platform (IPlatformSession/SessionContext), Multiuser abstractions, GameModes, SceneManagement, Settings, Utility.
