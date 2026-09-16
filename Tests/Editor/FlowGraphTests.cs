@@ -221,6 +221,7 @@ namespace PixoVR.TrainingCore.Tests
             public string FakeUserId = "user-1";
             public List<string> Events = new List<string>();
             public SessionData LastSessionData;
+            public List<OrgModule> Modules = new List<OrgModule>();
             public bool IsSessionInProgress => SessionInProgress;
             public int SessionId => NextSessionId;
             public string UserId => FakeUserId;
@@ -232,6 +233,7 @@ namespace PixoVR.TrainingCore.Tests
             public void SendSimpleSessionEvent(string a, string t, Extension ctx, System.Action<bool> done) { Events.Add(a); done(true); }
             public void SendSessionEvent(TinCan.Statement st, System.Action<bool> done) => done(true);
             public void Ping(System.Action<bool> done) => done(true);
+            public void GetCurrentUserModules(System.Action<bool, IReadOnlyList<OrgModule>> done) => done(true, Modules);
         }
 
         [Test]
@@ -259,6 +261,33 @@ namespace PixoVR.TrainingCore.Tests
 
             session.ModuleEndedAsync("Training", "sc", "mod", true).Wait();
             Assert.IsTrue(fake.LastSessionData.Success);
+        }
+
+        [Test]
+        public void GetUserScenarios_ReflectsClientModules()
+        {
+            var go = new GameObject("apex-catalog");
+            var session = go.AddComponent<Apex.ApexPlatformSession>();
+            var fake = new FakeClient();
+            fake.Modules.Add(new OrgModule
+            {
+                ID = 7,
+                Name = "Gas Sampling",
+                Description = "desc",
+                IconURL = "/img.png"
+            });
+            session.Client = fake;
+
+            Assert.IsTrue(session.LoginAsync("u", "p").Result);
+
+            var catalog = session.GetUserScenarios();
+            Assert.IsNotNull(catalog);
+            Assert.AreEqual(1, catalog.AvailableScenarios.Count);
+            Assert.AreEqual("Gas Sampling", catalog.AvailableScenarios[0].ScenarioName);
+            Assert.AreEqual("7", catalog.AvailableScenarios[0].ScenarioId);
+            Assert.AreEqual(1, catalog.AvailableScenarios[0].Modules.Count);
+            Assert.AreEqual("Gas Sampling", catalog.AvailableScenarios[0].Modules[0].SceneToLoad);
+            Assert.AreEqual("/img.png", catalog.AvailableScenarios[0].Modules[0].ImageAddress);
         }
     }
 }

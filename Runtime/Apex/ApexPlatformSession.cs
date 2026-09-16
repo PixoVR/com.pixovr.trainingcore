@@ -48,6 +48,9 @@ namespace PixoVR.TrainingCore.Apex
 
         /// <summary>Current user id.</summary>
         string UserId { get; }
+
+        /// <summary>Fetch the org modules available to the current user.</summary>
+        void GetCurrentUserModules(System.Action<bool, System.Collections.Generic.IReadOnlyList<OrgModule>> done);
     }
 
     /// <summary>Default <see cref="IApexClient"/> backed by <see cref="ApexSystem"/>.</summary>
@@ -139,6 +142,108 @@ namespace PixoVR.TrainingCore.Apex
         {
             ApexSystem.Ping((resp, o) => done?.Invoke(true), (resp, fail) => done?.Invoke(false));
         }
+
+        /// <inheritdoc/>
+        public void GetCurrentUserModules(Action<bool, System.Collections.Generic.IReadOnlyList<OrgModule>> done)
+        {
+            if (ApexSystem.Instance == null)
+            {
+                done?.Invoke(false, null);
+                return;
+            }
+
+            var instance = ApexSystem.Instance;
+            System.Collections.Generic.List<int> ids = null;
+            System.Collections.Generic.List<OrgModule> all = null;
+            var pending = 2;
+
+            void Finish()
+            {
+                if (--pending != 0)
+                    return;
+                var mods = new System.Collections.Generic.List<OrgModule>();
+                if (all != null)
+                {
+                    foreach (var m in all)
+                    {
+                        if (m == null)
+                            continue;
+                        if (ids == null || ids.Contains(m.ID))
+                            mods.Add(m);
+                    }
+                }
+                done?.Invoke(all != null, mods);
+            }
+
+            UnityEngine.Events.UnityAction<GetUserModulesResponse> onIds = null;
+            UnityEngine.Events.UnityAction<FailureResponse> onIdsFail = null;
+            UnityEngine.Events.UnityAction<System.Collections.Generic.List<OrgModule>> onMods = null;
+            UnityEngine.Events.UnityAction<FailureResponse> onModsFail = null;
+
+            onIds = resp =>
+            {
+                ids = new System.Collections.Generic.List<int>();
+                if (resp?.ParsedData != null)
+                {
+                    foreach (var u in resp.ParsedData)
+                    {
+                        if (u?.AvailableModules == null)
+                            continue;
+                        foreach (var id in u.AvailableModules)
+                        {
+                            if (!ids.Contains(id))
+                                ids.Add(id);
+                        }
+                    }
+                }
+                DetachIds();
+                Finish();
+            };
+            onIdsFail = _ =>
+            {
+                DetachIds();
+                Finish();
+            };
+            onMods = list =>
+            {
+                all = list;
+                DetachMods();
+                Finish();
+            };
+            onModsFail = _ =>
+            {
+                DetachMods();
+                Finish();
+            };
+
+            void DetachIds()
+            {
+                instance.OnGetUserModulesSuccess.RemoveListener(onIds);
+                instance.OnGetUserModulesFailed.RemoveListener(onIdsFail);
+            }
+
+            void DetachMods()
+            {
+                instance.OnGetOrganizationModulesSuccess.RemoveListener(onMods);
+                instance.OnGetOrganizationModulesFailed.RemoveListener(onModsFail);
+            }
+
+            instance.OnGetUserModulesSuccess.AddListener(onIds);
+            instance.OnGetUserModulesFailed.AddListener(onIdsFail);
+            instance.OnGetOrganizationModulesSuccess.AddListener(onMods);
+            instance.OnGetOrganizationModulesFailed.AddListener(onModsFail);
+
+            if (!ApexSystem.GetCurrentUserModules())
+            {
+                DetachIds();
+                Finish();
+            }
+            if (!ApexSystem.GetModulesList(null))
+            {
+                DetachMods();
+                Finish();
+            }
+        }
     }
 
     /// <summary>
@@ -174,6 +279,7 @@ namespace PixoVR.TrainingCore.Apex
                 {
                     _userId = Client.UserId;
                     InvokeConnected();
+                    RefreshCatalog();
                 }
                 else
                 {
@@ -197,7 +303,10 @@ namespace PixoVR.TrainingCore.Apex
                 Client.QuickIdLogin(Config.DeviceSerialNumber, pin.ToString(), (ok, err) =>
                 {
                     if (ok)
+                    {
                         InvokeConnected();
+                        RefreshCatalog();
+                    }
                     tcs.SetResult(ok);
                 });
                 return tcs.Task;
@@ -217,10 +326,41 @@ namespace PixoVR.TrainingCore.Apex
                 {
                     _userId = Client.UserId;
                     InvokeConnected();
+                    RefreshCatalog();
                 }
                 tcs.SetResult(ok);
             });
             return tcs.Task;
+        }
+
+        /// <summary>Populate <see cref="Catalog"/> from the user's available org modules.</summary>
+        protected virtual void RefreshCatalog()
+        {
+            Client.GetCurrentUserModules((ok, modules) =>
+            {
+                if (!ok || modules == null)
+                    return;
+                var catalog = new UserScenarios();
+                foreach (var m in modules)
+                {
+                    catalog.AvailableScenarios.Add(new Scenario
+                    {
+                        ScenarioName = m.Name,
+                        ScenarioId = m.ID.ToString(),
+                        Modules =
+                        {
+                            new PixoVR.TrainingCore.Platform.Module
+                            {
+                                Name = m.Name,
+                                Description = m.Description,
+                                SceneToLoad = m.Name,
+                                ImageAddress = m.IconURL
+                            }
+                        }
+                    });
+                }
+                Catalog = catalog;
+            });
         }
 
         /// <inheritdoc/>

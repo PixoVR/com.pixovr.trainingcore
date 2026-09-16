@@ -283,7 +283,7 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
         /// <summary>Exception for a specific open state.</summary>
         public HandMenuFailException(bool open)
         {
-            OpenMenuParameter = new FailExceptionParameter<bool>(open);
+            OpenMenuParameter = new FailExceptionParameter<bool> { Value = open };
         }
     }
 }
