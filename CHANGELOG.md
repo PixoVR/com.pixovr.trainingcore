@@ -1,6 +1,11 @@
 # Changelog
 
 ## [0.1.0] - Unreleased
+### Fixed
+- `PixoVR.TrainingCore.HighlightPlus` now references the `HighlightPlus` assembly so the
+  adapter compiles against the project-side HighlightPlus asmdef (still gated on the
+  `HIGHLIGHT_PLUS` scripting define).
+
 ### Changed
 - Apex Unity SDK (`com.pixovr.apexunitysdk`) is now a required dependency (consuming projects
   add it via git URL); `Runtime/Apex` no longer gates on `PIXO_APEX_SDK`. The platform

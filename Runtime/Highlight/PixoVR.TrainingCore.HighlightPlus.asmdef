@@ -2,7 +2,8 @@
     "name": "PixoVR.TrainingCore.HighlightPlus",
     "rootNamespace": "PixoVR.TrainingCore.Highlight",
     "references": [
-        "PixoVR.TrainingCore"
+        "PixoVR.TrainingCore",
+        "HighlightPlus"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

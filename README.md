@@ -32,11 +32,13 @@ step-graph runtime (wave 2).
    |---|---|---|
    | Photon PUN2 (`PHOTON_UNITY_NETWORKING`) | asmdef `defineConstraints` | `Runtime/Photon` networking layer |
    | `com.unity.xr.interaction.toolkit` 3.x | `PIXO_XRI` (versionDefine) | `Runtime/XRI` interaction behaviours |
-   | HighlightPlus (Asset Store asset, project-owned) | `HIGHLIGHT_PLUS` scripting define | `Runtime/Highlight` `HighlightPlusHighlighter` |
+   | HighlightPlus (Asset Store asset, project-owned) | `HIGHLIGHT_PLUS` scripting define + asmdef named `HighlightPlus` | `Runtime/Highlight` `HighlightPlusHighlighter` |
 
 HighlightPlus is a licensed Asset Store asset — it is **not** part of this package. Drop it into
-`Assets/Plugins/HighlightPlus` and add `HIGHLIGHT_PLUS` to *Project Settings → Player →
-Scripting Define Symbols*. The migration tool does both automatically (see below).
+`Assets/Plugins/HighlightPlus` so its code compiles into an asmdef named `HighlightPlus` (the
+migration tool's `RelocateThirdParty` relocation preserves that layout), and add `HIGHLIGHT_PLUS`
+to *Project Settings → Player → Scripting Define Symbols*. `PixoVR.TrainingCore.HighlightPlus`
+references the `HighlightPlus` assembly and only compiles when the define is set.
 
 ## Migrating a Luminous project
 
