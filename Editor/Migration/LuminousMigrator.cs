@@ -129,16 +129,18 @@ namespace PixoVR.TrainingCore.Editor.Migration
             return found;
         }
 
-        /// <summary>Resolve a Pixo class to its .cs meta guid via AssetDatabase (class may live in an aggregated file).</summary>
+        /// <summary>Resolve a Pixo class to its .cs meta guid via AssetDatabase. Unity binds m_Script
+        /// references by file name, so only a class declared in a file of the same name is a valid target.</summary>
         private static string ResolvePixoGuid(string ns, string className)
         {
             if (string.IsNullOrEmpty(className))
                 return null;
-            // classes may be aggregated several-per-file, so match file text rather than file names
             foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new[] { "Packages/com.pixovr.trainingcore" }))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (Path.GetFileNameWithoutExtension(path) != className)
                     continue;
                 var text = File.ReadAllText(path);
                 if (System.Text.RegularExpressions.Regex.IsMatch(text,

@@ -7,6 +7,8 @@
   `HIGHLIGHT_PLUS` scripting define).
 
 ### Changed
+- Split every `MonoBehaviour`/`ScriptableObject`/`EditorWindow`/`Editor` class into its own `<ClassName>.cs` so `m_Script` references resolve to the intended type (71 UnityEngine.Object classes; renamed files kept their .meta GUIDs).
+- `LuminousMigrator.ResolvePixoGuid` now only accepts a class whose file name matches (required for correct MonoScript binding).
 - Apex Unity SDK (`com.pixovr.apexunitysdk`) is now a required dependency (consuming projects
   add it via git URL); `Runtime/Apex` no longer gates on `PIXO_APEX_SDK`. The platform
   session falls back to `NullPlatformSession` (with a `Log.Warning`) only when no provider
