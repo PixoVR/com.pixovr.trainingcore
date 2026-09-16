@@ -796,7 +796,6 @@ namespace PixoVR.TrainingCore.Flow
             if (_action != null)
             {
                 _action.performed -= OnPerformed;
-                _action.Disable();
                 _action = null;
             }
         }
