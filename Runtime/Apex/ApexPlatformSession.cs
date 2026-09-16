@@ -49,6 +49,12 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Current user id.</summary>
         string UserId { get; }
 
+        /// <summary>Whether a user is logged in to the platform (not a session join).</summary>
+        bool IsLoggedIn { get; }
+
+        /// <summary>Clears the logged-in user state (no SDK logout exists).</summary>
+        void ClearUser();
+
         /// <summary>Fetch the org modules available to the current user.</summary>
         void GetCurrentUserModules(System.Action<bool, System.Collections.Generic.IReadOnlyList<OrgModule>> done);
     }
@@ -64,6 +70,15 @@ namespace PixoVR.TrainingCore.Apex
 
         /// <inheritdoc/>
         public string UserId { get; private set; }
+
+        /// <inheritdoc/>
+        public bool IsLoggedIn => !string.IsNullOrEmpty(UserId);
+
+        /// <inheritdoc/>
+        public void ClearUser()
+        {
+            UserId = null;
+        }
 
         /// <inheritdoc/>
         public void Login(string user, string pass, Action<bool, string> done)
@@ -152,7 +167,6 @@ namespace PixoVR.TrainingCore.Apex
                 return;
             }
 
-            var instance = ApexSystem.Instance;
             System.Collections.Generic.List<int> ids = null;
             System.Collections.Generic.List<OrgModule> all = null;
             var pending = 2;
@@ -175,72 +189,48 @@ namespace PixoVR.TrainingCore.Apex
                 done?.Invoke(all != null, mods);
             }
 
-            UnityEngine.Events.UnityAction<GetUserModulesResponse> onIds = null;
-            UnityEngine.Events.UnityAction<FailureResponse> onIdsFail = null;
-            UnityEngine.Events.UnityAction<System.Collections.Generic.List<OrgModule>> onMods = null;
-            UnityEngine.Events.UnityAction<FailureResponse> onModsFail = null;
-
-            onIds = resp =>
-            {
-                ids = new System.Collections.Generic.List<int>();
-                if (resp?.ParsedData != null)
+            // apexunitysdk dev: module fetches take (HttpResponseMessage, T) callbacks directly.
+            if (!ApexSystem.GetCurrentUserModules(
+                (resp, r) =>
                 {
-                    foreach (var u in resp.ParsedData)
+                    ids = new System.Collections.Generic.List<int>();
+                    if (r?.ParsedData != null)
                     {
-                        if (u?.AvailableModules == null)
-                            continue;
-                        foreach (var id in u.AvailableModules)
+                        foreach (var u in r.ParsedData)
                         {
-                            if (!ids.Contains(id))
-                                ids.Add(id);
+                            if (u?.AvailableModules == null)
+                                continue;
+                            foreach (var id in u.AvailableModules)
+                            {
+                                if (!ids.Contains(id))
+                                    ids.Add(id);
+                            }
                         }
                     }
-                }
-                DetachIds();
-                Finish();
-            };
-            onIdsFail = _ =>
+                    Finish();
+                },
+                (resp, fail) => Finish()))
             {
-                DetachIds();
-                Finish();
-            };
-            onMods = list =>
-            {
-                all = list;
-                DetachMods();
-                Finish();
-            };
-            onModsFail = _ =>
-            {
-                DetachMods();
-                Finish();
-            };
-
-            void DetachIds()
-            {
-                instance.OnGetUserModulesSuccess.RemoveListener(onIds);
-                instance.OnGetUserModulesFailed.RemoveListener(onIdsFail);
-            }
-
-            void DetachMods()
-            {
-                instance.OnGetOrganizationModulesSuccess.RemoveListener(onMods);
-                instance.OnGetOrganizationModulesFailed.RemoveListener(onModsFail);
-            }
-
-            instance.OnGetUserModulesSuccess.AddListener(onIds);
-            instance.OnGetUserModulesFailed.AddListener(onIdsFail);
-            instance.OnGetOrganizationModulesSuccess.AddListener(onMods);
-            instance.OnGetOrganizationModulesFailed.AddListener(onModsFail);
-
-            if (!ApexSystem.GetCurrentUserModules())
-            {
-                DetachIds();
                 Finish();
             }
-            if (!ApexSystem.GetModulesList(null))
+
+            if (!ApexSystem.GetModulesList(null,
+                (resp, o) =>
+                {
+                    if (o is UserModulesResponse umr && umr.modules != null)
+                    {
+                        all = new System.Collections.Generic.List<OrgModule>();
+                        foreach (var m in umr.modules)
+                        {
+                            var om = m.ToOrgModule();
+                            if (om != null)
+                                all.Add(om);
+                        }
+                    }
+                    Finish();
+                },
+                (resp, fail) => Finish()))
             {
-                DetachMods();
                 Finish();
             }
         }
@@ -261,7 +251,10 @@ namespace PixoVR.TrainingCore.Apex
         private string _userId;
 
         /// <inheritdoc/>
-        public override bool IsConnected => Client != null && Client.IsSessionInProgress;
+        public override bool IsConnected => Client != null && Client.IsLoggedIn;
+
+        /// <inheritdoc/>
+        public override string ConnectedUserId { get => UserId; set => _userId = value; }
 
         /// <inheritdoc/>
         public override string UserId => _userId ?? Client?.UserId;
@@ -307,18 +300,32 @@ namespace PixoVR.TrainingCore.Apex
                         InvokeConnected();
                         RefreshCatalog();
                     }
+                    else
+                    {
+                        InvokeConnectionFailed();
+                        Log.Warning($"Apex PIN/QuickID login failed: {err}", LogCategory.Platform);
+                    }
                     tcs.SetResult(ok);
                 });
                 return tcs.Task;
             }
             Log.Warning("ApexPlatformSession.LoginWithPinAsync: no PIN login in the Apex SDK; " +
                         "configure DeviceSerialNumber to use QuickID login instead", LogCategory.Platform);
+            InvokeConnectionFailed();
             return Task.FromResult(false);
         }
 
         /// <inheritdoc/>
         public override Task<bool> LoginWithTokenAsync(string token)
         {
+            if (string.IsNullOrEmpty(token))
+                token = LaunchToken;
+            if (string.IsNullOrEmpty(token))
+            {
+                Log.Warning("ApexPlatformSession.LoginWithTokenAsync: no token supplied and no launch token", LogCategory.Platform);
+                InvokeConnectionFailed();
+                return Task.FromResult(false);
+            }
             var tcs = new TaskCompletionSource<bool>();
             Client.LoginWithToken(token, (ok, err) =>
             {
@@ -327,6 +334,11 @@ namespace PixoVR.TrainingCore.Apex
                     _userId = Client.UserId;
                     InvokeConnected();
                     RefreshCatalog();
+                }
+                else
+                {
+                    InvokeConnectionFailed();
+                    Log.Warning($"Apex token login failed: {err}", LogCategory.Platform);
                 }
                 tcs.SetResult(ok);
             });
@@ -378,6 +390,9 @@ namespace PixoVR.TrainingCore.Apex
 
         /// <inheritdoc/>
         public override string ServerBaseAddress => ApexSystem.APIEndpoint;
+
+        /// <inheritdoc/>
+        public override string LaunchToken => ApexSystem.PassedLoginToken;
 
         /// <inheritdoc/>
         public override Task SendEventAsync(string action, string target)
@@ -450,8 +465,10 @@ namespace PixoVR.TrainingCore.Apex
         /// <inheritdoc/>
         public override Task DisconnectAsync()
         {
-            InvokeDisconnected();
+            _userId = null;
             _sessionId = null;
+            Client?.ClearUser();
+            InvokeDisconnected();
             return Task.CompletedTask;
         }
     }

@@ -57,6 +57,8 @@ namespace PixoVR.TrainingCore.Platform
         string StudentNickname { get; set; }
         /// <summary>Backend base address (informational, e.g. for linking hosted images).</summary>
         string ServerBaseAddress { get; }
+        /// <summary>Token handed to the app by the hub/launcher; null when launched standalone.</summary>
+        string LaunchToken { get; }
         /// <summary>Current connection state.</summary>
         Multiuser.ConnectionState State { get; }
 
@@ -266,6 +268,9 @@ namespace PixoVR.TrainingCore.Platform
 
         /// <summary>See the interface/base contract.</summary>
         public virtual UserScenarios GetUserScenarios() => Catalog;
+
+        /// <summary>See the interface/base contract.</summary>
+        public virtual string LaunchToken => null;
     }
 
     /// <summary>No-op platform session used when no backend is configured; calls log only.</summary>
@@ -302,6 +307,8 @@ namespace PixoVR.TrainingCore.Platform
         public string SelectedModuleName { get; set; }
         /// <summary>See the interface/base contract.</summary>
         public string ServerBaseAddress => string.Empty;
+        /// <summary>See the interface/base contract.</summary>
+        public string LaunchToken => null;
         /// <summary>See the interface/base contract.</summary>
         public string StudentNickname { get; set; }
         /// <summary>See the interface/base contract.</summary>

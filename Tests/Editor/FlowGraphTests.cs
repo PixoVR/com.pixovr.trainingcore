@@ -224,10 +224,13 @@ namespace PixoVR.TrainingCore.Tests
             public List<OrgModule> Modules = new List<OrgModule>();
             public bool IsSessionInProgress => SessionInProgress;
             public int SessionId => NextSessionId;
-            public string UserId => FakeUserId;
-            public void Login(string u, string p, System.Action<bool, string> done) => done(true, null);
-            public void LoginWithToken(string t, System.Action<bool, string> done) => done(true, null);
-            public void QuickIdLogin(string s, string u, System.Action<bool, string> done) => done(true, null);
+            public string UserId { get; private set; }
+            public bool LoggedIn;
+            public bool IsLoggedIn => LoggedIn;
+            public void ClearUser() { UserId = null; LoggedIn = false; }
+            public void Login(string u, string p, System.Action<bool, string> done) { LoggedIn = true; UserId = FakeUserId; done(true, null); }
+            public void LoginWithToken(string t, System.Action<bool, string> done) { LoggedIn = true; UserId = FakeUserId; done(true, null); }
+            public void QuickIdLogin(string s, string u, System.Action<bool, string> done) { LoggedIn = true; UserId = FakeUserId; done(true, null); }
             public void JoinSession(string s, Extension ctx, System.Action<bool, int> done) { SessionInProgress = true; done(true, NextSessionId); }
             public void CompleteSession(SessionData d, Extension ctx, Extension res, System.Action<bool> done) { SessionInProgress = false; LastSessionData = d; done(true); }
             public void SendSimpleSessionEvent(string a, string t, Extension ctx, System.Action<bool> done) { Events.Add(a); done(true); }
