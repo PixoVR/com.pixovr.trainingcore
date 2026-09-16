@@ -246,8 +246,8 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (fade && FadeManager.InstanceExists)
                 FadeManager.Instance.FadeToBlack();
-            if (!string.IsNullOrEmpty(sceneName) && SceneLoader.InstanceExists)
-                SceneLoader.Instance.LoadScene(sceneName);
+            if (!string.IsNullOrEmpty(sceneName))
+                SceneLoading.Load(sceneName);
         }
     }
 

@@ -23,21 +23,94 @@ namespace PixoVR.TrainingCore.SceneManagement
     }
 
     /// <summary>
-    /// Scene loading facade: single-point entry used by steps/graphs and the lobby,
+    /// App-wide scene loading. All loads are additive; a non-additive load unloads only the
+    /// scenes this class previously loaded, so the Unity-booted scene (persistence, network
+    /// manager, XR rig) stays resident for the lifetime of the app.
+    /// </summary>
+    public static class SceneLoading
+    {
+        /// <summary>Fired when a scene load starts.</summary>
+        public static event Action<string> OnLoadStarted;
+        /// <summary>Fired when a scene finished loading.</summary>
+        public static event Action<string> OnLoadCompleted;
+
+        private static readonly List<string> loadedScenes = new List<string>();
+        private static SceneLoadRunner runner;
+
+        /// <summary>
+        /// Load a scene additively. When <paramref name="additive"/> is false, first unload every
+        /// scene previously loaded through this class; the boot scene is never touched.
+        /// </summary>
+        public static void Load(string sceneName, bool additive = false)
+        {
+            OnLoadStarted?.Invoke(sceneName);
+            if (runner == null)
+            {
+                var go = new GameObject("SceneLoadRunner");
+                UnityEngine.Object.DontDestroyOnLoad(go);
+                runner = go.AddComponent<SceneLoadRunner>();
+            }
+            runner.StartCoroutine(LoadRoutine(sceneName, additive));
+        }
+
+        /// <summary>Unload a scene previously loaded through this class.</summary>
+        public static void Unload(string sceneName)
+        {
+            if (UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName).isLoaded)
+                UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(sceneName);
+            loadedScenes.Remove(sceneName);
+        }
+
+        private static IEnumerator LoadRoutine(string sceneName, bool additive)
+        {
+            if (!additive)
+            {
+                foreach (var name in loadedScenes)
+                {
+                    if (UnityEngine.SceneManagement.SceneManager.GetSceneByName(name).isLoaded)
+                        yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(name);
+                }
+                loadedScenes.Clear();
+            }
+
+            if (!UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName).isLoaded)
+                yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+            if (!loadedScenes.Contains(sceneName))
+                loadedScenes.Add(sceneName);
+
+            var loaded = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName);
+            if (loaded.IsValid())
+                UnityEngine.SceneManagement.SceneManager.SetActiveScene(loaded);
+
+            OnLoadCompleted?.Invoke(sceneName);
+        }
+
+        private class SceneLoadRunner : MonoBehaviour
+        {
+        }
+    }
+
+    /// <summary>
+    /// Scene loading facade used by steps/graphs and the lobby,
     /// coordinating room <see cref="Room.SceneNameProperty"/> in multiuser sessions.
     /// </summary>
-    public class SceneLoader : SingletonBehaviour<SceneLoader>
+    public class SceneLoader : MonoBehaviour
     {
+        /// <summary>Load <see cref="SceneName"/> in <see cref="Start"/>.</summary>
+        public bool LoadOnStart;
+
+        /// <summary>Load <see cref="SceneName"/> additively without unloading other tracked scenes.</summary>
+        public bool AdditiveScene;
+
         /// <summary>Scene to load when <see cref="LoadConfiguredScene"/> is called.</summary>
         public string SceneName;
 
-        /// <summary>Load <see cref="SceneName"/> additively instead of replacing the active scene.</summary>
-        public bool AdditiveScene;
-
-        /// <summary>Fired when a scene load starts.</summary>
-        public static Action<string> OnLoadStarted;
-        /// <summary>Fired when a scene finished loading.</summary>
-        public static Action<string> OnLoadCompleted;
+        private void Start()
+        {
+            if (LoadOnStart)
+                LoadScene();
+        }
 
         /// <summary>Load the configured <see cref="SceneName"/>.</summary>
         public void LoadScene() => LoadScene(SceneName);
@@ -45,12 +118,8 @@ namespace PixoVR.TrainingCore.SceneManagement
         /// <summary>Load the configured <see cref="SceneName"/>.</summary>
         public void LoadConfiguredScene() => LoadScene(SceneName);
 
-        /// <summary>Load a scene asynchronously.</summary>
-        public void LoadScene(string sceneName)
-        {
-            OnLoadStarted?.Invoke(sceneName);
-            StartCoroutine(LoadCoroutine(sceneName));
-        }
+        /// <summary>Load a scene asynchronously through <see cref="SceneLoading"/>.</summary>
+        public void LoadScene(string sceneName) => SceneLoading.Load(sceneName, AdditiveScene);
 
         /// <summary>Load the scene stored in the current room's <see cref="Room.SceneNameProperty"/>.</summary>
         public void LoadRoomScene()
@@ -59,15 +128,6 @@ namespace PixoVR.TrainingCore.SceneManagement
             var scene = room?.GetProperty<string>(Room.SceneNameProperty);
             if (!string.IsNullOrEmpty(scene))
                 LoadScene(scene);
-        }
-
-        private IEnumerator LoadCoroutine(string sceneName)
-        {
-            var op = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName,
-                AdditiveScene ? LoadSceneMode.Additive : LoadSceneMode.Single);
-            while (op != null && !op.isDone)
-                yield return null;
-            OnLoadCompleted?.Invoke(sceneName);
         }
     }
 
