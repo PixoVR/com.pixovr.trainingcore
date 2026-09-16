@@ -40,6 +40,8 @@ namespace PixoVR.TrainingCore.HandMenu
             else
                 CloseMenu();
             OnHandMenuStateChanged();
+            if (Subject != null)
+                EventBus.Instance.Publish(Subject.Id, new HandMenuStateChangeEventArgs(Subject, open));
         }
 
         /// <summary>Toggle the open state.</summary>
