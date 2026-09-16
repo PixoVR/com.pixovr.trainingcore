@@ -135,8 +135,12 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>End a state sync broadcast.</summary>
         public virtual void EndSync() => IsSyncing = false;
 
-        /// <summary>Reset the random-number managers for a fresh session.</summary>
-        public virtual void ResetRandoms() { }
+        /// <summary>Resets the shared random streams for a fresh session.</summary>
+        public virtual void ResetRandoms()
+        {
+            if (RandomManager.InstanceExists)
+                RandomManager.Instance.ResetRandoms();
+        }
 
         /// <summary>Update <see cref="State"/> and fire <see cref="NetworkEvents.OnConnectionStateChanged"/>.</summary>
         protected void SetState(ConnectionState state)
