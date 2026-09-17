@@ -98,7 +98,7 @@ namespace PixoVR.TrainingCore
 
             if (EnvironmentLoader == null)
                 EnvironmentLoader = FindObjectOfType<EnvironmentLoader>();
-            if (EnvironmentLoader != null && EnvironmentLoader.EnvironmentObject == null &&
+            if (EnvironmentLoader != null && !EnvironmentLoader.IsLoaded &&
                 EnvironmentLoader.CurrentEnvironment != null &&
                 EnvironmentLoader.CurrentEnvironment.RuntimeKeyIsValid())
             {
