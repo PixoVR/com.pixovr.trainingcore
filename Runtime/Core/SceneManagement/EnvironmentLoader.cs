@@ -20,8 +20,16 @@ namespace PixoVR.TrainingCore.SceneManagement
         /// <summary>Environment used on Android builds.</summary>
         public AssetReference AndroidEnvrionment;
 
-        /// <summary>Optional editor-only override.</summary>
-        public AssetReference EditorEnvrionmentToLoad;
+        /// <summary>Which environment reference to load when running in the Editor (serialized name kept for migration parity; serialized values match the Luminous enum).</summary>
+        public enum EditorEnvrionmentOverride { Desktop, Android }
+
+        /// <summary>Which environment reference to load when running in the Editor.</summary>
+        [Tooltip("Which environment reference to load when running in the Editor.")]
+        public EditorEnvrionmentOverride EditorEnvrionmentToLoad = EditorEnvrionmentOverride.Desktop;
+
+        /// <summary>Load the environment automatically in Start (Luminous parity).</summary>
+        [Tooltip("Load the environment automatically in Start.")]
+        public bool LoadOnStart = true;
 
         /// <summary>Invoked when the environment finished loading (fires on failure too).</summary>
         public Action LoadingDone;
@@ -38,22 +46,37 @@ namespace PixoVR.TrainingCore.SceneManagement
         /// <summary>Platform-appropriate environment reference (scene or prefab asset).</summary>
         public AssetReference CurrentEnvironment =>
 #if UNITY_EDITOR
-            EditorEnvrionmentToLoad ?? DesktopEnvrionment;
+            EditorEnvrionmentToLoad == EditorEnvrionmentOverride.Android ? AndroidEnvrionment : DesktopEnvrionment;
 #elif UNITY_ANDROID
             AndroidEnvrionment ?? DesktopEnvrionment;
 #else
             DesktopEnvrionment;
 #endif
 
-        /// <summary>Load <see cref="CurrentEnvironment"/>: scene assets load additively and become the active scene, prefab assets instantiate under this transform. <see cref="LoadingDone"/> always fires.</summary>
+        private bool isLoading;
+
+        private void Start()
+        {
+            if (LoadOnStart) LoadEnvironment();
+        }
+
+        /// <summary>Load <see cref="CurrentEnvironment"/>: scene assets load additively and become the active scene, prefab assets instantiate under this transform. <see cref="LoadingDone"/> always fires. Safe to call while a load is in flight — subscribers still get the event.</summary>
         public void LoadEnvironment()
         {
+            if (IsLoaded)
+            {
+                LoadingDone?.Invoke();
+                return;
+            }
+            if (isLoading)
+                return;
             var reference = CurrentEnvironment;
             if (reference == null || !reference.RuntimeKeyIsValid())
             {
                 LoadingDone?.Invoke();
                 return;
             }
+            isLoading = true;
             Addressables.LoadResourceLocationsAsync(reference.RuntimeKey).Completed += locHandle =>
             {
                 var locations = locHandle.Result;
@@ -73,6 +96,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                         {
                             Log.Error($"EnvironmentLoader: failed to load environment scene '{reference.RuntimeKey}': {h.OperationException}", LogCategory.Scene);
                         }
+                        isLoading = false;
                         LoadingDone?.Invoke();
                     };
                 }
@@ -88,6 +112,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                         {
                             Log.Error($"EnvironmentLoader: failed to instantiate environment '{reference.RuntimeKey}': {h.OperationException}", LogCategory.Scene);
                         }
+                        isLoading = false;
                         LoadingDone?.Invoke();
                     };
                 }
