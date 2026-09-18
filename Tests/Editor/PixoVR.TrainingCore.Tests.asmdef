@@ -4,6 +4,11 @@
     "references": [
         "PixoVR.TrainingCore",
         "PixoVR.TrainingCore.Editor",
+        "PixoVR.TrainingCore.Apex",
+        "PixoVR.TrainingCore.Photon",
+        "PixoVR.TrainingCore.XRI",
+        "PixoVR.ApexUnitySDK",
+        "com.alelievr.NodeGraphProcessor.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
@@ -14,7 +19,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "TinCan.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
