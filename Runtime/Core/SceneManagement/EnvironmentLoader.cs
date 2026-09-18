@@ -79,10 +79,17 @@ namespace PixoVR.TrainingCore.SceneManagement
             isLoading = true;
             Addressables.LoadResourceLocationsAsync(reference.RuntimeKey).Completed += locHandle =>
             {
-                var locations = locHandle.Result;
-                bool isScene = locations != null && locations.Count > 0 &&
-                               locations[0].ResourceType == typeof(SceneInstance);
+                var locations = locHandle.Status == AsyncOperationStatus.Succeeded ? locHandle.Result : null;
+                var exception = locHandle.OperationException;
                 Addressables.Release(locHandle);
+                if (locations == null || locations.Count == 0)
+                {
+                    Log.Error($"EnvironmentLoader: no Addressables location for environment '{reference.RuntimeKey}' (is Addressables player content built for this platform?) {exception}", LogCategory.Scene);
+                    isLoading = false;
+                    LoadingDone?.Invoke();
+                    return;
+                }
+                bool isScene = locations[0].ResourceType == typeof(SceneInstance);
                 if (isScene)
                 {
                     reference.LoadSceneAsync(LoadSceneMode.Additive).Completed += h =>
