@@ -11,8 +11,6 @@ namespace PixoVR.TrainingCore.Tests
     [TestFixture]
     public class QuestionNodeTests
     {
-        [SetUp]
-        public void SetUp() => UnityEngine.TestRuntime.IsPlaying = false;
 
         [Test]
         public void Parse_QuestionNode_ProducesQuestionStep()
@@ -91,8 +89,6 @@ namespace PixoVR.TrainingCore.Tests
     [TestFixture]
     public class LostObjectManagerTests
     {
-        [SetUp]
-        public void SetUp() => UnityEngine.TestRuntime.IsPlaying = true;
 
         [TearDown]
         public void TearDown()

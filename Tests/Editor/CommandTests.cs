@@ -12,14 +12,12 @@ namespace PixoVR.TrainingCore.Tests
         public void SetUp()
         {
             CommandHistory.Instance.Reset();
-            UnityEngine.TestRuntime.IsPlaying = true;
         }
 
         [TearDown]
         public void TearDown()
         {
             CommandHistory.Instance.Reset();
-            UnityEngine.TestRuntime.IsPlaying = false;
         }
 
         [Test]
