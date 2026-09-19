@@ -43,8 +43,6 @@ namespace PixoVR.TrainingCore.Tests
     [TestFixture]
     public class GraphParserTests
     {
-        [SetUp]
-        public void SetUp() => UnityEngine.TestRuntime.IsPlaying = false;
 
         private (TrainingGraph graph, StartNode start) LinearGraph(int steps)
         {

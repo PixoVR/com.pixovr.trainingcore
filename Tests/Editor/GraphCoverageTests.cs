@@ -25,7 +25,6 @@ namespace PixoVR.TrainingCore.Tests
         public void SetUp()
         {
             CommandHistory.Instance.Reset();
-            UnityEngine.TestRuntime.IsPlaying = false;
             ExposedParameterManager.Instance = new ExposedParameterManager();
         }
 
@@ -155,7 +154,6 @@ namespace PixoVR.TrainingCore.Tests
         public void SetUp()
         {
             CommandHistory.Instance.Reset();
-            UnityEngine.TestRuntime.IsPlaying = false;
             ExposedParameterManager.Instance = new ExposedParameterManager();
         }
 
@@ -216,7 +214,7 @@ namespace PixoVR.TrainingCore.Tests
             var go = TargetGo();
             var renderer = go.AddComponent<MeshRenderer>();
             var original = renderer.sharedMaterial;
-            var replacement = new Material();
+            var replacement = new Material(Shader.Find("Hidden/InternalErrorShader"));
             var node = new SetGameObjectMaterialActionNode { TargetObject = go, TargetMaterial = replacement };
             var action = node.Create();
 
@@ -288,7 +286,6 @@ namespace PixoVR.TrainingCore.Tests
         public void SetUp()
         {
             CommandHistory.Instance.Reset();
-            UnityEngine.TestRuntime.IsPlaying = false;
         }
 
         [TearDown]

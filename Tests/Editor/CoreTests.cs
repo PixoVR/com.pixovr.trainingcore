@@ -165,9 +165,6 @@ namespace PixoVR.TrainingCore.Tests
 
     public class GuidRegistryTests
     {
-        [SetUp]
-        public void SetUpEditMode() => UnityEngine.TestRuntime.IsPlaying = false;
-
         private GuidComponent Make()
         {
             var go = new GameObject();
