@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.1] - Unreleased
+### Added
+- `Runtime/XRI/ControllerModeManager` — Base/Teleport/Interface per-hand controller mode
+  switching (`ExternalStartRay`/`ExternalEndRay` for UI ray edges).
+- `Runtime/XRI/Prefabs/XRRig.prefab` — XRI 3.0.8 rig (XROrigin + legacy locomotion stack +
+  per-hand Base/Teleport/UI controllers, DeviceReferences, LostObjectManager, fade canvas)
+  and a bundled `XRI Default Input Actions` copy under `Runtime/XRI/Input/`.
+### Changed
+- `AutoRayManager.ControllerManager` is now typed `ControllerModeManager` and drives
+  `ExternalStartRay`/`ExternalEndRay` on UI-hit edges.
+
 ## [0.1.0] - Unreleased
 ### Fixed
 - `GameManager` now runs the startup sequence from `Start` (fade to black, environment
