@@ -16,8 +16,8 @@ namespace PixoVR.TrainingCore.XRI
     /// </summary>
     public class XRITeleportBehaviour : BaseTeleportationInteractable, ITeleportBehaviour
     {
-        /// <summary>Teleport anchor transform.</summary>
-        public Transform Anchor;
+        /// <summary>When true, teleport to <see cref="TeleportAnchorTransform"/>; otherwise to the ray hit point (area).</summary>
+        public bool Anchor;
 
         /// <summary>Anchor used for single-user teleports.</summary>
         public Transform TeleportAnchorTransform;
@@ -42,6 +42,25 @@ namespace PixoVR.TrainingCore.XRI
 
         private Vector3 lastPosition;
         private Quaternion lastRotation;
+
+        /// <inheritdoc/>
+        protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
+        {
+            if (Anchor)
+            {
+                var anchor = GetAnchor();
+                teleportRequest.destinationPosition = anchor.position;
+                teleportRequest.destinationRotation = anchor.rotation;
+                return true;
+            }
+
+            if (raycastHit.collider == null)
+                return false;
+
+            teleportRequest.destinationPosition = raycastHit.point;
+            teleportRequest.destinationRotation = transform.rotation;
+            return true;
+        }
 
         /// <summary>Disable this teleport point.</summary>
         public virtual void DisableTeleportPoint()
@@ -111,6 +130,6 @@ namespace PixoVR.TrainingCore.XRI
                 : CalculateLinearSpreading(count);
 
         private Transform GetAnchor() =>
-            Anchor != null ? Anchor : (TeleportAnchorTransform != null ? TeleportAnchorTransform : transform);
+            Anchor && TeleportAnchorTransform != null ? TeleportAnchorTransform : transform;
     }
 }
