@@ -54,10 +54,16 @@ namespace PixoVR.TrainingCore.XRI
             if (TryGetUIModel(out var model))
                 hit = hit || model.currentRaycast.isValid;
             if (hit && !uiHit)
+            {
                 ControllerManager?.ExternalStartRay();
+                uiHit = ControllerManager != null &&
+                    ControllerManager.Mode == ControllerModeManager.ControllerMode.Interface;
+            }
             else if (!hit && uiHit)
+            {
                 ControllerManager?.ExternalEndRay();
-            uiHit = hit;
+                uiHit = false;
+            }
             hittingUi = uiHit;
         }
 

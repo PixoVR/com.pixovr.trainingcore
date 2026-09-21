@@ -136,12 +136,17 @@ namespace PixoVR.TrainingCore.XRI
 
         private void OnEnterMode(ControllerMode previous, ControllerMode mode)
         {
+            if (mode != ControllerMode.Base)
+                SetController(BaseController, BaseControllerComponent, baseInteractor, baseLineVisual, false);
+            if (mode != ControllerMode.Teleport)
+                SetController(TeleportController, teleportController, teleportInteractor, teleportLineVisual, false);
+            if (mode != ControllerMode.Interface)
+                SetController(InterfaceController, interfaceController, interfaceInteractor, interfaceLineVisual, false);
+
             switch (mode)
             {
                 case ControllerMode.Base:
-                    SetController(TeleportController, teleportController, teleportInteractor, teleportLineVisual, false);
-                    SetController(InterfaceController, interfaceController, interfaceInteractor, interfaceLineVisual, false);
-                    SetController(BaseController, BaseControllerComponent, baseInteractor, baseLineVisual, true);
+                    SetController(BaseController, baseController, baseInteractor, baseLineVisual, true);
                     EnableAction(TranslateAnchor);
                     EnableAction(RotateAnchor);
                     break;
@@ -161,19 +166,10 @@ namespace PixoVR.TrainingCore.XRI
 
         private void OnExitMode(ControllerMode mode, ControllerMode next)
         {
-            switch (mode)
+            if (mode == ControllerMode.Base)
             {
-                case ControllerMode.Base:
-                    DisableAction(TranslateAnchor);
-                    DisableAction(RotateAnchor);
-                    break;
-                case ControllerMode.Teleport:
-                    SetController(TeleportController, teleportController, teleportInteractor, teleportLineVisual, false);
-                    break;
-                case ControllerMode.Interface:
-                    if (next == ControllerMode.Teleport)
-                        SetController(InterfaceController, interfaceController, interfaceInteractor, interfaceLineVisual, false);
-                    break;
+                DisableAction(TranslateAnchor);
+                DisableAction(RotateAnchor);
             }
         }
 
