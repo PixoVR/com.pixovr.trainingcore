@@ -976,7 +976,31 @@
                     "interactions": "",
                     "initialStateCheck": true
                 }
-            ],
+            ,
+                {
+                    "name": "Menu Toggle",
+                    "type": "Button",
+                    "id": "2acd766b-f3ef-490a-a6e3-c6e7b4d38a46",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Joystick",
+                    "type": "Value",
+                    "id": "2b3c4f64-df29-4591-b847-c208852aaef3",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Held Item Toggle",
+                    "type": "Button",
+                    "id": "4c810f0d-2794-4931-8e26-2cde3025b34f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }],
             "bindings": [
                 {
                     "name": "",
@@ -1264,7 +1288,40 @@
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
-            ]
+            ,
+                {
+                    "name": "",
+                    "id": "1fe76665-b040-4843-be50-1f8e1845b9b9",
+                    "path": "*/{MenuButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Menu Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "63e339b0-57a0-4abb-855f-dcbf1fdf1ed2",
+                    "path": "<XRController>{LeftHand}/primary2DAxis",
+                    "interactions": "Sector(directions=-1,sweepBehavior=3,pressPoint=0)",
+                    "processors": "",
+                    "groups": "Continuous Move;Noncontinuous Move",
+                    "action": "Joystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3811e1bf-f573-4aae-b520-00685cac57eb",
+                    "path": "<XRController>{LeftHand}/secondaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Noncontinuous Move",
+                    "action": "Held Item Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }]
         },
         {
             "name": "XRI Left Locomotion",
@@ -2047,7 +2104,23 @@
                     "interactions": "",
                     "initialStateCheck": true
                 }
-            ],
+            ,
+                {
+                    "name": "Joystick",
+                    "type": "Value",
+                    "id": "8f1dbd01-3bf3-47ef-9a7b-356838cec0cf",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Held Item Toggle",
+                    "type": "Button",
+                    "id": "0683f0ba-4079-4387-b8b7-b45e685677d7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }],
             "bindings": [
                 {
                     "name": "",
@@ -2335,7 +2408,29 @@
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
-            ]
+            ,
+                {
+                    "name": "",
+                    "id": "b10fb9bf-bb99-42cb-94d0-23fd8e598b1b",
+                    "path": "<XRController>{RightHand}/primary2DAxis",
+                    "interactions": "Sector(directions=-1,sweepBehavior=3,pressPoint=0)",
+                    "processors": "",
+                    "groups": "Continuous Move;Noncontinuous Move",
+                    "action": "Joystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e4d851f3-79d4-4f47-8bbe-7c6839c47d16",
+                    "path": "<XRController>{RightHand}/secondaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Noncontinuous Move",
+                    "action": "Held Item Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }]
         },
         {
             "name": "XRI Right Locomotion",
