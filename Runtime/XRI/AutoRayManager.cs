@@ -15,7 +15,7 @@ namespace PixoVR.TrainingCore.XRI
     public class AutoRayManager : MonoBehaviour, IUIInteractor
     {
         /// <summary>The target controller manager.</summary>
-        public MonoBehaviour ControllerManager;
+        public ControllerModeManager ControllerManager;
 
         /// <summary>Tracked pointer object for the pointer.</summary>
         public Transform RayRoot;
@@ -50,9 +50,14 @@ namespace PixoVR.TrainingCore.XRI
             ray.origin = RayRoot.position;
             ray.direction = RayRoot.forward;
             hitCounts = Physics.RaycastNonAlloc(ray, hits, AutoRayDistance, UiLayers);
-            uiHit = hitCounts > 0;
+            bool hit = hitCounts > 0;
             if (TryGetUIModel(out var model))
-                uiHit = uiHit || model.currentRaycast.isValid;
+                hit = hit || model.currentRaycast.isValid;
+            if (hit && !uiHit)
+                ControllerManager?.ExternalStartRay();
+            else if (!hit && uiHit)
+                ControllerManager?.ExternalEndRay();
+            uiHit = hit;
             hittingUi = uiHit;
         }
 
