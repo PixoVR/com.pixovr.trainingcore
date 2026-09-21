@@ -146,7 +146,7 @@ namespace PixoVR.TrainingCore.XRI
             switch (mode)
             {
                 case ControllerMode.Base:
-                    SetController(BaseController, baseController, baseInteractor, baseLineVisual, true);
+                    SetController(BaseController, BaseControllerComponent, baseInteractor, baseLineVisual, true);
                     EnableAction(TranslateAnchor);
                     EnableAction(RotateAnchor);
                     break;
