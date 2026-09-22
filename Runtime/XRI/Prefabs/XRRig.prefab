@@ -3107,6 +3107,7 @@ GameObject:
   - component: {fileID: 8873059910162537879}
   - component: {fileID: 715922548147491536}
   - component: {fileID: 5147340311310158750}
+  - component: {fileID: 5147340311310158751}
   - component: {fileID: 7278109122592486642}
   - component: {fileID: 7547977338031780183}
   - component: {fileID: 3137075042505433804}
@@ -3163,9 +3164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2213c36610e3b1c4bbf886810ed9db12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Mediator: {fileID: 0}
+  m_Mediator: {fileID: 5147340311310158750}
   m_TransformationPriority: 0
-  m_System: {fileID: 5147340311310158750}
+  m_System: {fileID: 0}
   m_DelayTime: 0
   m_TurnAmount: 45
   m_DebounceTime: 0.5
@@ -3202,11 +3203,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 8607898349302863445}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03a5df2202a8b96488c744be3bd0c33e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6fa7b4195685c3846be746c74f0ab2f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Timeout: 10
+--- !u!114 &5147340311310158751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8607898349302863445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a26c941eb8a46f7b6d00416227ab8c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   m_XROrigin: {fileID: 8873059910162537879}
+  m_BodyPositionEvaluatorObject: {fileID: 0}
+  m_ConstrainedBodyManipulatorObject: {fileID: 0}
+  m_UseCharacterControllerIfExists: 1
 --- !u!114 &7278109122592486642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3219,9 +3234,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01f69dc1cb084aa42b2f2f8cd87bc770, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Mediator: {fileID: 0}
+  m_Mediator: {fileID: 5147340311310158750}
   m_TransformationPriority: 0
-  m_System: {fileID: 5147340311310158750}
+  m_System: {fileID: 0}
   m_DelayTime: 0
 --- !u!114 &7547977338031780183
 MonoBehaviour:
