@@ -244,11 +244,29 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Credentials/config asset driving the session.</summary>
         public ApexCredentialsConfig Config;
 
+        /// <summary>Project-authored scenario catalog; when set it replaces the Apex module query.</summary>
+        public ScenarioCatalog ScenarioCatalog;
+
         /// <summary>SDK client (defaults to <see cref="ApexSystemClient"/>; inject a fake for tests).</summary>
         public IApexClient Client = new ApexSystemClient();
 
         private string _sessionId;
         private string _userId;
+
+        /// <summary>Assigns <paramref name="catalog"/> and applies it to <see cref="Catalog"/> immediately.</summary>
+        public void ApplyScenarioCatalog(ScenarioCatalog catalog)
+        {
+            ScenarioCatalog = catalog;
+            Catalog = catalog != null ? catalog.ToUserScenarios() : new UserScenarios();
+        }
+
+        /// <summary>Seeds <see cref="Catalog"/> from <see cref="ScenarioCatalog"/> so it exists before/without login.</summary>
+        protected override void Start()
+        {
+            base.Start();
+            if (ScenarioCatalog != null)
+                ApplyScenarioCatalog(ScenarioCatalog);
+        }
 
         /// <inheritdoc/>
         public override bool IsConnected => Client != null && Client.IsLoggedIn;
@@ -348,6 +366,11 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Populate <see cref="Catalog"/> from the user's available org modules.</summary>
         protected virtual void RefreshCatalog()
         {
+            if (ScenarioCatalog != null)
+            {
+                Catalog = ScenarioCatalog.ToUserScenarios();
+                return;
+            }
             Client.GetCurrentUserModules((ok, modules) =>
             {
                 if (!ok || modules == null)
