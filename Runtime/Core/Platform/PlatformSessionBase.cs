@@ -141,6 +141,11 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Registers this provider as <see cref="Instance"/>.</summary>
         protected virtual void Awake() => Instance = this;
 
+        /// <summary>Provider startup hook (catalog seeding etc.).</summary>
+        protected virtual void Start()
+        {
+        }
+
         /// <summary>Clears <see cref="Instance"/> when destroyed.</summary>
         protected virtual void OnDestroy()
         {

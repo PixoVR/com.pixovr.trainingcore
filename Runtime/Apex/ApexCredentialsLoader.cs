@@ -12,6 +12,9 @@ namespace PixoVR.TrainingCore.Apex
     {
         public ApexCredentialsConfig Config;
 
+        /// <summary>Optional project-authored scenario catalog to apply to the session.</summary>
+        public ScenarioCatalog ScenarioCatalog;
+
         public bool Initialised;
         public string ServerBaseAddress;
         public string PhotonRealtimeAppId;
@@ -29,9 +32,11 @@ namespace PixoVR.TrainingCore.Apex
 
         private void Start()
         {
-            if (Config == null) return;
             var session = PlatformSessionBase.Instance as ApexPlatformSession;
             if (session == null) session = FindObjectOfType<ApexPlatformSession>();
+            if (ScenarioCatalog != null && session != null && session.ScenarioCatalog == null)
+                session.ScenarioCatalog = ScenarioCatalog;
+            if (Config == null) return;
             if (session != null && session.Config == null)
                 session.Config = Config;
             Initialised = true;

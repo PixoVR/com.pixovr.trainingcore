@@ -19,6 +19,9 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Optional config asset to apply.</summary>
         public ApexCredentialsConfig Config;
 
+        /// <summary>Optional project-authored scenario catalog to apply.</summary>
+        public ScenarioCatalog ScenarioCatalog;
+
         private void Awake()
         {
             var session = Session != null ? Session : GetComponent<ApexPlatformSession>();
@@ -28,6 +31,8 @@ namespace PixoVR.TrainingCore.Apex
             }
             if (Config != null)
                 session.Config = Config;
+            if (ScenarioCatalog != null && session.ScenarioCatalog == null)
+                session.ScenarioCatalog = ScenarioCatalog;
             // PlatformSessionBase.Awake sets Instance; ensure this component exists before the flow starts.
         }
     }
