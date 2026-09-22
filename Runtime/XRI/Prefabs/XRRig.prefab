@@ -617,7 +617,7 @@ MonoBehaviour:
   m_LineWidth: 0.02
   m_OverrideInteractorLineLength: 1
   m_LineLength: 10
-  m_AutoAdjustLineLength: 1
+  m_AutoAdjustLineLength: 0
   m_MinLineLength: 0.5
   m_UseDistanceToHitAsMaxLineLength: 1
   m_LineRetractionDelay: 0.5
@@ -3161,39 +3161,44 @@ MonoBehaviour:
   m_GameObject: {fileID: 8607898349302863445}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2213c36610e3b1c4bbf886810ed9db12, type: 3}
+  m_Script: {fileID: 11500000, guid: e9f365cf844c03449bc8973eead2c3c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Mediator: {fileID: 5147340311310158750}
   m_TransformationPriority: 0
-  m_System: {fileID: 0}
-  m_DelayTime: 0
   m_TurnAmount: 45
   m_DebounceTime: 0.5
   m_EnableTurnLeftRight: 1
   m_EnableTurnAround: 1
-  m_LeftHandSnapTurnAction:
-    m_UseReference: 1
-    m_Action:
+  m_DelayTime: 0
+  m_LeftHandTurnInput:
+    m_InputSourceMode: 2
+    m_InputAction:
       m_Name: Left Hand Snap Turn
       m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: bcae984e-e222-4aec-9899-6a2de88a7166
+      m_ExpectedControlType: Vector2
+      m_Id: 536e141d-ee23-4272-b0fd-3984d1655f02
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
-    m_Reference: {fileID: 1010738217276881514, guid: 3d1634cb0140478092fc030578072e4d, type: 3}
-  m_RightHandSnapTurnAction:
-    m_UseReference: 1
-    m_Action:
+      m_Flags: 0
+    m_InputActionReference: {fileID: -7374733323251553461, guid: 3d1634cb0140478092fc030578072e4d, type: 3}
+    m_ObjectReferenceObject: {fileID: 0}
+    m_ManualValue: {x: 0, y: 0}
+  m_RightHandTurnInput:
+    m_InputSourceMode: 2
+    m_InputAction:
       m_Name: Right Hand Snap Turn
       m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: ef35997d-2cb6-4340-9edd-1239db5332f0
+      m_ExpectedControlType: Vector2
+      m_Id: b17ca378-4740-48c7-abe1-7f35bce317e9
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
-    m_Reference: {fileID: -6493913391331992944, guid: 3d1634cb0140478092fc030578072e4d, type: 3}
+      m_Flags: 0
+    m_InputActionReference: {fileID: -8525429354371678379, guid: 3d1634cb0140478092fc030578072e4d, type: 3}
+    m_ObjectReferenceObject: {fileID: 0}
+    m_ManualValue: {x: 0, y: 0}
 --- !u!114 &5147340311310158750
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4170,7 +4175,7 @@ MonoBehaviour:
   m_LineWidth: 0.02
   m_OverrideInteractorLineLength: 1
   m_LineLength: 10
-  m_AutoAdjustLineLength: 1
+  m_AutoAdjustLineLength: 0
   m_MinLineLength: 0.5
   m_UseDistanceToHitAsMaxLineLength: 1
   m_LineRetractionDelay: 0.5
