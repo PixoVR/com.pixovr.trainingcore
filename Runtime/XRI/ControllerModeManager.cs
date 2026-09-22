@@ -58,6 +58,7 @@ namespace PixoVR.TrainingCore.XRI
 
         protected void OnEnable()
         {
+            teleportWasHeld = cancelWasHeld = interfaceWasHeld = false;
             FindComponents(TeleportController, ref teleportController, ref teleportInteractor, ref teleportLineVisual);
             FindComponents(InterfaceController, ref interfaceController, ref interfaceInteractor, ref interfaceLineVisual);
         }
