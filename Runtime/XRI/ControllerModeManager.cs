@@ -52,6 +52,9 @@ namespace PixoVR.TrainingCore.XRI
         private XRBaseController interfaceController;
         private XRBaseInteractor interfaceInteractor;
         private XRInteractorLineVisual interfaceLineVisual;
+        private bool teleportWasHeld;
+        private bool cancelWasHeld;
+        private bool interfaceWasHeld;
 
         protected void OnEnable()
         {
@@ -66,41 +69,30 @@ namespace PixoVR.TrainingCore.XRI
 
         protected void Update()
         {
+            // Phase polling: XR state changes in the before-render input update are invisible to InputAction.triggered.
+            bool teleportHeld = IsHeld(TeleportModeActivate);
+            bool cancelHeld = IsHeld(TeleportModeCancel);
+            bool interfaceHeld = IsHeld(InterfaceModeActivate);
+            bool teleportPressed = teleportHeld && !teleportWasHeld;
+            bool cancelPressed = cancelHeld && !cancelWasHeld;
+            bool interfacePressed = interfaceHeld && !interfaceWasHeld;
+            teleportWasHeld = teleportHeld;
+            cancelWasHeld = cancelHeld;
+            interfaceWasHeld = interfaceHeld;
+
             switch (Mode)
             {
                 case ControllerMode.Base:
-                    UpdateBase();
+                    if (teleportPressed && !cancelHeld)
+                        TransitionTo(ControllerMode.Teleport);
+                    else if (interfacePressed)
+                        TransitionTo(ControllerMode.Interface);
                     break;
                 case ControllerMode.Teleport:
-                    UpdateTeleport();
+                    if (cancelPressed || !teleportHeld)
+                        TransitionTo(ControllerMode.Base);
                     break;
             }
-        }
-
-        private void UpdateBase()
-        {
-            bool triggerTeleport = GetAction(TeleportModeActivate) is { triggered: true };
-            bool cancelTeleport = GetAction(TeleportModeCancel) is { triggered: true };
-            bool triggerInterface = GetAction(InterfaceModeActivate) is { triggered: true };
-
-            if (triggerTeleport && !cancelTeleport)
-            {
-                TransitionTo(ControllerMode.Teleport);
-                return;
-            }
-
-            if (triggerInterface)
-                TransitionTo(ControllerMode.Interface);
-        }
-
-        private void UpdateTeleport()
-        {
-            InputAction teleportModeAction = GetAction(TeleportModeActivate);
-            bool cancelTeleport = GetAction(TeleportModeCancel) is { triggered: true };
-            bool releasedTeleport = teleportModeAction != null && teleportModeAction.phase == InputActionPhase.Waiting;
-
-            if (cancelTeleport || releasedTeleport)
-                TransitionTo(ControllerMode.Base);
         }
 
         /// <summary>
@@ -218,6 +210,9 @@ namespace PixoVR.TrainingCore.XRI
         }
 
         private static InputAction GetAction(InputActionReference reference) => reference != null ? reference.action : null;
+
+        private static bool IsHeld(InputActionReference reference) =>
+            GetAction(reference) is { phase: InputActionPhase.Performed };
 
         private static void EnableAction(InputActionReference reference)
         {
