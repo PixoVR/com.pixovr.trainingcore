@@ -26,6 +26,10 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Auto ray checking distance.</summary>
         public float AutoRayDistance = 10f;
 
+        /// <summary>Logs ray/UI-hit diagnostics.</summary>
+        [Tooltip("Logs ray/UI-hit diagnostics.")]
+        public bool LogDiagnostics = true;
+
         private bool hittingUi;
 
         /// <summary>True while the ray is hitting UI.</summary>
@@ -36,11 +40,14 @@ namespace PixoVR.TrainingCore.XRI
         private int hitCounts;
         private bool uiHit;
         private XRUIInputModule xrUiInputModule;
+        private float nextHeartbeat;
 
         private void Start()
         {
             xrUiInputModule = FindObjectOfType<XRUIInputModule>();
             xrUiInputModule?.RegisterInteractor(this);
+            if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] AutoRayManager '{name}': RayRoot={RayRoot?.name ?? "null"} UiLayers={UiLayers.value} AutoRayDistance={AutoRayDistance} ControllerManager={(ControllerManager != null ? ControllerManager.name : "null")} XRUIInputModule={(xrUiInputModule != null)}");
         }
 
         private void Update()
@@ -51,20 +58,37 @@ namespace PixoVR.TrainingCore.XRI
             ray.direction = RayRoot.forward;
             hitCounts = Physics.RaycastNonAlloc(ray, hits, AutoRayDistance, UiLayers);
             bool hit = hitCounts > 0;
+            bool uiModelValid = false;
             if (TryGetUIModel(out var model))
-                hit = hit || model.currentRaycast.isValid;
+            {
+                uiModelValid = model.currentRaycast.isValid;
+                hit = hit || uiModelValid;
+            }
             if (hit && !uiHit)
             {
+                if (LogDiagnostics)
+                    Debug.Log($"[XRI Diag] AutoRayManager '{name}': UI hit, requesting Interface (physHit={(hitCounts > 0 ? hits[0].collider.name + " layer=" + LayerMask.LayerToName(hits[0].collider.gameObject.layer) + " dist=" + hits[0].distance : "none")} uiModelValid={uiModelValid})");
                 ControllerManager?.ExternalStartRay();
                 uiHit = ControllerManager != null &&
                     ControllerManager.Mode == ControllerModeManager.ControllerMode.Interface;
+                if (LogDiagnostics)
+                    Debug.Log($"[XRI Diag] AutoRayManager '{name}': after ExternalStartRay mode={(ControllerManager != null ? ControllerManager.Mode.ToString() : "null")}");
             }
             else if (!hit && uiHit)
             {
+                if (LogDiagnostics)
+                    Debug.Log($"[XRI Diag] AutoRayManager '{name}': ray left UI");
                 ControllerManager?.ExternalEndRay();
                 uiHit = false;
             }
             hittingUi = uiHit;
+
+            if (LogDiagnostics && Time.time >= nextHeartbeat)
+            {
+                nextHeartbeat = Time.time + 2f;
+                bool ok = Physics.Raycast(ray, out var anyHit, AutoRayDistance);
+                Debug.Log($"[XRI Diag] AutoRayManager '{name}': origin={ray.origin} dir={ray.direction} maskedHits={hitCounts} anyHit={(ok ? anyHit.collider.name + " layer=" + LayerMask.LayerToName(anyHit.collider.gameObject.layer) + " dist=" + anyHit.distance : "none")} mode={ControllerManager?.Mode}");
+            }
         }
 
         /// <summary>Manually updates the XR UI input module with this pointer's state.</summary>
