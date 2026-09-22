@@ -32,7 +32,7 @@ namespace PixoVR.TrainingCore.Apex
             if (Config != null)
                 session.Config = Config;
             if (ScenarioCatalog != null && session.ScenarioCatalog == null)
-                session.ScenarioCatalog = ScenarioCatalog;
+                session.ApplyScenarioCatalog(ScenarioCatalog);
             // PlatformSessionBase.Awake sets Instance; ensure this component exists before the flow starts.
         }
     }

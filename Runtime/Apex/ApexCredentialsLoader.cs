@@ -35,7 +35,7 @@ namespace PixoVR.TrainingCore.Apex
             var session = PlatformSessionBase.Instance as ApexPlatformSession;
             if (session == null) session = FindObjectOfType<ApexPlatformSession>();
             if (ScenarioCatalog != null && session != null && session.ScenarioCatalog == null)
-                session.ScenarioCatalog = ScenarioCatalog;
+                session.ApplyScenarioCatalog(ScenarioCatalog);
             if (Config == null) return;
             if (session != null && session.Config == null)
                 session.Config = Config;

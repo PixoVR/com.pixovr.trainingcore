@@ -253,12 +253,19 @@ namespace PixoVR.TrainingCore.Apex
         private string _sessionId;
         private string _userId;
 
+        /// <summary>Assigns <paramref name="catalog"/> and applies it to <see cref="Catalog"/> immediately.</summary>
+        public void ApplyScenarioCatalog(ScenarioCatalog catalog)
+        {
+            ScenarioCatalog = catalog;
+            Catalog = catalog != null ? catalog.ToUserScenarios() : new UserScenarios();
+        }
+
         /// <summary>Seeds <see cref="Catalog"/> from <see cref="ScenarioCatalog"/> so it exists before/without login.</summary>
         protected override void Start()
         {
             base.Start();
-            if (ScenarioCatalog != null && ScenarioCatalog.Scenarios.Count > 0)
-                Catalog = ScenarioCatalog.ToUserScenarios();
+            if (ScenarioCatalog != null)
+                ApplyScenarioCatalog(ScenarioCatalog);
         }
 
         /// <inheritdoc/>
@@ -359,7 +366,7 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Populate <see cref="Catalog"/> from the user's available org modules.</summary>
         protected virtual void RefreshCatalog()
         {
-            if (ScenarioCatalog != null && ScenarioCatalog.Scenarios.Count > 0)
+            if (ScenarioCatalog != null)
             {
                 Catalog = ScenarioCatalog.ToUserScenarios();
                 return;
