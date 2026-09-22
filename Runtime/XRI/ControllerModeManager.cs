@@ -40,6 +40,10 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Anchor rotate action, enabled only in Base mode.</summary>
         public InputActionReference RotateAnchor;
 
+        /// <summary>Logs mode-transition diagnostics.</summary>
+        [Tooltip("Logs mode-transition diagnostics.")]
+        public bool LogDiagnostics = true;
+
         /// <summary>The currently active mode.</summary>
         public ControllerMode Mode { get; private set; } = ControllerMode.None;
 
@@ -68,6 +72,8 @@ namespace PixoVR.TrainingCore.XRI
         protected void Start()
         {
             TransitionTo(ControllerMode.Base);
+            if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] ControllerModeManager '{name}': Base={(BaseController != null ? BaseController.name : "null")} Teleport={(TeleportController != null ? TeleportController.name : "null")} Interface={(InterfaceController != null ? InterfaceController.name : "null")} resolvedController={(interfaceController != null)} resolvedInteractor={(interfaceInteractor != null)} resolvedLineVisual={(interfaceLineVisual != null)}");
         }
 
         protected void Update()
@@ -103,10 +109,18 @@ namespace PixoVR.TrainingCore.XRI
         /// </summary>
         public void ExternalStartRay()
         {
+            if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] ControllerModeManager '{name}': ExternalStartRay called, Mode={Mode} teleportPhase={GetAction(TeleportModeActivate)?.phase}");
             if (GetAction(TeleportModeActivate) is { phase: InputActionPhase.Performed })
+            {
+                if (LogDiagnostics)
+                    Debug.Log($"[XRI Diag] ControllerModeManager '{name}': ExternalStartRay ignored — teleport action held");
                 return;
+            }
             if (Mode == ControllerMode.Base)
                 TransitionTo(ControllerMode.Interface);
+            else if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] ControllerModeManager '{name}': ExternalStartRay ignored — Mode={Mode} not Base");
         }
 
         /// <summary>
@@ -114,8 +128,14 @@ namespace PixoVR.TrainingCore.XRI
         /// </summary>
         public void ExternalEndRay()
         {
+            if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] ControllerModeManager '{name}': ExternalEndRay called, Mode={Mode} teleportPhase={GetAction(TeleportModeActivate)?.phase}");
             if (Mode != ControllerMode.Interface)
+            {
+                if (LogDiagnostics)
+                    Debug.Log($"[XRI Diag] ControllerModeManager '{name}': ExternalEndRay ignored — Mode={Mode} not Interface");
                 return;
+            }
             TransitionTo(GetAction(TeleportModeActivate) is { phase: InputActionPhase.Performed }
                 ? ControllerMode.Teleport
                 : ControllerMode.Base);
@@ -123,6 +143,8 @@ namespace PixoVR.TrainingCore.XRI
 
         private void TransitionTo(ControllerMode next)
         {
+            if (LogDiagnostics)
+                Debug.Log($"[XRI Diag] ControllerModeManager '{name}': {Mode} -> {next}");
             OnExitMode(Mode, next);
             ControllerMode previous = Mode;
             Mode = next;
