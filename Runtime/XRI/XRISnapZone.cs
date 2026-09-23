@@ -530,7 +530,7 @@ namespace PixoVR.TrainingCore.XRI
                     }
                 }
 
-                offsetDistance = AttachPoint.transform.worldToLocalMatrix.MultiplyPoint(bounds.center);
+                offsetDistance = -AttachPoint.transform.worldToLocalMatrix.MultiplyPoint(bounds.center);
             }
 
             interactableTransform.rotation = transformRotation;
