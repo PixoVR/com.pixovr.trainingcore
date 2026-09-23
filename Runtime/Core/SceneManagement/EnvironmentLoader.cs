@@ -54,6 +54,7 @@ namespace PixoVR.TrainingCore.SceneManagement
 #endif
 
         private bool isLoading;
+        private AssetReference loadedEnvironment;
 
         private void OnEnable() => SceneManager.sceneUnloaded += OnSceneUnloaded;
 
@@ -68,7 +69,8 @@ namespace PixoVR.TrainingCore.SceneManagement
             if (EnvironmentScene.HasValue && scene == EnvironmentScene.Value.Scene)
             {
                 EnvironmentScene = null;
-                CurrentEnvironment?.UnLoadScene();
+                loadedEnvironment?.UnLoadScene();
+                loadedEnvironment = null;
             }
         }
 
@@ -113,6 +115,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                     {
                         if (h.Status == AsyncOperationStatus.Succeeded)
                         {
+                            loadedEnvironment = reference;
                             EnvironmentScene = h.Result;
                             SceneManager.SetActiveScene(h.Result.Scene);
                         }
@@ -130,6 +133,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                     {
                         if (h.Status == AsyncOperationStatus.Succeeded)
                         {
+                            loadedEnvironment = reference;
                             EnvironmentObject = h.Result;
                         }
                         else
@@ -150,11 +154,13 @@ namespace PixoVR.TrainingCore.SceneManagement
             {
                 // Clear first so the sceneUnloaded callback fired by UnLoadScene() doesn't re-enter.
                 EnvironmentScene = null;
-                CurrentEnvironment?.UnLoadScene();
+                loadedEnvironment?.UnLoadScene();
+                loadedEnvironment = null;
             }
             if (EnvironmentObject != null)
             {
-                CurrentEnvironment?.ReleaseInstance(EnvironmentObject);
+                loadedEnvironment?.ReleaseInstance(EnvironmentObject);
+                loadedEnvironment = null;
                 EnvironmentObject = null;
             }
         }
