@@ -154,6 +154,7 @@ namespace PixoVR.TrainingCore.Platform
         }
 
         private bool lastModulePassed;
+        private bool moduleReportActive;
 
         private bool CanReport => IsConnected && !string.IsNullOrEmpty(SessionId);
 
@@ -297,10 +298,26 @@ namespace PixoVR.TrainingCore.Platform
         public abstract Task RefreshSessionAsync();
         /// <summary>See the interface/base contract.</summary>
         public abstract Task SetStatusAsync(string sessionId, SessionStatus status, string moduleScene);
-        /// <summary>See the interface/base contract.</summary>
-        public abstract Task ModuleStartedAsync(string mode, string scenario, string module);
-        /// <summary>See the interface/base contract.</summary>
-        public abstract Task ModuleEndedAsync(string mode, string scenario, string module, bool passed);
+        /// <summary>See the interface/base contract. Idempotent: repeated starts within one run return early.</summary>
+        public Task ModuleStartedAsync(string mode, string scenario, string module)
+        {
+            if (moduleReportActive)
+                return Task.CompletedTask;
+            moduleReportActive = true;
+            return OnModuleStartedAsync(mode, scenario, module);
+        }
+        /// <summary>See the interface/base contract. Idempotent: ignored when no module report is active.</summary>
+        public Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
+        {
+            if (!moduleReportActive)
+                return Task.CompletedTask;
+            moduleReportActive = false;
+            return OnModuleEndedAsync(mode, scenario, module, passed);
+        }
+        /// <summary>Provider implementation of the module-start report.</summary>
+        protected virtual Task OnModuleStartedAsync(string mode, string scenario, string module) => Task.CompletedTask;
+        /// <summary>Provider implementation of the module-end report.</summary>
+        protected virtual Task OnModuleEndedAsync(string mode, string scenario, string module, bool passed) => Task.CompletedTask;
         /// <summary>See the interface/base contract.</summary>
         public abstract Task StepStartedAsync(StepBase step);
         /// <summary>See the interface/base contract.</summary>

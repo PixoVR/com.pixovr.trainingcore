@@ -278,11 +278,16 @@ namespace PixoVR.TrainingCore.Photon
                         Interactions.NetworkInfoPointManager.Instance?.ReceiveSetInfoPointEnableState(guid, state);
                     break;
                 case PhotonEventSerializer.InstructorEventCode:
+                    if (photonEvent.Sender != PhotonNetwork.MasterClient?.ActorNumber)
+                        break;
                     if (payload != null && payload.Length >= 3
                         && payload[0] is string action && payload[2] is bool flag)
                         (InstructorControls as PhotonInstructorControls)?.ReceiveInstructorEvent(action, payload[1] as string ?? "", flag);
                     break;
                 case PhotonEventSerializer.StepSyncEventCode:
+                    if (payload != null && payload.Length >= 1 && payload[0] is string syncAction
+                        && syncAction == "catchUp" && photonEvent.Sender != PhotonNetwork.MasterClient?.ActorNumber)
+                        break;
                     HandleStepSync(payload);
                     break;
             }
@@ -371,7 +376,13 @@ namespace PixoVR.TrainingCore.Photon
         {
             var player = (CurrentRoom as PhotonRoom)?.CachePlayer(newMasterClient) ?? ToPlayer(newMasterClient);
             if (CurrentRoom is PhotonRoom room)
+            {
+                foreach (var p in room.GetNetworkPlayers())
+                    p.IsInstructor = false;
+                if (player != null)
+                    player.IsInstructor = true;
                 room.NotifyMasterSwitched(player);
+            }
             OnMasterClientSwitchedEvent?.Invoke(player);
         }
     }
@@ -505,7 +516,6 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>Refresh from a PUN room list update.</summary>
         public void UpdateRooms(List<RoomInfo> roomList)
         {
-            _rooms.Clear();
             foreach (var room in roomList ?? new List<RoomInfo>())
             {
                 if (room == null)
@@ -513,11 +523,10 @@ namespace PixoVR.TrainingCore.Photon
                 if (room.RemovedFromList)
                     _roomInfos.Remove(room.Name);
                 else
-                {
                     _roomInfos[room.Name] = room;
-                    _rooms.Add(room.Name);
-                }
             }
+            _rooms.Clear();
+            _rooms.AddRange(_roomInfos.Keys);
         }
     }
 
@@ -593,7 +602,13 @@ namespace PixoVR.TrainingCore.Photon
                 case nameof(TapInteractionEventArgs):
                     return new TapInteractionEventArgs(null, floatBody()) { SubjectId = data.SubjectId };
                 case nameof(SnapInteractionEventArgs):
-                    return new SnapInteractionEventArgs(null, null, null) { SubjectId = data.SubjectId };
+                    int snapId = data.Data != null && data.Data.Length >= 4 ? BitConverter.ToInt32(data.Data, 0) : 0;
+                    int snapzoneId = data.Data != null && data.Data.Length >= 8 ? BitConverter.ToInt32(data.Data, 4) : 0;
+                    var snappable = Interactions.SnappableRegistry.SnappableList
+                        .FirstOrDefault(s => s != null && s.SnapId == snapId);
+                    var snapzone = UnityEngine.Object.FindObjectsOfType<Interactions.Snapzone>()
+                        .FirstOrDefault(z => z != null && z.SnapzoneID == snapzoneId);
+                    return new SnapInteractionEventArgs(null, snappable, snapzone) { SubjectId = data.SubjectId };
                 case nameof(UseInteractionEventArgs):
                     return new UseInteractionEventArgs(null, null, floatBody()) { SubjectId = data.SubjectId };
                 case nameof(ValveTurnEventArgs):
@@ -628,6 +643,11 @@ namespace PixoVR.TrainingCore.Photon
                     return BitConverter.GetBytes(use.Duration);
                 case GazeInteractionEventArgs gaze:
                     return BitConverter.GetBytes(gaze.GazeDuration);
+                case SnapInteractionEventArgs snap:
+                    var body = new byte[8];
+                    Buffer.BlockCopy(BitConverter.GetBytes(snap.SnappedObject != null ? snap.SnappedObject.SnapId : 0), 0, body, 0, 4);
+                    Buffer.BlockCopy(BitConverter.GetBytes(snap.Snapzone != null ? snap.Snapzone.SnapzoneID : 0), 0, body, 4, 4);
+                    return body;
                 case QuestionInteractionEventArgs question:
                     return new byte[] { question.Correct ? (byte)1 : (byte)0 };
                 default:

@@ -24,8 +24,16 @@ namespace PixoVR.TrainingCore.Photon
             RaiseInstructorEvent("toggleActive", player?.Id.ToString() ?? "", player == null || !player.IsActive);
 
         /// <inheritdoc/>
-        public override void Remove(MultiuserPlayer player) =>
+        public override void Remove(MultiuserPlayer player)
+        {
             RaiseInstructorEvent("remove", player?.Id.ToString() ?? "", true);
+            if (PhotonNetwork.IsMasterClient && player != null)
+            {
+                var photonPlayer = PhotonNetwork.CurrentRoom?.GetPlayer(player.Id);
+                if (photonPlayer != null)
+                    PhotonNetwork.CloseConnection(photonPlayer);
+            }
+        }
 
         /// <inheritdoc/>
         public override void SetAudioState(MultiuserPlayer player, bool muted) =>
@@ -74,8 +82,11 @@ namespace PixoVR.TrainingCore.Photon
             {
                 case "setActive":
                 case "toggleActive":
-                case "remove":
                     ApplyActiveState(player, state);
+                    break;
+                case "remove":
+                    if (player != null && player.IsLocal())
+                        Multiuser.NetworkManager.Instance?.LeaveRoom();
                     break;
                 case "audio":
                     ApplyAudioState(player, state);

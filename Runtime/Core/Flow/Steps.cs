@@ -218,7 +218,7 @@ namespace PixoVR.TrainingCore.Flow
                 return;
             }
             var snappable = SnappableRegistry.SnappableList
-                .FirstOrDefault(s => s != null && s.SnapId == SnapObjectId);
+                .FirstOrDefault(s => s != null && (SnapObjectId == 0 || s.SnapId == SnapObjectId));
             if (snappable == null)
             {
                 Utility.Log.Warning($"SnapOnZoneStep: no snappable in scene with id {SnapObjectId}",
@@ -241,6 +241,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Expected snapzone id.</summary>
         public int SnapZoneId;
 
+        private Snappable snappable;
+
         /// <summary>Create from node.</summary>
         public SnapObjectStep(SnapObjectStepNode node)
         {
@@ -248,14 +250,35 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             SnapZoneId = node.SnapZoneId;
-            var target = node.SnapComponent;
-            SubjectId = target != null ? target.SubjectId : null;
+            snappable = node.SnapComponent;
+            SubjectId = snappable != null ? snappable.SubjectId : null;
         }
 
         /// <inheritdoc/>
         protected override bool Matches(InteractionEventArgs args) =>
             args is SnapInteractionEventArgs snap &&
             (SnapZoneId == 0 || (snap.Snapzone != null && snap.Snapzone.SnapzoneID == SnapZoneId));
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            if (snappable == null)
+                return;
+            var zone = UnityEngine.Object.FindObjectsOfType<Snapzone>()
+                .FirstOrDefault(z => z != null && z.IsFree && (SnapZoneId == 0 || z.SnapzoneID == SnapZoneId));
+            if (zone == null)
+            {
+                Utility.Log.Warning($"SnapObjectStep: no free snapzone with id {SnapZoneId}",
+                    Utility.LogCategory.Flow);
+                return;
+            }
+            var args = new SnapInteractionEventArgs(snappable.GetComponent<ObservableSubject>(), snappable, zone);
+            EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
+        }
     }
 
     /// <summary>"Valve Turn": completes when the bound valve reaches the target rotation.</summary>

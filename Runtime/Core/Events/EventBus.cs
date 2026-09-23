@@ -141,7 +141,6 @@ namespace PixoVR.TrainingCore.Events
             subjects.Clear();
             history.Clear();
             UnsyncedEvents.Clear();
-            OnPublished = null;
         }
     }
 }

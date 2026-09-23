@@ -48,13 +48,14 @@ namespace PixoVR.TrainingCore.XRI
         public virtual bool TryGaze(out RaycastHit hit)
         {
             var origin = Origin != null ? Origin : (Camera.main != null ? Camera.main.transform : transform);
+            var originPosition = origin.position;
             var direction = origin.forward;
             if (EyeTracker is IGazeSource gaze && gaze.ActiveAndEnabled)
             {
-                origin.position = gaze.GazeOrigin;
+                originPosition = gaze.GazeOrigin;
                 direction = gaze.GazeDirection;
             }
-            if (Physics.SphereCast(origin.position, GazeSize, direction, out hit, GazeDistance))
+            if (Physics.SphereCast(originPosition, GazeSize, direction, out hit, GazeDistance))
             {
                 if ((BlockingLayers.value & (1 << hit.collider.gameObject.layer)) == 0)
                     return true;

@@ -454,7 +454,7 @@ namespace PixoVR.TrainingCore.Apex
         }
 
         /// <inheritdoc/>
-        public override Task ModuleStartedAsync(string mode, string scenario, string module)
+        protected override Task OnModuleStartedAsync(string mode, string scenario, string module)
         {
             var tcs = new TaskCompletionSource<bool>();
             Client.JoinSession(Config != null ? Config.ScenarioId : scenario, null, (ok, sessionId) =>
@@ -470,7 +470,7 @@ namespace PixoVR.TrainingCore.Apex
         }
 
         /// <inheritdoc/>
-        public override Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
+        protected override Task OnModuleEndedAsync(string mode, string scenario, string module, bool passed)
         {
             var tcs = new TaskCompletionSource<bool>();
             var data = new SessionData(passed ? 100f : 0f, passed ? 1f : 0f, 0f, 100f, 0, true, passed);
