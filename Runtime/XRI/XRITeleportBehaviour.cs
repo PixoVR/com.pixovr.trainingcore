@@ -51,16 +51,33 @@ namespace PixoVR.TrainingCore.XRI
                 var anchor = GetAnchor();
                 teleportRequest.destinationPosition = anchor.position;
                 teleportRequest.destinationRotation = anchor.rotation;
+                XRIDiagnostics.Log($"Teleport '{name}': request by '{interactor}' anchor -> {anchor.position}", this);
                 return true;
             }
 
             if (raycastHit.collider == null)
+            {
+                XRIDiagnostics.Log($"Teleport '{name}': request by '{interactor}' rejected (no hit)", this);
                 return false;
+            }
 
             teleportRequest.destinationPosition = raycastHit.point;
             teleportRequest.destinationRotation = transform.rotation;
+            XRIDiagnostics.Log($"Teleport '{name}': request by '{interactor}' area -> {raycastHit.point}", this);
             return true;
         }
+
+        /// <summary>
+        /// Only ray interactors may hover/select teleport interactables — the hands'
+        /// XRDirectInteractor shares interaction layer bit 1 with the floor, so a grip
+        /// near a snapped tool would otherwise select the teleport surface.
+        /// </summary>
+        public override bool IsHoverableBy(IXRHoverInteractor interactor) =>
+            base.IsHoverableBy(interactor) && interactor is XRRayInteractor;
+
+        /// <inheritdoc cref="IsHoverableBy"/>
+        public override bool IsSelectableBy(IXRSelectInteractor interactor) =>
+            base.IsSelectableBy(interactor) && interactor is XRRayInteractor;
 
         /// <summary>Disable this teleport point.</summary>
         public virtual void DisableTeleportPoint()
