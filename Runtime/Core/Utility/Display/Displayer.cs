@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PixoVR.TrainingCore.Data;
+using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Settings;
 using UnityEngine;
 
@@ -21,8 +22,8 @@ namespace PixoVR.TrainingCore.Utility.Display
         /// <summary>Image slot.</summary>
         public UnityEngine.UI.Image DisplayImage;
 
-        /// <summary>Optional audio manager.</summary>
-        public AudioManager AudioClipPlaybackManager;
+        /// <summary>Optional queued-clip audio manager.</summary>
+        public AudioClipPlaybackManager AudioClipPlaybackManager;
 
         /// <summary>Parent for answer buttons.</summary>
         public Transform AnswersParent;
@@ -59,8 +60,13 @@ namespace PixoVR.TrainingCore.Utility.Display
                 if (DisplayImage.enabled)
                     DisplayImage.sprite = data.Sprites[0];
             }
-            if (data.AudioSettings != null && AudioClipPlaybackManager != null)
-                AudioClipPlaybackManager.Play(data.AudioSettings);
+            if (data.AudioSettings != null)
+            {
+                if (AudioClipPlaybackManager != null)
+                    AudioClipPlaybackManager.ApplySettings(data.AudioSettings, true);
+                else
+                    AudioManager.Instance?.Play(data.AudioSettings);
+            }
         }
 
         private DisplayData displayedData;
@@ -70,6 +76,49 @@ namespace PixoVR.TrainingCore.Utility.Display
         {
             displayedData = data;
             SetContent(data);
+            if (answerData != null)
+                SpawnAnswers(answerData);
+        }
+
+        private void SpawnAnswers(AnswerData answerData)
+        {
+            if (AnswersParent == null || answerData.Prefab == null || answerData.Answers == null)
+                return;
+            for (int i = AnswersParent.childCount - 1; i >= 0; i--)
+                Destroy(AnswersParent.GetChild(i).gameObject);
+            var picked = new List<Answer>();
+            var correct = answerData.Answers.FindAll(a => a.Correct);
+            var incorrect = answerData.Answers.FindAll(a => !a.Correct);
+            if (correct.Count > 0)
+                picked.Add(correct[UnityEngine.Random.Range(0, correct.Count)]);
+            int needed = Mathf.Max(0, answerData.DisplayCount - picked.Count);
+            for (int i = 0; i < incorrect.Count && picked.Count - 1 < needed; i++)
+                picked.Add(incorrect[i]);
+            if (answerData.RandomOrder)
+            {
+                for (int i = picked.Count - 1; i > 0; i--)
+                {
+                    int j = UnityEngine.Random.Range(0, i + 1);
+                    (picked[i], picked[j]) = (picked[j], picked[i]);
+                }
+            }
+            var subject = GetComponentInParent<Events.ObservableSubject>();
+            var subjectId = subject != null ? subject.Id : gameObject.GetGuidString();
+            foreach (var answer in picked)
+            {
+                var go = Instantiate(answerData.Prefab, AnswersParent);
+                var label = go.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (label != null)
+                    label.text = answer.Text;
+                var button = go.GetComponentInChildren<UnityEngine.UI.Button>();
+                if (button != null)
+                {
+                    var chosen = answer;
+                    button.onClick.AddListener(() =>
+                        Events.EventBus.Instance.Publish(subjectId,
+                            new Events.QuestionInteractionEventArgs(subjectId, chosen.Correct)));
+                }
+            }
         }
 
         /// <summary>The data currently displayed.</summary>

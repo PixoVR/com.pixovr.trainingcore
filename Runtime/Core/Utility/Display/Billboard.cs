@@ -6,11 +6,31 @@ using UnityEngine;
 
 namespace PixoVR.TrainingCore.Utility.Display
 {
+    /// <summary>Axes a billboard can rotate around.</summary>
+    public enum PivotAxis
+    {
+        /// <summary>Rotate freely around X and Y.</summary>
+        XY,
+        /// <summary>Rotate around Y only.</summary>
+        Y,
+        /// <summary>Rotate around X only.</summary>
+        X,
+        /// <summary>Rotate around Z only.</summary>
+        Z,
+        /// <summary>Rotate around X and Z.</summary>
+        XZ,
+        /// <summary>Rotate around Y and Z.</summary>
+        YZ,
+        /// <summary>No pivot constraint.</summary>
+        Free
+    }
+
     /// <summary>Rotates an object to always face a target (billboard).</summary>
     public class Billboard : MonoBehaviour
     {
-        /// <summary>Local axis that tracks the target.</summary>
-        public Vector3 pivotAxis = Vector3.up;
+        /// <summary>Axes about which the object will rotate.</summary>
+        [SerializeField]
+        private PivotAxis pivotAxis = PivotAxis.XY;
 
         /// <summary>The object to rotate (defaults to self).</summary>
         public Transform ObjectToRotate;
@@ -21,8 +41,8 @@ namespace PixoVR.TrainingCore.Utility.Display
         /// <summary>Target transform (defaults to main camera).</summary>
         public Transform targetTransform;
 
-        /// <summary>Axis to pivot around (alias for <see cref="pivotAxis"/>).</summary>
-        public Vector3 PivotAxis => pivotAxis;
+        /// <summary>Axis to pivot around.</summary>
+        public PivotAxis PivotAxis => pivotAxis;
 
         private void Update()
         {
@@ -32,7 +52,37 @@ namespace PixoVR.TrainingCore.Utility.Display
                 : (Camera.main != null ? Camera.main.transform : null);
             if (target == null)
                 return;
-            var look = Quaternion.LookRotation(body.position - target.position, pivotAxis);
+            var direction = target.position - body.position;
+            bool useCameraUp = true;
+            switch (pivotAxis)
+            {
+                case PivotAxis.X:
+                    direction.x = 0f;
+                    useCameraUp = false;
+                    break;
+                case PivotAxis.Y:
+                    direction.y = 0f;
+                    useCameraUp = false;
+                    break;
+                case PivotAxis.Z:
+                    direction.x = 0f;
+                    direction.y = 0f;
+                    break;
+                case PivotAxis.XY:
+                    useCameraUp = false;
+                    break;
+                case PivotAxis.XZ:
+                    direction.x = 0f;
+                    break;
+                case PivotAxis.YZ:
+                    direction.y = 0f;
+                    break;
+            }
+            if (direction.sqrMagnitude < 0.001f)
+                return;
+            var look = useCameraUp
+                ? Quaternion.LookRotation(-direction, target.up)
+                : Quaternion.LookRotation(-direction);
             body.rotation = Quaternion.Slerp(body.rotation, look, Time.deltaTime * LerpSpeed);
         }
     }

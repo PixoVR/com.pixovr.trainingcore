@@ -24,10 +24,28 @@ namespace PixoVR.TrainingCore.Utility
         private readonly Queue<AudioClip> clipQueue = new Queue<AudioClip>();
         private readonly Queue<AudioClip> prevQueue = new Queue<AudioClip>();
 
+        /// <summary>Apply volume/spatial blend to the source, optionally starting playback.</summary>
+        public void ApplySettings(AudioClipSettings settings, bool playClips)
+        {
+            var src = Source != null ? Source : GetComponent<AudioSource>();
+            if (src == null)
+                src = gameObject.AddComponent<AudioSource>();
+            src.volume = settings.Volume;
+            src.spatialBlend = settings.SpatialBlend;
+            if (playClips)
+                Play(settings);
+        }
+
         /// <summary>Queue all clips in the settings and start playback.</summary>
         public void Play(AudioClipSettings settings)
         {
             CurrentSettings = settings;
+            var output = Source != null ? Source : GetComponent<AudioSource>();
+            if (output != null)
+            {
+                output.volume = settings.Volume;
+                output.spatialBlend = settings.SpatialBlend;
+            }
             clipQueue.Clear();
             if (settings?.ClipsToPlay != null)
                 foreach (var clip in settings.ClipsToPlay)
