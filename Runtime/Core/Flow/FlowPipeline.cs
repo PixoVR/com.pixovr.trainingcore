@@ -234,6 +234,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             foreach (var s in CurrentSteps.Where(s => s != null))
             {
+                s.StepCompleted -= OnStepCompleted;
                 s.OnExit();
                 foreach (var cb in onStepExited)
                     cb(s);
