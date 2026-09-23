@@ -37,9 +37,15 @@ namespace PixoVR.TrainingCore.Flow
             if (iterator == null)
                 return;
             OnStartSkip();
-            foreach (var s in iterator.CurrentSteps.ToList())
-                s?.SkipForwards();
-            iterator.NextSteps();
+            int guard = 0;
+            do
+            {
+                foreach (var s in iterator.CurrentSteps.ToList())
+                    s?.OnSkipForwards();
+                StepCounter.Increment();
+                iterator.NextSteps();
+            }
+            while (!ReachedSkipPoint() && iterator.CurrentSteps.Count > 0 && guard++ < 1000);
             onComplete?.Invoke();
         }
 
@@ -67,9 +73,17 @@ namespace PixoVR.TrainingCore.Flow
             if (iterator == null)
                 return;
             OnStartSkip();
-            foreach (var s in iterator.CurrentSteps.ToList())
-                s?.SkipBackwards();
-            iterator.PreviousSteps();
+            int guard = 0;
+            do
+            {
+                Commands.CommandHistory.Instance.UndoStep(StepCounter.Current);
+                Events.EventBus.Instance.RemoveEventsFor(StepCounter.Current);
+                foreach (var s in iterator.CurrentSteps.ToList())
+                    s?.SkipBackwards();
+                StepCounter.Decrement();
+                iterator.PreviousSteps();
+            }
+            while (iterator.CurrentSteps.Count > 0 && !ReachedSkipPoint() && guard++ < 1000);
             onComplete?.Invoke();
         }
 

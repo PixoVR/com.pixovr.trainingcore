@@ -86,6 +86,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Fired when the active step set changes.</summary>
         public event Action CurrentNodeChanged;
 
+        /// <summary>Fired when the step set empties after the flow has started.</summary>
+        public event Action FlowCompleted;
+
         private readonly List<Action<StepBase>> onStepEntered = new List<Action<StepBase>>();
         private readonly List<Action<StepBase>> onStepExited = new List<Action<StepBase>>();
 
@@ -99,7 +102,8 @@ namespace PixoVR.TrainingCore.Flow
         public void StartIterator()
         {
             Started = true;
-            SetCurrentSteps(Expand(new List<StepBase> { Data.mainFlowRoot }));
+            MarkVisited(Data.mainFlowRoot);
+            SetCurrentSteps(Expand(Data.mainFlowRoot?.GetStepOutputs() ?? new List<StepBase>()));
         }
 
         /// <summary>Restart from the root.</summary>
@@ -111,7 +115,18 @@ namespace PixoVR.TrainingCore.Flow
             currentStepGuids.Clear();
             visitedStepGuids.Clear();
             conditionalPredecessors.Clear();
-            SetCurrentSteps(Expand(new List<StepBase> { Data.mainFlowRoot }));
+            MarkVisited(Data.mainFlowRoot);
+            SetCurrentSteps(Expand(Data.mainFlowRoot?.GetStepOutputs() ?? new List<StepBase>()));
+        }
+
+        private void MarkVisited(StepBase s)
+        {
+            if (s == null)
+                return;
+            if (!visitedStepGuids.Contains(s.GUID))
+                visitedStepGuids.Add(s.GUID);
+            if (!VisitedNodes.Contains(s))
+                VisitedNodes.Add(s);
         }
 
         /// <summary>Advance all current steps to their outputs.</summary>
@@ -240,6 +255,8 @@ namespace PixoVR.TrainingCore.Flow
             }
 
             CurrentNodeChanged?.Invoke();
+            if (Started && CurrentSteps.Count == 0)
+                FlowCompleted?.Invoke();
         }
 
         private void OnStepCompleted(StepBase step)
@@ -341,8 +358,20 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Wire the iterator's change notification.</summary>
         public virtual void InitializeIterator()
         {
-            if (FlowIterator != null)
-                FlowIterator.CurrentNodeChanged += () => OnFlowChanged?.Invoke();
+            if (FlowIterator == null)
+                return;
+            FlowIterator.CurrentNodeChanged += () =>
+            {
+                if (FlowIterator.CurrentSteps != null && FlowIterator.CurrentSteps.Count > 0)
+                    GameModeManager.StepsStarted(Name, FlowIterator.CurrentSteps);
+                OnFlowChanged?.Invoke();
+            };
+            FlowIterator.StepCompleted += step =>
+            {
+                GameModeManager.StepCompleted(Name, step);
+                StepCounter.Increment();
+            };
+            FlowIterator.FlowCompleted += Complete;
         }
 
         /// <summary>Start at the root.</summary>
@@ -446,8 +475,23 @@ namespace PixoVR.TrainingCore.Flow
             ReturnFlow = returnFlow;
         }
 
-        /// <summary>Complete: return to the normal flow.</summary>
-        public override void Complete() => base.Complete();
+        private int stepCounterOnEnter;
+
+        /// <inheritdoc/>
+        public override void Start()
+        {
+            stepCounterOnEnter = StepCounter.Current;
+            base.Start();
+        }
+
+        /// <summary>Complete: undo the failed step's commands and events, then resume the normal flow.</summary>
+        public override void Complete()
+        {
+            Commands.CommandHistory.Instance.UndoUntil(stepCounterOnEnter - 1);
+            Events.EventBus.Instance.RemoveEventsAfter(stepCounterOnEnter - 1);
+            StepCounter.InitializeTo(stepCounterOnEnter - 1);
+            base.Complete();
+        }
     }
 
     /// <summary>Base for steps that run during a skip (invisible to the user).</summary>

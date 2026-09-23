@@ -45,6 +45,9 @@ namespace PixoVR.TrainingCore.Settings
         /// <summary>Feature set selected for this build.</summary>
         public PlatformFeatureSet PlatformFeatureSet;
 
+        /// <summary>Optional clip played when a step with PlaySoundOnComplete finishes.</summary>
+        public AudioClip CompleteStepAudioClip;
+
         /// <summary>Reset the cached instance (used by tests/domain reload).</summary>
         public static void ResetInstance() => instance = null;
     }

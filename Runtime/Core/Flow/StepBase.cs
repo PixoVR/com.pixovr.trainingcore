@@ -208,6 +208,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>See the interface/base contract.</summary>
         protected override void OnStepCompleted()
         {
+            if (PlaySoundOnComplete && CompleteSoundEffect != null && Utility.AudioManager.InstanceExists)
+                Utility.AudioManager.Instance.Play(CompleteSoundEffect);
             ExecuteActions(CompleteActions);
             NotifyStartActionOnStepCompleted();
             base.OnStepCompleted();

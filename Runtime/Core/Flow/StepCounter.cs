@@ -11,5 +11,8 @@ namespace PixoVR.TrainingCore.Flow
 
         /// <summary>Increment and return the new value.</summary>
         public static int Increment() => ++Current;
+
+        /// <summary>Decrement and return the new value.</summary>
+        public static int Decrement() => --Current;
     }
 }

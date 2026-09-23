@@ -48,18 +48,34 @@ namespace PixoVR.TrainingCore.Flow
     [Serializable]
     public class GrabObjectStep : SingleObjectInteractionStepBase
     {
+        private Grabbable grabbable;
+
         /// <summary>Create from node.</summary>
         public GrabObjectStep(GrabObjectNode node)
         {
             GUID = node.GUID;
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
-            var target = node.GrabObjectComponent;
-            SubjectId = target != null ? target.SubjectId : null;
+            grabbable = node.GrabObjectComponent;
+            SubjectId = grabbable != null ? grabbable.SubjectId : null;
         }
 
         /// <inheritdoc/>
         protected override bool Matches(InteractionEventArgs args) => args is GrabInteractionEventArgs;
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            var subject = grabbable != null ? grabbable.GetComponent<ObservableSubject>() : null;
+            if (subject == null)
+                return;
+            var args = new GrabInteractionEventArgs(subject);
+            EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
+        }
     }
 
     /// <summary>Completes when the bound object is tapped.</summary>
@@ -69,6 +85,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Required tap duration (0 = any).</summary>
         public float RequiredDuration;
 
+        private Tappable tappable;
+
         /// <summary>Create from node.</summary>
         public TapObjectStep(TapObjectNode node)
         {
@@ -76,13 +94,23 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             RequiredDuration = node.DurationSettings?.IsRequired == true ? node.DurationSettings.DurationNeeded : 0f;
-            var target = node.TapObjectComponent;
-            SubjectId = target != null ? target.SubjectId : null;
+            tappable = node.TapObjectComponent;
+            SubjectId = tappable != null ? tappable.SubjectId : null;
         }
 
         /// <inheritdoc/>
         protected override bool Matches(InteractionEventArgs args) =>
             args is TapInteractionEventArgs tap && tap.TapDuration >= RequiredDuration;
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            var subject = tappable != null ? tappable.GetComponent<ObservableSubject>() : null;
+            if (subject == null)
+                return;
+            EventBus.Instance.AddToHistory(new TapInteractionEventArgs(subject, RequiredDuration));
+        }
     }
 
     /// <summary>Completes when the bound object is used.</summary>
@@ -105,6 +133,30 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         protected override bool Matches(InteractionEventArgs args) =>
             args is UseInteractionEventArgs use && use.Duration >= RequiredDuration;
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            var subject = FindSubject(SubjectId);
+            if (subject == null)
+                return;
+            var args = new UseInteractionEventArgs(subject, null, RequiredDuration);
+            EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
+        }
+
+        internal static ObservableSubject FindSubject(string subjectId)
+        {
+            if (string.IsNullOrEmpty(subjectId))
+                return null;
+            foreach (var s in UnityEngine.Object.FindObjectsOfType<ObservableSubject>(true))
+                if (s.Id == subjectId)
+                    return s;
+            return null;
+        }
     }
 
     /// <summary>"Snap on Zone": completes when the expected object lands in the bound zone.</summary>
@@ -151,6 +203,34 @@ namespace PixoVR.TrainingCore.Flow
             if (args is SnapInteractionEventArgs snap &&
                 (SnapObjectId == 0 || (snap.SnappedObject != null && snap.SnappedObject.SnapId == SnapObjectId)))
                 OnStepCompleted();
+        }
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            if (zone == null)
+                return;
+            if (!zone.IsFree)
+            {
+                Utility.Log.Warning($"SnapOnZoneStep: snap zone {zone.gameObject.name} is not free",
+                    Utility.LogCategory.Flow);
+                return;
+            }
+            var snappable = SnappableRegistry.SnappableList
+                .FirstOrDefault(s => s != null && s.SnapId == SnapObjectId);
+            if (snappable == null)
+            {
+                Utility.Log.Warning($"SnapOnZoneStep: no snappable in scene with id {SnapObjectId}",
+                    Utility.LogCategory.Flow);
+                return;
+            }
+            var subject = snappable.GetComponent<ObservableSubject>();
+            var args = new SnapInteractionEventArgs(subject, snappable, zone);
+            EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
         }
     }
 
@@ -234,6 +314,25 @@ namespace PixoVR.TrainingCore.Flow
             if (done)
                 OnStepCompleted();
         }
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            base.SkipForwards();
+            if (valve == null)
+                return;
+            float rotation = CompletionState switch
+            {
+                ValveState.Open => valve.OpenRotation,
+                ValveState.Close => valve.ClosedRotation,
+                _ => (CompletionRange.x + CompletionRange.y) / 2f
+            };
+            var args = new ValveTurnEventArgs(valve, rotation, false);
+            EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
+        }
     }
 
     /// <summary>"Generic Step": completed externally via its <see cref="GenericStepTrigger"/>.</summary>
@@ -301,6 +400,8 @@ namespace PixoVR.TrainingCore.Flow
         [NonSerialized]
         public float Elapsed;
 
+        private bool subscribed;
+
         /// <summary>Create from node.</summary>
         public WaitDurationStep(WaitDurationStepNode node)
         {
@@ -309,6 +410,37 @@ namespace PixoVR.TrainingCore.Flow
             IsSkipPoint = node.IsSkipPoint;
             Duration = node.Duration;
         }
+
+        /// <inheritdoc/>
+        public override void OnEnter()
+        {
+            base.OnEnter();
+            Elapsed = 0f;
+            if (GraphFlowManager.InstanceExists)
+            {
+                GraphFlowManager.Instance.Tick += OnTick;
+                subscribed = true;
+            }
+            else
+            {
+                Utility.Log.Warning("WaitDurationStep: no GraphFlowManager to tick with",
+                    Utility.LogCategory.Flow);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void UnregisterListeners()
+        {
+            if (subscribed)
+            {
+                subscribed = false;
+                if (GraphFlowManager.InstanceExists)
+                    GraphFlowManager.Instance.Tick -= OnTick;
+            }
+            base.UnregisterListeners();
+        }
+
+        private void OnTick() => Tick(Time.deltaTime);
 
         /// <summary>Tick the timer; completes when the duration elapses.</summary>
         public void Tick(float deltaTime)
@@ -329,6 +461,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Teleport all users.</summary>
         public bool ForceAllUsers = true;
 
+        private Teleporter target;
+
         /// <summary>Create from node.</summary>
         public TeleportLocationStep(TeleportLocationNode node)
         {
@@ -336,7 +470,7 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             ForceAllUsers = node.ForceAllUsers;
-            var target = node.TargetLocation;
+            target = node.TargetLocation;
             SubjectId = target != null ? target.SubjectId : null;
         }
 
@@ -365,7 +499,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void SkipForwards()
         {
-            // simulate the teleport via a command so undo keeps working
+            base.SkipForwards();
+            target?.SkipForwards();
         }
     }
 

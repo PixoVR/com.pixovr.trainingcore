@@ -258,10 +258,39 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void Act()
         {
+            if (!additive && GraphFlowManager.InstanceExists
+                && GraphFlowManager.Instance.ActiveFlow is NormalFlow)
+                GraphFlowManager.Instance.OnFlowCompleted();
             if (fade && FadeManager.InstanceExists)
-                FadeManager.Instance.FadeToBlack();
+            {
+                var settings = Settings.TrainingConfig.Instance?.FadeSettings;
+                var fadeSettings = new Settings.FadeSettings
+                {
+                    UseCustomColor = settings?.UseCustomColor ?? false,
+                    FadeColor = settings?.FadeColor ?? Color.black,
+                    FadeDuration = duration > 0f ? duration : settings?.FadeDuration ?? 0.5f,
+                    TargetAlpha = settings?.TargetAlpha ?? 1f,
+                    UseUnscaledTime = settings?.UseUnscaledTime ?? false
+                };
+                FadeManager.Instance.FadeCanvasGroup(fadeSettings, LoadNow);
+            }
+            else
+            {
+                LoadNow();
+            }
+        }
+
+        private void LoadNow()
+        {
             if (!string.IsNullOrEmpty(sceneName))
-                SceneLoading.Load(sceneName);
+                SceneLoading.Load(sceneName, additive);
+        }
+
+        /// <inheritdoc/>
+        public override void Undo()
+        {
+            if (additive && !string.IsNullOrEmpty(sceneName))
+                SceneLoading.Unload(sceneName);
         }
     }
 

@@ -98,6 +98,8 @@ namespace PixoVR.TrainingCore.Graph
                 step.FailHandlerGuid = node.SelectedFailHandlerGuid;
                 step.Description = node.Description;
                 step.PlaySoundOnComplete = node.PlaySoundOnComplete;
+                if (step.PlaySoundOnComplete)
+                    step.CompleteSoundEffect = Settings.TrainingConfig.Instance?.CompleteStepAudioClip;
 
                 foreach (var a in node.GetOnStartActionNodes(GameMode))
                     if (Actions.TryGetValue(a.GUID, out var action))
