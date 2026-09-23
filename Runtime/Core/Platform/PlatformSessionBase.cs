@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using PixoVR.TrainingCore.Flow;
 using UnityEngine;
@@ -144,6 +145,59 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Provider startup hook (catalog seeding etc.).</summary>
         protected virtual void Start()
         {
+            GameModes.GameModeManager.OnModuleStart += ReportModuleStart;
+            GameModes.GameModeManager.OnStepsStarted += ReportStepsStarted;
+            GameModes.GameModeManager.OnStepComplete += ReportStepCompleted;
+            GameModes.GameModeManager.OnFail += ReportStepFailed;
+            GameModes.GameModeManager.OnModulePassed += ReportModulePassed;
+            GameModes.GameModeManager.OnModuleEnd += ReportModuleEnd;
+        }
+
+        private bool lastModulePassed;
+
+        private bool CanReport => IsConnected && !string.IsNullOrEmpty(SessionId);
+
+        private void ReportModuleStart(string moduleName, Graph.TrainingGraph graph)
+        {
+            if (CanReport)
+                _ = ModuleStartedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName);
+        }
+
+        private void ReportStepsStarted(string flowName, List<Flow.StepBase> steps)
+        {
+            if (!CanReport || steps == null)
+                return;
+            foreach (var step in steps)
+                _ = StepStartedAsync(step);
+        }
+
+        private void ReportStepCompleted(string flowName, Flow.StepBase step)
+        {
+            if (CanReport)
+                _ = StepCompletedAsync(step);
+        }
+
+        private void ReportStepFailed(List<Flow.StepBase> steps, string reason, int handlerIndex)
+        {
+            if (!CanReport || steps == null)
+                return;
+            foreach (var step in steps)
+                _ = StepFailedAsync(step, reason);
+        }
+
+        private void ReportModulePassed(string moduleName, Graph.TrainingGraph graph)
+        {
+            lastModulePassed = true;
+            if (CanReport)
+                _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, true);
+        }
+
+        private void ReportModuleEnd(string moduleName, Graph.TrainingGraph graph)
+        {
+            var passed = lastModulePassed;
+            lastModulePassed = false;
+            if (!passed && CanReport)
+                _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, false);
         }
 
         /// <summary>Clears <see cref="Instance"/> when destroyed.</summary>

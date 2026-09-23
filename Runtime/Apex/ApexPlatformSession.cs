@@ -438,6 +438,15 @@ namespace PixoVR.TrainingCore.Apex
         }
 
         /// <inheritdoc/>
+        public override Task GetStatusAsync(string sessionId)
+        {
+            InvokeStatusUpdated(sessionId,
+                !string.IsNullOrEmpty(_sessionId) ? SessionStatus.Active : SessionStatus.Created,
+                CurrentModuleName);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
         public override Task ModuleStartedAsync(string mode, string scenario, string module)
         {
             var tcs = new TaskCompletionSource<bool>();

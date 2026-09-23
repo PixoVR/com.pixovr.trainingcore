@@ -27,9 +27,20 @@ namespace PixoVR.TrainingCore.Photon
         /// <inheritdoc/>
         public override bool IsMasterClient => PhotonNetwork.IsMasterClient;
 
+        /// <summary>Queued lobby join while the master-server connection is pending.</summary>
+        private bool joinLobbyPending;
+
         /// <summary>Connection callbacks wired in OnEnable.</summary>
         protected virtual void OnEnable()
         {
+            var controls = GetComponent<NetworkInstructorControls>();
+            if (controls != null)
+                InstructorControls = controls;
+            else
+                Log.Warning("PhotonNetworkManager: no NetworkInstructorControls on object", LogCategory.Multiuser);
+            FlowEventHandler = GetComponent<IFlowEventHandler>();
+            if (FlowEventHandler == null)
+                Log.Warning("PhotonNetworkManager: no IFlowEventHandler on object", LogCategory.Multiuser);
             PhotonNetwork.AddCallbackTarget(this);
         }
 
@@ -60,15 +71,29 @@ namespace PixoVR.TrainingCore.Photon
         /// <inheritdoc/>
         public override void JoinLobby()
         {
-            if (PhotonNetwork.IsConnected)
+            if (PhotonNetwork.IsConnectedAndReady)
                 PhotonNetwork.JoinLobby();
+            else
+                joinLobbyPending = true;
         }
 
         /// <inheritdoc/>
         public override void JoinRoom(string roomName)
         {
+            var properties = new Hashtable
+            {
+                [Multiuser.Room.SceneNameProperty] = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                ["GameMode"] = GameModes.GameModeManager.CurrentMode.ToString()
+            };
             PhotonNetwork.JoinOrCreateRoom(string.IsNullOrEmpty(roomName) ? DefaultRoomName : roomName,
-                new RoomOptions { MaxPlayers = MaxPlayers, IsVisible = true, IsOpen = true },
+                new RoomOptions
+                {
+                    MaxPlayers = MaxPlayers,
+                    IsVisible = true,
+                    IsOpen = true,
+                    CustomRoomProperties = properties,
+                    CustomRoomPropertiesForLobby = new[] { Multiuser.Room.SceneNameProperty, "GameMode" }
+                },
                 TypedLobby.Default);
         }
 
@@ -76,7 +101,10 @@ namespace PixoVR.TrainingCore.Photon
         public override void LeaveRoom()
         {
             if (PhotonNetwork.InRoom)
+            {
+                InstructorControls?.SetActiveState(CurrentRoom?.GetLocalPlayer, true);
                 PhotonNetwork.LeaveRoom();
+            }
         }
 
         /// <inheritdoc/>
@@ -119,18 +147,24 @@ namespace PixoVR.TrainingCore.Photon
         // ---- PUN callbacks → abstract events ----
 
         /// <summary>PUN connected.</summary>
-        public void OnConnected()
+        public void OnConnected() { }
+
+        /// <summary>PUN connected to master.</summary>
+        public void OnConnectedToMaster()
         {
             SetState(ConnectionState.Connected);
             OnConnectedEvent?.Invoke();
+            if (joinLobbyPending)
+            {
+                joinLobbyPending = false;
+                PhotonNetwork.JoinLobby();
+            }
         }
-
-        /// <summary>PUN connected to master.</summary>
-        public void OnConnectedToMaster() { }
 
         /// <summary>PUN disconnected.</summary>
         public void OnDisconnected(DisconnectCause cause)
         {
+            CurrentRoom = null;
             SetState(ConnectionState.Disconnected);
             OnDisconnectedEvent?.Invoke(cause.ToString());
         }
@@ -200,6 +234,10 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>PUN player entered.</summary>
         public void OnPlayerEnteredRoom(Player newPlayer)
         {
+            var player = (CurrentRoom as PhotonRoom)?.CachePlayer(newPlayer) ?? ToPlayer(newPlayer);
+            if (CurrentRoom is PhotonRoom room)
+                room.NotifyPlayerJoin(player);
+            OnPlayerJoinedEvent?.Invoke(player);
             if (Interactions.NetworkInfoPointManager.Instance != null)
                 Interactions.NetworkInfoPointManager.Instance.UpdateNewPlayerOfStatus();
         }
@@ -231,15 +269,96 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>PUN RaiseEvent dispatch.</summary>
         public void OnEvent(EventData photonEvent)
         {
-            if (photonEvent.Code != PhotonEventSerializer.InfoPointEventCode)
-                return;
-            if (photonEvent.CustomData is object[] data && data.Length >= 3
-                && data[0] is string guid && data[2] is bool state)
-                Interactions.NetworkInfoPointManager.Instance?.ReceiveSetInfoPointEnableState(guid, state);
+            var payload = photonEvent.CustomData as object[];
+            switch (photonEvent.Code)
+            {
+                case PhotonEventSerializer.InfoPointEventCode:
+                    if (payload != null && payload.Length >= 3
+                        && payload[0] is string guid && payload[2] is bool state)
+                        Interactions.NetworkInfoPointManager.Instance?.ReceiveSetInfoPointEnableState(guid, state);
+                    break;
+                case PhotonEventSerializer.InstructorEventCode:
+                    if (payload != null && payload.Length >= 3
+                        && payload[0] is string action && payload[2] is bool flag)
+                        (InstructorControls as PhotonInstructorControls)?.ReceiveInstructorEvent(action, payload[1] as string ?? "", flag);
+                    break;
+                case PhotonEventSerializer.StepSyncEventCode:
+                    HandleStepSync(payload);
+                    break;
+            }
         }
 
+        private void HandleStepSync(object[] payload)
+        {
+            if (payload == null || payload.Length == 0 || !(payload[0] is string action))
+                return;
+            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2 && payload[1] is int requester)
+            {
+                var history = Events.EventBus.Instance.History;
+                var events = new object[history.Count + 2];
+                events[0] = "catchUp";
+                events[1] = Flow.GraphFlowManager.Instance?.ActiveFlow?.CurrentSteps?.FirstOrDefault()?.GUID ?? "";
+                for (int i = 0; i < history.Count; i++)
+                    events[i + 2] = PhotonEventSerializer.Serialize(history[i]);
+                PhotonNetwork.RaiseEvent(PhotonEventSerializer.StepSyncEventCode, events,
+                    new RaiseEventOptions { TargetActors = new[] { requester } },
+                    SendOptions.SendReliable);
+            }
+            else if (action == "catchUp" && payload.Length >= 2)
+            {
+                var stepGuid = payload[1] as string;
+                for (int i = 2; i < payload.Length; i++)
+                {
+                    var data = PhotonEventSerializer.DeserializeEventSyncData(payload[i] as object[]);
+                    var args = PhotonEventSerializer.FromSyncData(data);
+                    if (args != null && !string.IsNullOrEmpty(args.SubjectId))
+                    {
+                        args.IsRemote = true;
+                        Events.EventBus.Instance.Publish(args.SubjectId, args);
+                    }
+                }
+                if (!string.IsNullOrEmpty(stepGuid))
+                    Flow.GraphFlowManager.Instance?.SkipToStep(stepGuid);
+                EndSync();
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void InProgressRoomJoined(string sceneToLoad)
+        {
+            if (!PhotonNetwork.InRoom)
+                return;
+            Sync();
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.StepSyncEventCode,
+                new object[] { "catchUpRequest", PhotonNetwork.LocalPlayer.ActorNumber },
+                new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } },
+                SendOptions.SendReliable);
+        }
+
+        /// <inheritdoc/>
+        public override void ResetPlayer(MultiuserPlayer player)
+        {
+            if (player == null)
+                return;
+            InstructorControls?.SetActiveState(player, true);
+            InstructorControls?.SetAudioState(player, false);
+            InstructorControls?.SetAvatarState(player, true);
+            InstructorControls?.SetPlayerSpotCheckStatus(player, false);
+            InstructorControls?.SetValveNamesState(player, false);
+            InstructorControls?.SetHighlightState(player, false);
+        }
+
+        /// <inheritdoc/>
+        public override void ResetPlayer() => ResetPlayer(CurrentRoom?.GetLocalPlayer);
+
         /// <summary>PUN player left.</summary>
-        public void OnPlayerLeftRoom(Player otherPlayer) { }
+        public void OnPlayerLeftRoom(Player otherPlayer)
+        {
+            var player = (CurrentRoom as PhotonRoom)?.CachePlayer(otherPlayer) ?? ToPlayer(otherPlayer);
+            if (CurrentRoom is PhotonRoom room)
+                room.NotifyPlayerExit(player);
+            OnPlayerLeftEvent?.Invoke(player);
+        }
 
         /// <summary>PUN room props changed.</summary>
         public void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged) { }
@@ -250,7 +369,9 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>PUN master switch.</summary>
         public void OnMasterClientSwitched(Player newMasterClient)
         {
-            var player = ToPlayer(newMasterClient);
+            var player = (CurrentRoom as PhotonRoom)?.CachePlayer(newMasterClient) ?? ToPlayer(newMasterClient);
+            if (CurrentRoom is PhotonRoom room)
+                room.NotifyMasterSwitched(player);
             OnMasterClientSwitchedEvent?.Invoke(player);
         }
     }
@@ -258,6 +379,38 @@ namespace PixoVR.TrainingCore.Photon
     /// <summary>PUN room property bag.</summary>
     public class PhotonRoom : Multiuser.Room
     {
+        private readonly Dictionary<int, MultiuserPlayer> players = new Dictionary<int, MultiuserPlayer>();
+        private Action<Multiuser.Room, MultiuserPlayer> onPlayerJoin;
+        private Action<Multiuser.Room, MultiuserPlayer> onPlayerExit;
+        private Action<MultiuserPlayer> onMasterSwitched;
+
+        /// <summary>Cached player entry; creates one if absent.</summary>
+        internal MultiuserPlayer CachePlayer(Player player)
+        {
+            if (player == null)
+                return null;
+            if (!players.TryGetValue(player.ActorNumber, out var mp) || mp == null)
+            {
+                mp = PhotonNetworkManager.ToPlayer(player);
+                players[player.ActorNumber] = mp;
+            }
+            return mp;
+        }
+
+        /// <summary>Raise <see cref="OnPlayerJoin"/>.</summary>
+        internal void NotifyPlayerJoin(MultiuserPlayer player) => onPlayerJoin?.Invoke(this, player);
+
+        /// <summary>Raise <see cref="OnPlayerExit"/> and drop the cached entry.</summary>
+        internal void NotifyPlayerExit(MultiuserPlayer player)
+        {
+            onPlayerExit?.Invoke(this, player);
+            if (player != null)
+                players.Remove(player.Id);
+        }
+
+        /// <summary>Raise <see cref="OnMasterUserSwitched"/>.</summary>
+        internal void NotifyMasterSwitched(MultiuserPlayer player) => onMasterSwitched?.Invoke(player);
+
         /// <inheritdoc/>
         public override string RoomName => PhotonNetwork.CurrentRoom?.Name;
 
@@ -268,19 +421,24 @@ namespace PixoVR.TrainingCore.Photon
 
         /// <inheritdoc/>
         public override List<MultiuserPlayer> GetNetworkPlayers() =>
-            PhotonNetwork.PlayerList?.Select(PhotonNetworkManager.ToPlayer).ToList()
+            PhotonNetwork.PlayerList?.Select(CachePlayer).Where(p => p != null).ToList()
             ?? new List<MultiuserPlayer>();
 
         /// <inheritdoc/>
         public override MultiuserPlayer GetLocalPlayer =>
-            PhotonNetworkManager.ToPlayer(PhotonNetwork.LocalPlayer);
+            CachePlayer(PhotonNetwork.LocalPlayer);
 
         /// <inheritdoc/>
         public override MultiuserPlayer GetPlayer(int playerId) =>
-            GetNetworkPlayers().FirstOrDefault(p => p.Id == playerId);
+            players.TryGetValue(playerId, out var mp) ? mp
+                : GetNetworkPlayers().FirstOrDefault(p => p.Id == playerId);
 
         /// <inheritdoc/>
-        public override void RemovePlayer(int playerId) { }
+        public override void RemovePlayer(int playerId)
+        {
+            if (players.TryGetValue(playerId, out var removed) && players.Remove(playerId))
+                onPlayerExit?.Invoke(this, removed);
+        }
 
         /// <inheritdoc/>
         public override void AddProperty(string key, object value) => SetProperty(key, value);
@@ -308,30 +466,58 @@ namespace PixoVR.TrainingCore.Photon
             PhotonNetwork.CurrentRoom?.CustomProperties?.ContainsKey(key) == true;
 
         /// <inheritdoc/>
-        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerJoin { add { } remove { } }
+        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerJoin
+        {
+            add => onPlayerJoin += value;
+            remove => onPlayerJoin -= value;
+        }
 
         /// <inheritdoc/>
-        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerExit { add { } remove { } }
+        public override event Action<Multiuser.Room, MultiuserPlayer> OnPlayerExit
+        {
+            add => onPlayerExit += value;
+            remove => onPlayerExit -= value;
+        }
 
         /// <inheritdoc/>
-        public override event Action<MultiuserPlayer> OnMasterUserSwitched { add { } remove { } }
+        public override event Action<MultiuserPlayer> OnMasterUserSwitched
+        {
+            add => onMasterSwitched += value;
+            remove => onMasterSwitched -= value;
+        }
     }
 
     /// <summary>PUN lobby: lists visible rooms.</summary>
     public class PhotonLobby : LobbyBase
     {
         private readonly List<string> _rooms = new List<string>();
+        private readonly Dictionary<string, RoomInfo> _roomInfos = new Dictionary<string, RoomInfo>();
 
         /// <inheritdoc/>
         public override List<string> GetRooms() => _rooms;
+
+        /// <inheritdoc/>
+        public override object GetPropertyForRoom(string roomName, string propertyName) =>
+            _roomInfos.TryGetValue(roomName, out var info) && info?.CustomProperties != null
+            && info.CustomProperties.TryGetValue(propertyName, out var value)
+                ? value : null;
 
         /// <summary>Refresh from a PUN room list update.</summary>
         public void UpdateRooms(List<RoomInfo> roomList)
         {
             _rooms.Clear();
             foreach (var room in roomList ?? new List<RoomInfo>())
-                if (room != null && !room.RemovedFromList)
+            {
+                if (room == null)
+                    continue;
+                if (room.RemovedFromList)
+                    _roomInfos.Remove(room.Name);
+                else
+                {
+                    _roomInfos[room.Name] = room;
                     _rooms.Add(room.Name);
+                }
+            }
         }
     }
 
@@ -394,12 +580,38 @@ namespace PixoVR.TrainingCore.Photon
             };
         }
 
-        /// <summary>EventSyncData → a generic InteractionEventArgs.</summary>
+        /// <summary>EventSyncData → the typed InteractionEventArgs.</summary>
         public static InteractionEventArgs FromSyncData(EventSyncData data)
         {
             if (data == null)
                 return null;
-            return new GenericInteractionEventArgs(data.SubjectId, data.EventType, data.Payload);
+            float floatBody() => data.Data != null && data.Data.Length >= 4 ? BitConverter.ToSingle(data.Data, 0) : 0f;
+            switch (data.EventType)
+            {
+                case nameof(GrabInteractionEventArgs):
+                    return new GrabInteractionEventArgs(null) { SubjectId = data.SubjectId };
+                case nameof(TapInteractionEventArgs):
+                    return new TapInteractionEventArgs(null, floatBody()) { SubjectId = data.SubjectId };
+                case nameof(SnapInteractionEventArgs):
+                    return new SnapInteractionEventArgs(null, null, null) { SubjectId = data.SubjectId };
+                case nameof(UseInteractionEventArgs):
+                    return new UseInteractionEventArgs(null, null, floatBody()) { SubjectId = data.SubjectId };
+                case nameof(ValveTurnEventArgs):
+                    return new ValveTurnEventArgs(null, floatBody(), true) { SubjectId = data.SubjectId };
+                case nameof(TeleportEventArgs):
+                    return new TeleportEventArgs(null, null, Vector3.zero, Quaternion.identity)
+                    {
+                        SubjectId = data.SubjectId,
+                        teleportedObjectGuid = data.Data != null ? System.Text.Encoding.UTF8.GetString(data.Data) : null
+                    };
+                case nameof(GazeInteractionEventArgs):
+                    return new GazeInteractionEventArgs(null, floatBody()) { SubjectId = data.SubjectId };
+                case nameof(QuestionInteractionEventArgs):
+                    return new QuestionInteractionEventArgs(data.SubjectId,
+                        data.Data != null && data.Data.Length > 0 && data.Data[0] != 0);
+                default:
+                    return new GenericInteractionEventArgs(data.SubjectId, data.EventType, data.Payload);
+            }
         }
 
         private static byte[] SerializeArgsBody(InteractionEventArgs args)
@@ -412,6 +624,12 @@ namespace PixoVR.TrainingCore.Photon
                     return BitConverter.GetBytes(valve.RotationAmount);
                 case TeleportEventArgs teleport:
                     return System.Text.Encoding.UTF8.GetBytes(teleport.teleportedObjectGuid ?? "");
+                case UseInteractionEventArgs use:
+                    return BitConverter.GetBytes(use.Duration);
+                case GazeInteractionEventArgs gaze:
+                    return BitConverter.GetBytes(gaze.GazeDuration);
+                case QuestionInteractionEventArgs question:
+                    return new byte[] { question.Correct ? (byte)1 : (byte)0 };
                 default:
                     return new byte[0];
             }

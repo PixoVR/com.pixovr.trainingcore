@@ -41,8 +41,14 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>Current lobby provider.</summary>
         public LobbyBase CurrentLobby { get; protected set; }
 
-        /// <summary>Instructor-facing controls for the current room.</summary>
-        public InstructorControls InstructorControls { get; protected set; }
+        private InstructorControls instructorControls;
+
+        /// <summary>Instructor-facing controls for the current room (never null; no-op until a transport binds real controls).</summary>
+        public InstructorControls InstructorControls
+        {
+            get => instructorControls ?? (instructorControls = new NoOpInstructorControls());
+            protected set => instructorControls = value;
+        }
 
         /// <summary>Freeze behaviour applied to the local player.</summary>
         public IFreezeBehaviour freezeBehaviour;
@@ -123,6 +129,11 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>Handle joining a room that is already in progress.</summary>
         public virtual void InProgressRoomJoined(string sceneToLoad) { }
 
+        /// <summary>Fired when a player joins the room.</summary>
+        public UnityMultiuserEvent OnPlayerJoinedEvent;
+        /// <summary>Fired when a player leaves the room.</summary>
+        public UnityMultiuserEvent OnPlayerLeftEvent;
+
         /// <summary>Start a late-join resync.</summary>
         public virtual void CatchUpResync() { }
 
@@ -136,10 +147,17 @@ namespace PixoVR.TrainingCore.Multiuser
         public virtual void ApplySteps() { }
 
         /// <summary>Begin a state sync broadcast.</summary>
-        public virtual void Sync() { }
+        public virtual void Sync() => IsSyncing = true;
 
         /// <summary>End a state sync broadcast.</summary>
-        public virtual void EndSync() => IsSyncing = false;
+        public virtual void EndSync()
+        {
+            var local = CurrentRoom?.GetLocalPlayer;
+            if (local != null && !local.IsInstructor)
+                InstructorControls?.SetActiveState(local, false);
+            Events.EventBus.Instance.ReplayUnsyncedEvents();
+            IsSyncing = false;
+        }
 
         /// <summary>Resets the shared random streams for a fresh session.</summary>
         public virtual void ResetRandoms()
@@ -154,5 +172,59 @@ namespace PixoVR.TrainingCore.Multiuser
             State = state;
             NetworkEvents.OnConnectionStateChanged?.Invoke(state);
         }
+    }
+
+    /// <summary>No-op instructor controls used before a transport binds real ones.</summary>
+    public class NoOpInstructorControls : InstructorControls
+    {
+        /// <inheritdoc/>
+        public void SetActiveState(MultiuserPlayer player, bool targetState) { }
+        /// <inheritdoc/>
+        public void ToggleActiveState(MultiuserPlayer player) { }
+        /// <inheritdoc/>
+        public void Remove(MultiuserPlayer player) { }
+        /// <inheritdoc/>
+        public void SetAudioState(MultiuserPlayer player, bool state) { }
+        /// <inheritdoc/>
+        public void SetAvatarState(MultiuserPlayer player, bool state) { }
+        /// <inheritdoc/>
+        public void SetPlayerSpotCheckStatus(MultiuserPlayer player, bool state) { }
+        /// <inheritdoc/>
+        public void SetValveNamesState(MultiuserPlayer player, bool state) { }
+        /// <inheritdoc/>
+        public void SetAudioStateAll(bool muted) { }
+        /// <inheritdoc/>
+        public void SetAvatarStateAll(bool visible) { }
+        /// <inheritdoc/>
+        public void SetHighlightState(MultiuserPlayer player, bool state) { }
+        /// <inheritdoc/>
+        public event Action<MultiuserPlayer, bool> OnActiveUserChanged;
+        /// <inheritdoc/>
+        public event Action<MultiuserPlayer, bool> OnPlayerAudioStateChanged;
+        /// <inheritdoc/>
+        public event Action<MultiuserPlayer, bool> OnPlayerAvatarStateChanged;
+        /// <inheritdoc/>
+        public event Action<bool> OnAudioStateAll;
+        /// <inheritdoc/>
+        public event Action<bool> OnAvatarStateAll;
+    }
+
+    /// <summary>Default flow-event handler: forwards network step commands to the active flow.</summary>
+    public class NetworkFlowEventHandler : MonoBehaviour, IFlowEventHandler
+    {
+        /// <inheritdoc/>
+        public void OnStepUpdate() { }
+
+        /// <inheritdoc/>
+        public void OnStepExecute(StepInteractionArguments arguments) { }
+
+        /// <inheritdoc/>
+        public void OnSkipToNextStep() => Flow.GraphFlowManager.Instance?.ActiveFlow?.SkipToNext();
+
+        /// <inheritdoc/>
+        public void OnSkipToPreviousStep() => Flow.GraphFlowManager.Instance?.ActiveFlow?.SkipToBack();
+
+        /// <inheritdoc/>
+        public void OnSkipToStep(int stepNumber) => Flow.GraphFlowManager.Instance?.SkipToStep(stepNumber);
     }
 }

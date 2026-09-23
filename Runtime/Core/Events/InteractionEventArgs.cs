@@ -22,6 +22,9 @@ namespace PixoVR.TrainingCore.Events
         /// <summary>True when raising this event must never trigger a failure path.</summary>
         public bool IgnoreFailure;
 
+        /// <summary>True when the event arrived from the network and must not be rebroadcast.</summary>
+        public bool IsRemote;
+
         /// <summary>The command that records (and can undo) the world change caused by this event.</summary>
         public virtual ICommand ToCommand() => null;
 

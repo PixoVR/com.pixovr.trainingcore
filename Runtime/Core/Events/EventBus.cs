@@ -80,6 +80,20 @@ namespace PixoVR.TrainingCore.Events
             if (string.IsNullOrEmpty(args.SubjectId))
                 args.SubjectId = subjectId;
 
+            if (!isSyncReplay && !args.IsRemote
+                && Multiuser.NetworkManager.InstanceExists
+                && Multiuser.NetworkManager.Instance.InRoom)
+            {
+                var local = Multiuser.NetworkManager.Instance.CurrentRoom?.GetLocalPlayer;
+                if (local != null && !local.IsActive)
+                    return;
+                if (Multiuser.NetworkManager.Instance.IsSyncing)
+                {
+                    UnsyncedEvents.Add(args);
+                    return;
+                }
+            }
+
             history.Add(args);
 
             if (subjects.TryGetValue(subjectId, out var subject))
@@ -88,10 +102,24 @@ namespace PixoVR.TrainingCore.Events
             if (alsoGlobal && subjectId != GlobalSubjectId && subjects.TryGetValue(GlobalSubjectId, out var global))
                 global.Notify(args);
 
-            if (!toNetwork && !isSyncReplay)
+            if (isSyncReplay || args.IsRemote)
+                return;
+            if (!toNetwork)
                 UnsyncedEvents.Add(args);
             else
                 OnPublished?.Invoke(args);
+        }
+
+        /// <summary>Replay queued events: notify locally and release them to the network.</summary>
+        public void ReplayUnsyncedEvents()
+        {
+            var queued = new List<InteractionEventArgs>(UnsyncedEvents);
+            UnsyncedEvents.Clear();
+            foreach (var args in queued)
+            {
+                Publish(args.SubjectId, args, isSyncReplay: true);
+                OnPublished?.Invoke(args);
+            }
         }
 
         /// <summary>Record an event in history without notifying observers.</summary>
