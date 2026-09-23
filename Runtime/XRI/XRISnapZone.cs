@@ -500,14 +500,14 @@ namespace PixoVR.TrainingCore.XRI
 
             if (UseInteractablesAttachPoint && interactable.attachTransform != null)
             {
-                Vector3 resize = Vector3.one;
+                offsetDistance = transform.InverseTransformVector(AttachPoint.position - interactable.attachTransform.position);
                 if (ResizeOnSnap)
-                    resize = CalculateFinalScale(interactable, targetSize);
-
-                offsetDistance = -interactableTransform.worldToLocalMatrix.MultiplyPoint(interactable.attachTransform.position);
-                offsetDistance.x /= resize.x;
-                offsetDistance.y /= resize.y;
-                offsetDistance.z /= resize.z;
+                {
+                    var currentScale = interactableTransform.localScale;
+                    var finalScale = CalculateFinalScale(interactable, targetSize);
+                    if (currentScale.x != 0f)
+                        offsetDistance *= finalScale.x / currentScale.x;
+                }
             }
             else
             {
@@ -530,7 +530,7 @@ namespace PixoVR.TrainingCore.XRI
                     }
                 }
 
-                offsetDistance = -AttachPoint.transform.worldToLocalMatrix.MultiplyPoint(bounds.center);
+                offsetDistance = transform.InverseTransformVector(AttachPoint.position - bounds.center);
             }
 
             interactableTransform.rotation = transformRotation;
