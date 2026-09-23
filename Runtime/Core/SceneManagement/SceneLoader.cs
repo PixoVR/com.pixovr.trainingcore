@@ -23,12 +23,26 @@ namespace PixoVR.TrainingCore.SceneManagement
     }
 
     /// <summary>
-    /// App-wide scene loading. All loads are additive; a non-additive load unloads only the
-    /// scenes this class previously loaded, so the Unity-booted scene (persistence, network
-    /// manager, XR rig) stays resident for the lifetime of the app.
+    /// App-wide scene loading. All loads are additive; a non-additive load unloads every
+    /// tracked scene. Tracked scenes include those loaded by other systems (e.g.
+    /// Addressables environments loaded via <see cref="EnvironmentLoader"/>), so a
+    /// non-additive load leaves only the Unity-booted scene (persistence, network
+    /// manager, XR rig) resident. The boot scene is recorded at startup and is never
+    /// tracked or unloaded.
     /// </summary>
     public static class SceneLoading
     {
+        private static string bootSceneName;
+
+        /// <summary>Records the boot scene and starts tracking every scene load/unload.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Init()
+        {
+            bootSceneName = SceneManager.GetActiveScene().name;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
+
         /// <summary>Fired when a scene load starts.</summary>
         public static event Action<string> OnLoadStarted;
         /// <summary>Fired when a scene finished loading.</summary>
@@ -63,18 +77,32 @@ namespace PixoVR.TrainingCore.SceneManagement
 
         private static IEnumerator LoadRoutine(string sceneName, bool additive)
         {
+            var deferred = new List<string>();
             if (!additive)
             {
-                foreach (var name in loadedScenes)
+                foreach (var name in loadedScenes.ToArray())
                 {
-                    if (UnityEngine.SceneManagement.SceneManager.GetSceneByName(name).isLoaded)
-                        yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(name);
+                    if (!UnityEngine.SceneManagement.SceneManager.GetSceneByName(name).isLoaded)
+                        continue;
+                    // Unity refuses to unload the last resident scene and throws; defer it
+                    // until the target scene is loaded so it can be unloaded afterwards.
+                    if (SceneManager.sceneCount == 1)
+                    {
+                        deferred.Add(name);
+                        continue;
+                    }
+                    yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(name);
                 }
-                loadedScenes.Clear();
             }
 
             if (!UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName).isLoaded)
                 yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+            foreach (var name in deferred)
+            {
+                if (name != sceneName && UnityEngine.SceneManagement.SceneManager.GetSceneByName(name).isLoaded)
+                    yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(name);
+            }
 
             if (!loadedScenes.Contains(sceneName))
                 loadedScenes.Add(sceneName);
@@ -84,6 +112,21 @@ namespace PixoVR.TrainingCore.SceneManagement
                 UnityEngine.SceneManagement.SceneManager.SetActiveScene(loaded);
 
             OnLoadCompleted?.Invoke(sceneName);
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (mode == LoadSceneMode.Single)
+                loadedScenes.Clear();
+            if (scene.name == bootSceneName)
+                return;
+            if (!loadedScenes.Contains(scene.name))
+                loadedScenes.Add(scene.name);
+        }
+
+        private static void OnSceneUnloaded(Scene scene)
+        {
+            loadedScenes.Remove(scene.name);
         }
 
         private class SceneLoadRunner : MonoBehaviour

@@ -54,6 +54,25 @@ namespace PixoVR.TrainingCore.SceneManagement
 #endif
 
         private bool isLoading;
+        private AssetReference loadedEnvironment;
+
+        private void OnEnable() => SceneManager.sceneUnloaded += OnSceneUnloaded;
+
+        private void OnDisable() => SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            // The environment scene can be unloaded externally (e.g. SceneLoading's
+            // non-additive load). Clear the tracked instance so IsLoaded/LoadEnvironment
+            // stay truthful; UnLoadScene() completes cleanly and releases the handle
+            // when the scene is already unloaded (SceneProvider.UnloadSceneOp.Execute).
+            if (EnvironmentScene.HasValue && scene == EnvironmentScene.Value.Scene)
+            {
+                EnvironmentScene = null;
+                loadedEnvironment?.UnLoadScene();
+                loadedEnvironment = null;
+            }
+        }
 
         private void Start()
         {
@@ -96,6 +115,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                     {
                         if (h.Status == AsyncOperationStatus.Succeeded)
                         {
+                            loadedEnvironment = reference;
                             EnvironmentScene = h.Result;
                             SceneManager.SetActiveScene(h.Result.Scene);
                         }
@@ -113,6 +133,7 @@ namespace PixoVR.TrainingCore.SceneManagement
                     {
                         if (h.Status == AsyncOperationStatus.Succeeded)
                         {
+                            loadedEnvironment = reference;
                             EnvironmentObject = h.Result;
                         }
                         else
@@ -131,12 +152,15 @@ namespace PixoVR.TrainingCore.SceneManagement
         {
             if (EnvironmentScene.HasValue)
             {
-                CurrentEnvironment?.UnLoadScene();
+                // Clear first so the sceneUnloaded callback fired by UnLoadScene() doesn't re-enter.
                 EnvironmentScene = null;
+                loadedEnvironment?.UnLoadScene();
+                loadedEnvironment = null;
             }
             if (EnvironmentObject != null)
             {
-                CurrentEnvironment?.ReleaseInstance(EnvironmentObject);
+                loadedEnvironment?.ReleaseInstance(EnvironmentObject);
+                loadedEnvironment = null;
                 EnvironmentObject = null;
             }
         }
