@@ -79,7 +79,8 @@ namespace PixoVR.TrainingCore.XRI
                 hasDriver = false;
                 return;
             }
-            var local = transform.InverseTransformPoint(driver.position);
+            var space = transform.parent != null ? transform.parent : transform;
+            var local = space.InverseTransformPoint(driver.position);
             var projected = Vector3.ProjectOnPlane(local, AxisVector());
             if (projected.sqrMagnitude < 1e-8f)
                 return;
