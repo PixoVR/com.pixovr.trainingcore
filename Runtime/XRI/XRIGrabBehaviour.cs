@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using PixoVR.TrainingCore.Interactions;
@@ -24,8 +25,9 @@ namespace PixoVR.TrainingCore.XRI
     /// <summary>
     /// <see cref="IGrabBehaviour"/> over <see cref="XRGrabInteractable"/>.
     /// Replaces GrabbableOpenXR/TwoHandedGrabbableOpenXR (two-handed via <see cref="TwoHanded"/>).
+    /// Snap-zone support is trigger-based (Luminous parity), see <see cref="XRISnapZone"/>.
     /// </summary>
-    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Rigidbody), typeof(Grabbable), typeof(Tappable))]
     public class XRIGrabBehaviour : XRGrabInteractable, IGrabBehaviour
     {
         /// <summary>Keep the grab position where the hand attached instead of the attach point.</summary>
@@ -66,6 +68,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Fired while a snap is in progress.</summary>
         public UnityEvent OnSnapping;
 
+        /// <summary>Fired while an unsnap is in progress.</summary>
+        public UnityEvent OnUnsnapping;
+
         /// <summary>Fired when this object leaves a zone.</summary>
         public UnityEvent OnUnsnapped;
 
@@ -82,35 +87,218 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>True while the object is selected.</summary>
         public bool IsGrabbed => isSelected;
 
+        private readonly List<XRISnapZone> possibleSnapZones = new List<XRISnapZone>();
+        private XRBaseControllerInteractor lastController;
+        private Grabbable grabbable;
+        private Tappable tappable;
+        private Rigidbody grabbableRigidbody;
+        private bool selected;
+        private bool storedGravity = true;
+        private bool storedKinematic;
+        private bool hasStored;
+
         /// <summary>See the interface/base contract.</summary>
         protected override void Awake()
         {
-            base.Awake();
             OriginalParent = transform.parent;
             OriginalScale = transform.localScale;
-            if (attachTransform != null)
+            TryGetComponent(out Audio);
+            grabbableRigidbody = GetComponent<Rigidbody>();
+
+            if (attachTransform == null || attachTransform == transform)
             {
-                OriginalAttachTransformPosition = attachTransform.localPosition;
-                OriginalAttachTransformRotation = attachTransform.localRotation;
+                var attachPoint = new GameObject("Auto Generated Attach Point");
+                attachPoint.transform.parent = transform;
+                attachPoint.transform.localPosition = Vector3.zero;
+                attachPoint.transform.localRotation = Quaternion.identity;
+                attachTransform = attachPoint.transform;
             }
+
+            OriginalAttachTransformPosition = attachTransform.localPosition;
+            OriginalAttachTransformRotation = attachTransform.localRotation;
+
+            OnSnapping.AddListener(StoreRigidData);
+            OnSnapping.AddListener(ForceHoverExit);
+            base.Awake();
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            grabbable = GetComponent<Grabbable>();
+            tappable = GetComponent<Tappable>();
+        }
+
+        private void StoreRigidData()
+        {
+            if (grabbableRigidbody == null)
+                return;
+            storedGravity = grabbableRigidbody.useGravity;
+            storedKinematic = false;
+            hasStored = true;
+        }
+
+        private void ForceHoverExit()
+        {
+            foreach (var snapZone in possibleSnapZones)
+                snapZone.OnHoverExit?.Invoke();
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnHoverEntered(HoverEnterEventArgs args)
+        {
+            base.OnHoverEntered(args);
+            tappable?.OnStartTap();
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnHoverExited(HoverExitEventArgs args)
+        {
+            base.OnHoverExited(args);
+            tappable?.OnEndTap();
+        }
+
+        private IEnumerator StartTracking(SelectEnterEventArgs args)
+        {
+            var interactorTransform = (args.interactorObject as Component)?.transform;
+            if (interactorTransform == null)
+                yield break;
+
+            OnGrab?.Invoke();
+
+            while (CurrentSnapZone != null && CurrentSnapZone.CheckWithinRange(interactorTransform.position) && selected)
+                yield return null;
+
+            if (!selected || CurrentSnapZone == null)
+                yield break;
+
+            OnSelectEntering(args);
         }
 
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            base.OnSelectEntering(args);
+            selected = true;
+
+            if (CurrentSnapZone != null)
+            {
+                var interactorTransform = (args.interactorObject as Component)?.transform;
+                if (CurrentSnapZone.HasDetachRange && interactorTransform != null && CurrentSnapZone.CheckWithinRange(interactorTransform.position))
+                {
+                    StartCoroutine(StartTracking(args));
+                    return;
+                }
+
+                CurrentSnapZone.Unsnap(this);
+                CurrentSnapZone = null;
+            }
+
+            var interactorT = (args.interactorObject as Component)?.transform;
+            if (PreciseGrab && interactorT != null)
+            {
+                attachTransform.rotation = interactorT.rotation;
+                attachTransform.position = interactorT.position;
+            }
+
             CurrentController = args.interactorObject as XRBaseControllerInteractor;
+            base.OnSelectEntering(args);
             OnGrab?.Invoke();
             if (Audio != null)
                 Audio.Play();
+        }
+
+        /// <summary>
+        /// XRI 3 records <c>transform.parent</c> in <see cref="XRGrabInteractable.Grab"/> and
+        /// restores it on drop. If we're still parented under a snap zone, reparent to
+        /// <see cref="OriginalParent"/> first so a dropped object is never re-parented
+        /// into the zone it was pulled from.
+        /// </summary>
+        protected override void Grab()
+        {
+            if (transform.parent != null && transform.parent != OriginalParent)
+                transform.SetParent(OriginalParent, true);
+            base.Grab();
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnSelectEntered(SelectEnterEventArgs args)
+        {
+            base.OnSelectEntered(args);
+            grabbable?.OnGrabbedObjectEvent();
+            XRIDiagnostics.Log($"Grab '{name}' by '{args.interactorObject}' pos={transform.position} parent={(transform.parent != null ? transform.parent.name : "null")} kinematic={(grabbableRigidbody != null && grabbableRigidbody.isKinematic)} gravity={(grabbableRigidbody != null && grabbableRigidbody.useGravity)} snapZone={(CurrentSnapZone != null ? CurrentSnapZone.name : "null")} activeInHierarchy={gameObject.activeInHierarchy}", this);
         }
 
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
-            CurrentController = null;
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnSelectExited(SelectExitEventArgs args)
+        {
+            selected = false;
+
+            XRIDiagnostics.Log($"Release '{name}' by '{args.interactorObject}' pos={transform.position} parent={(transform.parent != null ? transform.parent.name : "null")} kinematic={(grabbableRigidbody != null && grabbableRigidbody.isKinematic)} gravity={(grabbableRigidbody != null && grabbableRigidbody.useGravity)} snapZone={(CurrentSnapZone != null ? CurrentSnapZone.name : "null")} activeInHierarchy={gameObject.activeInHierarchy}", this);
+
+            base.OnSelectExited(args);
+
+            if (PreciseGrab)
+            {
+                attachTransform.localPosition = OriginalAttachTransformPosition;
+                attachTransform.localRotation = OriginalAttachTransformRotation;
+            }
+
+            if (Audio != null)
+                Audio.Stop();
+
             OnGrabExit?.Invoke();
+
+            if (!IsSnapped && grabbableRigidbody != null)
+            {
+                if (hasStored)
+                {
+                    grabbableRigidbody.useGravity = storedGravity;
+                    grabbableRigidbody.isKinematic = storedKinematic;
+                    hasStored = false;
+                }
+                else if (trackPosition && trackRotation)
+                {
+                    grabbableRigidbody.useGravity = true;
+                    grabbableRigidbody.isKinematic = false;
+                }
+
+                possibleSnapZones.RemoveAll(zone => zone == null);
+                foreach (var snapZone in possibleSnapZones.Where(snapZone => !snapZone.HasSnappedObject))
+                {
+                    CurrentSnapZone = snapZone;
+                    snapZone.Snap(this);
+                    CurrentController = null;
+                    return;
+                }
+            }
+
+            CurrentController = null;
+        }
+
+        /// <summary>Adds a possible snap zone to the tracked list.</summary>
+        public void AddPossibleSnapZone(XRISnapZone snapZone)
+        {
+            if (!possibleSnapZones.Contains(snapZone))
+                possibleSnapZones.Add(snapZone);
+        }
+
+        /// <summary>Removes a snap zone from the tracked list.</summary>
+        public void RemovePossibleSnapZone(XRISnapZone snapZone)
+        {
+            possibleSnapZones.RemoveAll(zone => zone == snapZone);
+        }
+
+        /// <summary>Sets the current snap zone (snapping without direct user input).</summary>
+        public void SetCurrentSnapZone(XRISnapZone snapZone)
+        {
+            CurrentSnapZone = snapZone;
         }
 
         /// <summary>Force the object out of the grabber's hand.</summary>
@@ -120,6 +308,25 @@ namespace PixoVR.TrainingCore.XRI
                 return;
             foreach (var interactor in interactorsSelecting.ToList())
                 interactionManager.SelectExit(interactor, this);
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnDisable()
+        {
+            if (lastController != null)
+            {
+                lastController.enabled = true;
+                lastController = null;
+            }
+            base.OnDisable();
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        protected override void OnDestroy()
+        {
+            OnSnapping.RemoveListener(StoreRigidData);
+            OnSnapping.RemoveListener(ForceHoverExit);
+            base.OnDestroy();
         }
     }
 
