@@ -34,19 +34,21 @@ namespace PixoVR.TrainingCore.Events
         /// <summary>Register a subject so observers can subscribe by id.</summary>
         public void Register(Subject subject)
         {
-            if (subject != null)
-                subjects[subject.Id] = subject;
+            if (subject == null)
+                return;
+            if (subjects.TryGetValue(subject.Id, out var existing) && !ReferenceEquals(existing, subject))
+                foreach (var observer in new List<IEventObserver>(existing.Observers))
+                    subject.Attach(observer);
+            subjects[subject.Id] = subject;
         }
 
-        /// <summary>Unregister a subject (observers stop receiving its events).</summary>
+        /// <summary>Unregister a subject; the entry is kept so early-attached observers survive disable/enable cycles.</summary>
         public void Unregister(Subject subject)
         {
-            if (subject != null)
-                subjects.Remove(subject.Id);
         }
 
         /// <summary>Unregister by id.</summary>
-        public void Unregister(string subjectId) => subjects.Remove(subjectId);
+        public void Unregister(string subjectId) { }
 
         /// <summary>Subscribe an observer to a subject id; creates the subject entry if missing.</summary>
         public void Subscribe(string subjectId, IEventObserver observer)
@@ -91,6 +93,19 @@ namespace PixoVR.TrainingCore.Events
             else
                 OnPublished?.Invoke(args);
         }
+
+        /// <summary>Record an event in history without notifying observers.</summary>
+        public void AddToHistory(InteractionEventArgs args)
+        {
+            if (args != null)
+                history.Add(args);
+        }
+
+        /// <summary>Remove history events stamped with <paramref name="stepNumber"/>.</summary>
+        public void RemoveEventsFor(int stepNumber) => history.RemoveAll(e => e.StepNumber == stepNumber);
+
+        /// <summary>Remove history events stamped after <paramref name="stepNumber"/>.</summary>
+        public void RemoveEventsAfter(int stepNumber) => history.RemoveAll(e => e.StepNumber > stepNumber);
 
         /// <summary>Clear subjects, history and the unsynced queue.</summary>
         public void Reset()

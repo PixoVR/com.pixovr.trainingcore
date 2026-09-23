@@ -1,6 +1,7 @@
 using System;
 using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Commands;
+using PixoVR.TrainingCore.Flow;
 using PixoVR.TrainingCore.Interactions;
 using UnityEngine;
 
@@ -23,6 +24,8 @@ namespace PixoVR.TrainingCore.Events
 
         /// <summary>The command that records (and can undo) the world change caused by this event.</summary>
         public virtual ICommand ToCommand() => null;
+
+        public InteractionEventArgs() => StepNumber = Flow.StepCounter.Current;
 
         
         public override string ToString() => $"{GetType().Name}(subject={SubjectId}, step={StepNumber})";
@@ -47,7 +50,7 @@ namespace PixoVR.TrainingCore.Events
         public GrabInteractionEventArgs(ObservableSubject subject) : base(subject) { }
 
         
-        public override ICommand ToCommand() => new GrabCommand(SubjectId);
+        public override ICommand ToCommand() => new GrabCommand(Subject);
     }
 
     /// <summary>Raised when a snappable enters/holds a snapzone.</summary>
