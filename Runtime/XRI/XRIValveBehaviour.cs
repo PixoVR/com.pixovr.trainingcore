@@ -47,6 +47,15 @@ namespace PixoVR.TrainingCore.XRI
         public bool ReinitializeOnEnable = true;
 
         private bool frozen;
+        private bool applyingProgrammatic;
+        private Valve valve;
+        private bool hasDriver;
+        private Vector3 previousProjected;
+
+        private void Awake()
+        {
+            valve = GetComponent<Valve>();
+        }
 
         private void OnEnable()
         {
@@ -54,16 +63,85 @@ namespace PixoVR.TrainingCore.XRI
                 SetRotation(InitialRotation, false);
         }
 
+        private Vector3 AxisVector() =>
+            RotationAxis == Axis.x ? Vector3.right : RotationAxis == Axis.y ? Vector3.up : Vector3.forward;
+
+        private void Update()
+        {
+            if (frozen || applyingProgrammatic)
+            {
+                hasDriver = false;
+                return;
+            }
+            var driver = FindDriver();
+            if (driver == null)
+            {
+                hasDriver = false;
+                return;
+            }
+            var local = transform.InverseTransformPoint(driver.position);
+            var projected = Vector3.ProjectOnPlane(local, AxisVector());
+            if (projected.sqrMagnitude < 1e-8f)
+                return;
+            if (!hasDriver)
+            {
+                previousProjected = projected;
+                hasDriver = true;
+                return;
+            }
+            float delta = Vector3.SignedAngle(previousProjected, projected, AxisVector());
+            previousProjected = projected;
+            if (Mathf.Abs(delta) < 1e-4f)
+                return;
+            SetRotation(TotalRotation + delta);
+            valve?.OnValveTurnEvent(TotalRotation);
+        }
+
+        private Transform FindDriver()
+        {
+            foreach (var zone in ToolSnapzones)
+            {
+                var snapped = zone != null ? zone.CurrentSnappedObject : null;
+                if (snapped != null && snapped.IsGrabbed)
+                {
+                    var t = GrabbingTransform(snapped);
+                    if (t != null)
+                        return t;
+                }
+            }
+            foreach (var hand in HandGrabzones)
+            {
+                if (hand != null && hand.IsGrabbed)
+                {
+                    var t = GrabbingTransform(hand);
+                    if (t != null)
+                        return t;
+                }
+            }
+            return null;
+        }
+
+        private static Transform GrabbingTransform(XRIGrabBehaviour grab)
+        {
+            var interactor = grab.interactorsSelecting.Count > 0 ? grab.interactorsSelecting[0] : null;
+            if (interactor == null)
+                return null;
+            var attach = interactor.GetAttachTransform(grab);
+            return attach != null ? attach : (interactor as Component)?.transform;
+        }
+
         /// <inheritdoc/>
         public virtual void SetRotation(float value, bool inverse = true)
         {
             if (frozen)
                 return;
+            applyingProgrammatic = true;
             foreach (var clamp in Clamps)
                 value = Mathf.Clamp(value, Mathf.Min(clamp.x, clamp.y), Mathf.Max(clamp.x, clamp.y));
             TotalRotation = value;
             var axis = RotationAxis == Axis.x ? Vector3.right : RotationAxis == Axis.y ? Vector3.up : Vector3.forward;
             transform.localRotation = Quaternion.AngleAxis(value, axis);
+            applyingProgrammatic = false;
             OnRotationChanged?.Invoke(value);
         }
 

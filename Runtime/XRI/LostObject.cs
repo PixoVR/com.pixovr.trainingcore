@@ -72,8 +72,20 @@ namespace PixoVR.TrainingCore.XRI
                 GrabInteractable = GetComponent<XRIGrabBehaviour>();
             SpawnPosition = transform.position;
             SpawnRotation = transform.rotation;
+            if (GrabInteractable != null)
+            {
+                GrabInteractable.OnGrab.AddListener(OnGrabbed);
+                GrabInteractable.OnSnapped.AddListener(OnSnapped);
+                GrabInteractable.OnUnsnapping.AddListener(OnUnsnapped);
+            }
             LostObjectManager.Instance?.TrackObject(this);
         }
+
+        private void OnGrabbed() => HasMoved = true;
+
+        private void OnSnapped() => IsSanpped = true;
+
+        private void OnUnsnapped() => IsSanpped = false;
 
         private void OnDestroy()
         {

@@ -91,6 +91,7 @@ namespace PixoVR.TrainingCore.XRI
         private XRBaseControllerInteractor lastController;
         private Grabbable grabbable;
         private Tappable tappable;
+        private Usable usable;
         private Rigidbody grabbableRigidbody;
         private bool selected;
         private bool storedGravity = true;
@@ -119,6 +120,12 @@ namespace PixoVR.TrainingCore.XRI
 
             OnSnapping.AddListener(StoreRigidData);
             OnSnapping.AddListener(ForceHoverExit);
+            usable = GetComponent<Usable>();
+            if (usable != null)
+            {
+                activated.AddListener(_ => usable.OnStartUsing());
+                deactivated.AddListener(_ => usable.OnStopUsing());
+            }
             base.Awake();
         }
 

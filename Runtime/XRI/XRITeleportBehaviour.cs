@@ -42,10 +42,37 @@ namespace PixoVR.TrainingCore.XRI
 
         private Vector3 lastPosition;
         private Quaternion lastRotation;
+        private bool hasLastPose;
+        private bool teleportPending;
+        private Teleporter teleporter;
+
+        private Teleporter TeleporterComponent =>
+            teleporter != null ? teleporter : teleporter = GetComponent<Teleporter>();
+
+        /// <inheritdoc/>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            teleporting.AddListener(OnTeleporting);
+        }
+
+        /// <inheritdoc/>
+        protected override void OnDisable()
+        {
+            teleporting.RemoveListener(OnTeleporting);
+            base.OnDisable();
+        }
 
         /// <inheritdoc/>
         protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
         {
+            var origin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+            if (origin != null)
+            {
+                lastPosition = origin.transform.position;
+                lastRotation = origin.transform.rotation;
+                hasLastPose = true;
+            }
             if (Anchor)
             {
                 var anchor = GetAnchor();
@@ -65,6 +92,23 @@ namespace PixoVR.TrainingCore.XRI
             teleportRequest.destinationRotation = transform.rotation;
             XRIDiagnostics.Log($"Teleport '{name}': request by '{interactor}' area -> {raycastHit.point}", this);
             return true;
+        }
+
+        private void OnTeleporting(TeleportingEventArgs args)
+        {
+            teleportPending = true;
+        }
+
+        private void LateUpdate()
+        {
+            if (!teleportPending)
+                return;
+            teleportPending = false;
+            var origin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+            if (origin == null)
+                return;
+            TeleporterComponent?.OnObjectEntered(origin.gameObject, lastPosition, lastRotation);
+            OnTeleported?.Invoke();
         }
 
         /// <summary>
@@ -95,7 +139,9 @@ namespace PixoVR.TrainingCore.XRI
                 return;
             lastPosition = origin.transform.position;
             lastRotation = origin.transform.rotation;
+            hasLastPose = true;
             TeleportPlayer(origin.transform, GetAnchor());
+            TeleporterComponent?.OnObjectEntered(origin.gameObject, lastPosition, lastRotation);
             OnTeleported?.Invoke();
         }
 
@@ -116,6 +162,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <inheritdoc/>
         public virtual void Unexecute()
         {
+            var origin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+            if (origin != null && hasLastPose)
+                origin.transform.SetPositionAndRotation(lastPosition, lastRotation);
             OnUnexecute?.Invoke();
         }
 
