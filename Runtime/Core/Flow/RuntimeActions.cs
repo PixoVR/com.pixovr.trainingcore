@@ -43,7 +43,6 @@ namespace PixoVR.TrainingCore.Flow
             command = new DisplayObjectCommand(GUID, displayObject, settings, displayData);
             command.Execute();
             CommandHistory.Instance.Record(command);
-            Log.Info($"Display spawned: {displayObject.name}", LogCategory.Flow);
         }
 
         /// <inheritdoc/>
