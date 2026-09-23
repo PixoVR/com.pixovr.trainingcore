@@ -19,33 +19,37 @@ namespace PixoVR.TrainingCore.Flow
         private Data.DisplayData displayData;
 
         private GameObject displayObject;
-        private Utility.Display.DisplayObjectPlacer targetDisplay;
 
         /// <summary>Create from node.</summary>
         public DisplayObjectAction(DisplayObjectActionNode node)
         {
             GUID = node.GUID;
             UndoOnStepEntryPoints = node.UndoEntries;
-            settings = node.DisplaySettings;
             displayData = node.StepDisplayData;
             displayObject = node.DisplayObject;
-            targetDisplay = node.Data?.Find("TargetDisplay")?.ObjectReference?.GetComponent<Utility.Display.DisplayObjectPlacer>();
+            settings = node.UseDefaultSettings ? null : node.DisplaySettings;
         }
+
+        private Commands.DisplayObjectCommand command;
 
         /// <inheritdoc/>
         public override void Act()
         {
-            if (displayObject != null)
-                displayObject.SetActive(true);
-            if (targetDisplay != null)
-                targetDisplay.PlacementObject = displayObject;
+            if (displayObject == null)
+            {
+                Log.Warning("DisplayObjectAction: no display object", LogCategory.Flow);
+                return;
+            }
+            command = new DisplayObjectCommand(GUID, displayObject, settings, displayData);
+            command.Execute();
+            CommandHistory.Instance.Record(command);
         }
 
         /// <inheritdoc/>
         public override void Undo()
         {
-            if (displayObject != null)
-                displayObject.SetActive(false);
+            command?.Unexecute();
+            command = null;
         }
     }
 
@@ -89,11 +93,21 @@ namespace PixoVR.TrainingCore.Flow
             displayData = node.DisplayData;
         }
 
+        private Commands.SetHandMenuTextCommand command;
+
         /// <inheritdoc/>
         public override void Act()
         {
-            Log.Info($"Hand menu text: {displayData?.Title}", LogCategory.Flow);
+            if (HandMenu.HandMenuBase.Instance == null)
+                Log.Warning("SetHandMenuTextAction: no HandMenuBase.Instance", LogCategory.Flow);
+            command = new SetHandMenuTextCommand(displayData);
+            command.Execute();
+            CommandHistory.Instance.Record(command);
+            Log.Info($"Hand menu text set: {displayData?.Title}", LogCategory.Flow);
         }
+
+        /// <inheritdoc/>
+        public override void Undo() => command?.Unexecute();
     }
 
     /// <summary>Sets GameObject active states via undoable commands.</summary>

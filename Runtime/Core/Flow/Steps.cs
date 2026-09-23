@@ -441,7 +441,7 @@ namespace PixoVR.TrainingCore.Flow
 
     /// <summary>"Show Display": shows a display, completing immediately (or on confirm).</summary>
     [Serializable]
-    public class ShowDisplayStep : StepExecutionBase
+    public class ShowDisplayStep : StepExecutionBase, IEventObserver
     {
         /// <summary>Display payload.</summary>
         public Data.DisplayData DisplayData;
@@ -449,8 +449,14 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Placement settings.</summary>
         public Settings.PlacerSettings DisplaySettings;
 
-        /// <summary>Display object.</summary>
+        /// <summary>Display object prefab.</summary>
+        public GameObject DisplayObject;
+
+        /// <summary>Display object id.</summary>
         public string DisplayObjectId;
+
+        private Commands.DisplayObjectCommand command;
+        private string subjectId;
 
         /// <summary>Create from node.</summary>
         public ShowDisplayStep(ShowDisplayNode node)
@@ -459,7 +465,8 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             DisplayData = node.StepDisplayData;
-            DisplaySettings = node.DisplaySettings;
+            DisplaySettings = node.UseDefaultSettings ? null : node.DisplaySettings;
+            DisplayObject = node.DisplayObject;
             DisplayObjectId = node.DisplayObject != null ? node.DisplayObject.GetGuidString() : null;
         }
 
@@ -467,8 +474,63 @@ namespace PixoVR.TrainingCore.Flow
         public override void OnEnter()
         {
             base.OnEnter();
-            // actual display shown by Utility.Display.Displayer bound via GraphReferencesManager
+            if (DisplayObject == null)
+            {
+                Utility.Log.Warning("ShowDisplayStep: no display object", Utility.LogCategory.Flow);
+                OnStepCompleted();
+                return;
+            }
+            command = new Commands.DisplayObjectCommand(GUID, DisplayObject, DisplaySettings, DisplayData);
+            command.Execute();
+            Commands.CommandHistory.Instance.Record(command);
+            if (command.SpawnedObject == null)
+            {
+                OnStepCompleted();
+                return;
+            }
+            subjectId = command.SpawnedObject.GetGuidString();
+            EventBus.Instance.Subscribe(subjectId, this);
+        }
+
+        /// <inheritdoc/>
+        public void OnEvent(InteractionEventArgs args)
+        {
+            if (!(args is DisplayInteractionEventArgs))
+                return;
+            Unsubscribe();
+            command?.Unexecute();
+            command = null;
+            Utility.Log.Info($"ShowDisplayStep completed: {Name}", Utility.LogCategory.Flow);
             OnStepCompleted();
+        }
+
+        /// <inheritdoc/>
+        public override void UnregisterListeners() => Unsubscribe();
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            Unsubscribe();
+            if (command?.SpawnedObject != null)
+                command.Unexecute();
+            command = null;
+        }
+
+        /// <inheritdoc/>
+        public override void SkipBackwards()
+        {
+            Unsubscribe();
+            if (command?.SpawnedObject != null)
+                command.Unexecute();
+            command = null;
+            base.SkipBackwards();
+        }
+
+        private void Unsubscribe()
+        {
+            if (!string.IsNullOrEmpty(subjectId))
+                EventBus.Instance.Unsubscribe(subjectId, this);
+            subjectId = null;
         }
     }
 
