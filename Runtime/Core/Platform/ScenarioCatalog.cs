@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -49,8 +50,27 @@ namespace PixoVR.TrainingCore.Platform
                     }
                 }
                 userScenarios.AvailableScenarios.Add(scenarioCopy);
+
+                foreach (var module in scenarioCopy.Modules)
+                {
+                    userScenarios.ScheduledSessions.Add(SynthesizeSession(scenarioCopy, module, "Assessment"));
+                    userScenarios.ScheduledSessions.Add(SynthesizeSession(scenarioCopy, module, "Guided Performance"));
+                }
             }
             return userScenarios;
         }
+
+        private static SessionDescription SynthesizeSession(Scenario scenario, Module module, string mode) =>
+            new SessionDescription
+            {
+                SessionName = module.Name,
+                RoomName = module.Name,
+                ScenarioName = scenario.ScenarioName,
+                ModuleName = module.Name,
+                Mode = mode,
+                ScheduledTime = DateTime.Now,
+                Status = SessionStatus.Waiting,
+                Modules = { module.Name }
+            };
     }
 }

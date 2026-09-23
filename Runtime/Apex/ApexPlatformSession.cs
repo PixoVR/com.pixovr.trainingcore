@@ -281,6 +281,13 @@ namespace PixoVR.TrainingCore.Apex
         public override string SessionId => _sessionId;
 
         /// <inheritdoc/>
+        public override void SetSessionId(string sessionId)
+        {
+            base.SetSessionId(sessionId);
+            _sessionId = sessionId;
+        }
+
+        /// <inheritdoc/>
         public override Task<bool> LoginAsync(string username, string password)
         {
             var tcs = new TaskCompletionSource<bool>();
