@@ -255,7 +255,11 @@ namespace PixoVR.TrainingCore.XRI
 
             OnGrabExit?.Invoke();
 
-            if (!IsSnapped && grabbableRigidbody != null)
+            if (IsSnapped && grabbableRigidbody != null)
+            {
+                grabbableRigidbody.isKinematic = true;
+            }
+            else if (!IsSnapped && grabbableRigidbody != null)
             {
                 if (hasStored)
                 {
