@@ -108,22 +108,38 @@ namespace PixoVR.TrainingCore.Commands
             DisplayData = data;
         }
 
+        private DisplayObjectPlacer appliedPlacer;
+
         /// <inheritdoc/>
         protected override GameObject Instantiate()
         {
             var spawned = base.Instantiate();
             if (spawned == null)
                 return null;
-            var placer = spawned.GetComponent<DisplayObjectPlacer>();
-            if (placer != null)
-            {
-                placer.ApplySettings(PlacerSettings);
-                placer.PlacementObject = spawned;
-            }
+            if (spawned.GetComponent<Events.ObservableSubject>() == null)
+                spawned.AddComponent<Events.ObservableSubject>();
             var displayer = spawned.GetComponent<Displayer>();
             if (displayer != null)
                 displayer.DisplayTextData(DisplayData);
+            var placer = PlacerSettings?.ObjectPlacer ?? UserInterfaceManager.Instance?.MainDisplayer;
+            if (placer != null)
+            {
+                placer.ApplySettings(PlacerSettings ?? placer.Settings);
+                placer.PlacementObject = spawned;
+                appliedPlacer = placer;
+                Utility.Log.Info($"Display spawned: {spawned.name} subject={spawned.GetGuidString()}",
+                    Utility.LogCategory.Flow);
+            }
             return spawned;
+        }
+
+        /// <inheritdoc/>
+        public override void Unexecute()
+        {
+            if (appliedPlacer != null && appliedPlacer.PlacementObject == SpawnedObject)
+                appliedPlacer.PlacementObject = null;
+            appliedPlacer = null;
+            base.Unexecute();
         }
     }
 
