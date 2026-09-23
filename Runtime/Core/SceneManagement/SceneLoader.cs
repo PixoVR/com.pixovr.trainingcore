@@ -23,9 +23,11 @@ namespace PixoVR.TrainingCore.SceneManagement
     }
 
     /// <summary>
-    /// App-wide scene loading. All loads are additive; a non-additive load unloads only the
-    /// scenes this class previously loaded, so the Unity-booted scene (persistence, network
-    /// manager, XR rig) stays resident for the lifetime of the app.
+    /// App-wide scene loading. All loads are additive; a non-additive load unloads every
+    /// tracked scene. Tracked scenes include those loaded by other systems (e.g.
+    /// Addressables environments loaded via <see cref="EnvironmentLoader"/>), so a
+    /// non-additive load leaves only the Unity-booted scene (persistence, network
+    /// manager, XR rig) resident for the lifetime of the app.
     /// </summary>
     public static class SceneLoading
     {
@@ -49,6 +51,8 @@ namespace PixoVR.TrainingCore.SceneManagement
                 var go = new GameObject("SceneLoadRunner");
                 UnityEngine.Object.DontDestroyOnLoad(go);
                 runner = go.AddComponent<SceneLoadRunner>();
+                SceneManager.sceneLoaded += OnSceneLoaded;
+                SceneManager.sceneUnloaded += OnSceneUnloaded;
             }
             runner.StartCoroutine(LoadRoutine(sceneName, additive));
         }
@@ -65,12 +69,14 @@ namespace PixoVR.TrainingCore.SceneManagement
         {
             if (!additive)
             {
-                foreach (var name in loadedScenes)
+                foreach (var name in loadedScenes.ToArray())
                 {
+                    // Unity refuses to unload the last resident scene and throws.
+                    if (SceneManager.sceneCount == 1)
+                        break;
                     if (UnityEngine.SceneManagement.SceneManager.GetSceneByName(name).isLoaded)
                         yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(name);
                 }
-                loadedScenes.Clear();
             }
 
             if (!UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName).isLoaded)
@@ -84,6 +90,19 @@ namespace PixoVR.TrainingCore.SceneManagement
                 UnityEngine.SceneManagement.SceneManager.SetActiveScene(loaded);
 
             OnLoadCompleted?.Invoke(sceneName);
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (mode == LoadSceneMode.Single)
+                loadedScenes.Clear();
+            if (!loadedScenes.Contains(scene.name))
+                loadedScenes.Add(scene.name);
+        }
+
+        private static void OnSceneUnloaded(Scene scene)
+        {
+            loadedScenes.Remove(scene.name);
         }
 
         private class SceneLoadRunner : MonoBehaviour
