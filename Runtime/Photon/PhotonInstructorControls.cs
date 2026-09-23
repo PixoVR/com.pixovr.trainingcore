@@ -21,11 +21,19 @@ namespace PixoVR.TrainingCore.Photon
 
         /// <inheritdoc/>
         public override void ToggleActiveState(MultiuserPlayer player) =>
-            RaiseInstructorEvent("toggleActive", player?.Id.ToString() ?? "", true);
+            RaiseInstructorEvent("toggleActive", player?.Id.ToString() ?? "", player == null || !player.IsActive);
 
         /// <inheritdoc/>
-        public override void Remove(MultiuserPlayer player) =>
+        public override void Remove(MultiuserPlayer player)
+        {
             RaiseInstructorEvent("remove", player?.Id.ToString() ?? "", true);
+            if (PhotonNetwork.IsMasterClient && player != null)
+            {
+                var photonPlayer = PhotonNetwork.CurrentRoom?.GetPlayer(player.Id);
+                if (photonPlayer != null)
+                    PhotonNetwork.CloseConnection(photonPlayer);
+            }
+        }
 
         /// <inheritdoc/>
         public override void SetAudioState(MultiuserPlayer player, bool muted) =>
@@ -63,6 +71,85 @@ namespace PixoVR.TrainingCore.Photon
                 new object[] { action, userId ?? "", state },
                 new RaiseEventOptions { Receivers = ReceiverGroup.All },
                 SendOptions.SendReliable);
+        }
+
+        /// <summary>Apply an instructor event received over the network.</summary>
+        public void ReceiveInstructorEvent(string action, string userId, bool state)
+        {
+            var room = Multiuser.NetworkManager.Instance?.CurrentRoom;
+            var player = int.TryParse(userId, out var id) ? room?.GetPlayer(id) : null;
+            switch (action)
+            {
+                case "setActive":
+                case "toggleActive":
+                    ApplyActiveState(player, state);
+                    break;
+                case "remove":
+                    if (player != null && player.IsLocal())
+                        Multiuser.NetworkManager.Instance?.LeaveRoom();
+                    break;
+                case "audio":
+                    ApplyAudioState(player, state);
+                    break;
+                case "avatar":
+                    ApplyAvatarState(player, state);
+                    break;
+                case "spotCheck":
+                    if (player != null)
+                        player.IsSpotChecked = state;
+                    break;
+                case "valveNames":
+                    if (player != null)
+                        player.HasValveNamesActive = state;
+                    break;
+                case "highlight":
+                    if (player != null)
+                        player.IsHighlighted = state;
+                    break;
+                case "audioAll":
+                    foreach (var p in room?.GetNetworkPlayers() ?? new List<MultiuserPlayer>())
+                        if (!p.IsInstructor)
+                            p.IsMuted = state;
+                    InvokeOnAudioStateAll(state);
+                    break;
+                case "avatarAll":
+                    foreach (var p in room?.GetNetworkPlayers() ?? new List<MultiuserPlayer>())
+                        if (!p.IsInstructor)
+                            p.IsHidden = !state;
+                    InvokeOnAvatarStateAll(state);
+                    break;
+            }
+        }
+
+        private void ApplyActiveState(MultiuserPlayer player, bool state)
+        {
+            if (player == null)
+                return;
+            player.IsActive = state;
+            if (player.IsLocal())
+            {
+                var controls = FindObjectsOfType<MonoBehaviour>(true);
+                foreach (var c in controls)
+                    if (c is XRI.IPlayerInteractionControls ipc)
+                        ipc.SetInteractionState(state);
+            }
+            InvokeOnActiveUserChanged(player, state);
+        }
+
+        private void ApplyAudioState(MultiuserPlayer player, bool state)
+        {
+            if (player == null)
+                return;
+            player.IsMuted = state;
+            InvokeOnPlayerAudioStateChanged(player, state);
+        }
+
+        private void ApplyAvatarState(MultiuserPlayer player, bool state)
+        {
+            if (player == null)
+                return;
+            player.IsHidden = !state;
+            InvokeOnPlayerAvatarStateChanged(player, state);
         }
     }
 }

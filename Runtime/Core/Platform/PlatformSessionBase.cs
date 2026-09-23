@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using PixoVR.TrainingCore.Flow;
 using UnityEngine;
@@ -144,6 +145,60 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>Provider startup hook (catalog seeding etc.).</summary>
         protected virtual void Start()
         {
+            GameModes.GameModeManager.OnModuleStart += ReportModuleStart;
+            GameModes.GameModeManager.OnStepsStarted += ReportStepsStarted;
+            GameModes.GameModeManager.OnStepComplete += ReportStepCompleted;
+            GameModes.GameModeManager.OnFail += ReportStepFailed;
+            GameModes.GameModeManager.OnModulePassed += ReportModulePassed;
+            GameModes.GameModeManager.OnModuleEnd += ReportModuleEnd;
+        }
+
+        private bool lastModulePassed;
+        private bool moduleReportActive;
+
+        private bool CanReport => IsConnected && !string.IsNullOrEmpty(SessionId);
+
+        private void ReportModuleStart(string moduleName, Graph.TrainingGraph graph)
+        {
+            if (CanReport)
+                _ = ModuleStartedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName);
+        }
+
+        private void ReportStepsStarted(string flowName, List<Flow.StepBase> steps)
+        {
+            if (!CanReport || steps == null)
+                return;
+            foreach (var step in steps)
+                _ = StepStartedAsync(step);
+        }
+
+        private void ReportStepCompleted(string flowName, Flow.StepBase step)
+        {
+            if (CanReport)
+                _ = StepCompletedAsync(step);
+        }
+
+        private void ReportStepFailed(List<Flow.StepBase> steps, string reason, int handlerIndex)
+        {
+            if (!CanReport || steps == null)
+                return;
+            foreach (var step in steps)
+                _ = StepFailedAsync(step, reason);
+        }
+
+        private void ReportModulePassed(string moduleName, Graph.TrainingGraph graph)
+        {
+            lastModulePassed = true;
+            if (CanReport)
+                _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, true);
+        }
+
+        private void ReportModuleEnd(string moduleName, Graph.TrainingGraph graph)
+        {
+            var passed = lastModulePassed;
+            lastModulePassed = false;
+            if (!passed && CanReport)
+                _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, false);
         }
 
         /// <summary>Clears <see cref="Instance"/> when destroyed.</summary>
@@ -243,10 +298,26 @@ namespace PixoVR.TrainingCore.Platform
         public abstract Task RefreshSessionAsync();
         /// <summary>See the interface/base contract.</summary>
         public abstract Task SetStatusAsync(string sessionId, SessionStatus status, string moduleScene);
-        /// <summary>See the interface/base contract.</summary>
-        public abstract Task ModuleStartedAsync(string mode, string scenario, string module);
-        /// <summary>See the interface/base contract.</summary>
-        public abstract Task ModuleEndedAsync(string mode, string scenario, string module, bool passed);
+        /// <summary>See the interface/base contract. Idempotent: repeated starts within one run return early.</summary>
+        public Task ModuleStartedAsync(string mode, string scenario, string module)
+        {
+            if (moduleReportActive)
+                return Task.CompletedTask;
+            moduleReportActive = true;
+            return OnModuleStartedAsync(mode, scenario, module);
+        }
+        /// <summary>See the interface/base contract. Idempotent: ignored when no module report is active.</summary>
+        public Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
+        {
+            if (!moduleReportActive)
+                return Task.CompletedTask;
+            moduleReportActive = false;
+            return OnModuleEndedAsync(mode, scenario, module, passed);
+        }
+        /// <summary>Provider implementation of the module-start report.</summary>
+        protected virtual Task OnModuleStartedAsync(string mode, string scenario, string module) => Task.CompletedTask;
+        /// <summary>Provider implementation of the module-end report.</summary>
+        protected virtual Task OnModuleEndedAsync(string mode, string scenario, string module, bool passed) => Task.CompletedTask;
         /// <summary>See the interface/base contract.</summary>
         public abstract Task StepStartedAsync(StepBase step);
         /// <summary>See the interface/base contract.</summary>

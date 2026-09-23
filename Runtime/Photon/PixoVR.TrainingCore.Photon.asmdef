@@ -3,6 +3,7 @@
     "rootNamespace": "PixoVR.TrainingCore.Photon",
     "references": [
         "PixoVR.TrainingCore",
+        "PixoVR.TrainingCore.XRI",
         "PhotonUnityNetworking",
         "PhotonRealtime"
     ],

@@ -50,7 +50,7 @@ namespace PixoVR.TrainingCore.Utility
             var settings = TrainingConfig.Instance != null ? TrainingConfig.Instance.FadeSettings : null;
             float duration = settings != null ? settings.FadeDuration : 0.5f;
             targetAlpha = toBlack ? 1f : 0f;
-            StartFade(duration, null);
+            StartFade(duration, null, settings != null && settings.UseUnscaledTime);
         }
 
         /// <summary>Fade using explicit settings.</summary>
@@ -64,18 +64,18 @@ namespace PixoVR.TrainingCore.Utility
                 fadeImage.color = settings.UseCustomColor ? settings.FadeColor : Color.black;
             float duration = settings?.FadeDuration ?? 0.5f;
             targetAlpha = settings?.TargetAlpha ?? 1f;
-            StartFade(duration, onFadeComplete);
+            StartFade(duration, onFadeComplete, settings != null && settings.UseUnscaledTime);
         }
 
         /// <summary>Starts a new fade; a fade that gets replaced fires its callback immediately so waiting steps never hang.</summary>
-        private void StartFade(float duration, System.Action onFadeComplete)
+        private void StartFade(float duration, System.Action onFadeComplete, bool useUnscaledTime = false)
         {
             if (fadeCoroutine != null)
                 StopCoroutine(fadeCoroutine);
             var replaced = pendingCallback;
             pendingCallback = onFadeComplete;
             replaced?.Invoke();
-            fadeCoroutine = StartCoroutine(FadeCoroutine(duration));
+            fadeCoroutine = StartCoroutine(FadeCoroutine(duration, useUnscaledTime));
         }
 
         /// <summary>Convenience: fade to black.</summary>
@@ -92,10 +92,11 @@ namespace PixoVR.TrainingCore.Utility
             fadeImage.color = color;
         }
 
-        private IEnumerator FadeCoroutine(float duration)
+        private IEnumerator FadeCoroutine(float duration, bool useUnscaledTime)
         {
             float start = CurrentOpacity;
-            for (float t = 0f; t < duration; t += Time.deltaTime)
+            for (float t = 0f; t < duration;
+                 t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime)
             {
                 SetOpacity(Mathf.Lerp(start, targetAlpha, t / duration));
                 yield return null;

@@ -97,7 +97,8 @@ namespace PixoVR.TrainingCore.Flow
             _activeFlow = _normalFlow;
             _activeFlow.InitializeIterator();
             _activeFlow.FlowIterator.CurrentNodeChanged += OnIteratorChanged;
-            _activeFlow.OnFlowCompleted += () => OnGraphCompleted?.Invoke();
+            _activeFlow.OnFlowCompleted += OnFlowCompleted;
+            GameModeManager.ModuleStarted(NodeGraph.name, NodeGraph);
             _activeFlow.Start();
             OnGraphStarted?.Invoke();
         }
@@ -121,13 +122,30 @@ namespace PixoVR.TrainingCore.Flow
                 Log.Info($"Fail ignored (CanFail=false): {reason}", LogCategory.Flow);
                 return;
             }
-            var handler = _graphData?.DefaultFailureHandler
-                          ?? _graphData?.FailureHandlerSteps.FirstOrDefault();
+            if (_graphData == null)
+                return;
+            FailHandlerStep handler = null;
+            var handlerSteps = _graphData.FailureHandlerSteps;
+            if (failIndex >= 0 && failIndex < handlerSteps.Count)
+            {
+                handler = handlerSteps[failIndex];
+            }
+            else
+            {
+                var failing = steps?.OfType<StepExecutionBase>().FirstOrDefault();
+                if (failing != null && !failing.UseDefaultFailhandler
+                    && !string.IsNullOrEmpty(failing.FailHandlerGuid))
+                    handler = handlerSteps.FirstOrDefault(h => h != null && h.GUID == failing.FailHandlerGuid);
+            }
+            handler = handler ?? _graphData.DefaultFailureHandler ?? handlerSteps.FirstOrDefault();
             if (handler == null)
             {
                 Log.Warning($"OnFail with no fail handler: {reason}", LogCategory.Flow);
                 return;
             }
+            if (_normalFlow?.CurrentSteps != null)
+                foreach (var s in _normalFlow.CurrentSteps)
+                    s?.OnExit();
             var flow = new FailHandlerFlow(handler, _normalFlow);
             flow.InitializeIterator();
             flow.OnFlowCompleted += ReturnToNormalFlow;
@@ -135,11 +153,30 @@ namespace PixoVR.TrainingCore.Flow
             flow.Start();
         }
 
+        /// <summary>Called when the active flow completes.</summary>
+        public virtual void OnFlowCompleted()
+        {
+            if (_activeFlow is NormalFlow)
+            {
+                Commands.CommandHistory.Instance.Reset();
+                GameModeManager.ModuleCompleted(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
+                Events.EventBus.Instance.Reset();
+                GameModeManager.ModuleEnded(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
+                OnGraphCompleted?.Invoke();
+            }
+            else
+            {
+                ReturnToNormalFlow();
+            }
+        }
+
         /// <summary>Return to the normal flow when a fail-handler completes.</summary>
         public virtual void ReturnToNormalFlow()
         {
             _activeFlow = _normalFlow;
-            _activeFlow?.FlowIterator?.Restart();
+            var iterator = _activeFlow?.FlowIterator;
+            if (iterator?.CurrentSteps != null)
+                iterator.SetCurrentSteps(new List<StepBase>(iterator.CurrentSteps));
         }
 
         /// <summary>Skip to a step by GUID.</summary>

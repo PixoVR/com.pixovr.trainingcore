@@ -15,40 +15,51 @@ namespace PixoVR.TrainingCore.Commands
         private Quaternion initialRotation;
         private Vector3 initialScale;
         private Transform initialParent;
+        private Snapzone previousSnapzone;
         private bool captured;
 
         public GrabCommand(string subjectId) : base(subjectId) { }
 
-        /// <summary>Bind the subject and capture its initial pose.</summary>
+        /// <summary>Bind the subject and capture its initial pose and snapzone.</summary>
         public GrabCommand(ObservableSubject subject) : base(subject?.Id)
         {
             Subject = subject;
+            var t = Subject?.transform;
+            if (t != null)
+            {
+                initialPosition = t.position;
+                initialRotation = t.rotation;
+                initialScale = t.localScale;
+                initialParent = t.parent;
+                captured = true;
+            }
+            previousSnapzone = subject?.CurrentSnapzone;
         }
 
         
         public override void Execute()
         {
-            var t = Subject?.transform;
-            if (t == null || captured)
-                return;
-            initialPosition = t.position;
-            initialRotation = t.rotation;
-            initialScale = t.localScale;
-            initialParent = t.parent;
-            captured = true;
+            if (previousSnapzone != null && Subject != null)
+                previousSnapzone.Unsnap(Subject.gameObject);
         }
 
         
         public override void Unexecute()
         {
             var t = Subject?.transform;
-            if (t != null && captured)
+            Subject?.GetComponent<Grabbable>()?.Ungrab();
+            if (previousSnapzone != null && Subject != null)
+            {
+                previousSnapzone.Snap(Subject.gameObject);
+            }
+            else if (t != null && captured)
             {
                 t.SetParent(initialParent);
                 t.SetPositionAndRotation(initialPosition, initialRotation);
                 t.localScale = initialScale;
             }
-            Subject?.GetComponent<Grabbable>()?.Ungrab();
+            if (Subject != null)
+                Subject.CurrentSnapzone = previousSnapzone;
         }
     }
 
@@ -61,17 +72,45 @@ namespace PixoVR.TrainingCore.Commands
         /// <summary>Zone to snap into.</summary>
         public Snapzone Zone;
 
+        private Snapzone previousSnapzone;
+        private Vector3 previousPosition;
+        private Quaternion previousRotation;
+        private Vector3 previousScale;
+
         public SnapCommand(ObservableSubject subject, Snapzone zone) : base(subject?.Id)
         {
             Subject = subject;
             Zone = zone;
+            previousSnapzone = subject?.CurrentSnapzone;
+            var t = subject?.transform;
+            if (t != null)
+            {
+                previousPosition = t.position;
+                previousRotation = t.rotation;
+                previousScale = t.localScale;
+            }
         }
 
         
         public override void Execute() => Zone?.Snap(Subject?.gameObject);
 
         
-        public override void Unexecute() => Zone?.Unsnap(Subject?.gameObject);
+        public override void Unexecute()
+        {
+            Zone?.Unsnap(Subject?.gameObject);
+            if (Subject == null)
+                return;
+            if (previousSnapzone != null)
+            {
+                previousSnapzone.Snap(Subject.gameObject);
+            }
+            else
+            {
+                Subject.transform.SetPositionAndRotation(previousPosition, previousRotation);
+                Subject.transform.localScale = previousScale;
+            }
+            Subject.CurrentSnapzone = previousSnapzone;
+        }
     }
 
     /// <summary>Holds "use" duration on an object; consecutive uses on the same target merge in history.</summary>
@@ -117,7 +156,12 @@ namespace PixoVR.TrainingCore.Commands
         public override void Execute() => Args?.TeleportLocationMiddleman?.Teleport();
 
         
-        public override void Unexecute() => Args?.TeleportLocationMiddleman?.Unexecute();
+        public override void Unexecute()
+        {
+            if (Player != null)
+                Player.transform.SetPositionAndRotation(Args.previousLocation, Args.previousRotation);
+            Args?.TeleportLocationMiddleman?.Unexecute();
+        }
     }
 
     /// <summary>Sets a valve's rotation; unexecute restores the start rotation.</summary>

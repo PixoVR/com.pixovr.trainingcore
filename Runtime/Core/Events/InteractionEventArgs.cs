@@ -1,6 +1,7 @@
 using System;
 using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Commands;
+using PixoVR.TrainingCore.Flow;
 using PixoVR.TrainingCore.Interactions;
 using UnityEngine;
 
@@ -21,8 +22,13 @@ namespace PixoVR.TrainingCore.Events
         /// <summary>True when raising this event must never trigger a failure path.</summary>
         public bool IgnoreFailure;
 
+        /// <summary>True when the event arrived from the network and must not be rebroadcast.</summary>
+        public bool IsRemote;
+
         /// <summary>The command that records (and can undo) the world change caused by this event.</summary>
         public virtual ICommand ToCommand() => null;
+
+        public InteractionEventArgs() => StepNumber = Flow.StepCounter.Current;
 
         
         public override string ToString() => $"{GetType().Name}(subject={SubjectId}, step={StepNumber})";
@@ -47,7 +53,7 @@ namespace PixoVR.TrainingCore.Events
         public GrabInteractionEventArgs(ObservableSubject subject) : base(subject) { }
 
         
-        public override ICommand ToCommand() => new GrabCommand(SubjectId);
+        public override ICommand ToCommand() => new GrabCommand(Subject);
     }
 
     /// <summary>Raised when a snappable enters/holds a snapzone.</summary>
@@ -214,6 +220,22 @@ namespace PixoVR.TrainingCore.Events
             SubjectId = subjectId;
             EventId = eventId;
             Payload = payload;
+        }
+
+        /// <inheritdoc/>
+        public override ICommand ToCommand() => new GenericInteractionCommand(this);
+    }
+
+    /// <summary>Raised when a question answer is chosen on a display.</summary>
+    public class QuestionInteractionEventArgs : InteractionEventArgs
+    {
+        /// <summary>Whether the chosen answer was correct.</summary>
+        public bool Correct;
+
+        public QuestionInteractionEventArgs(string subjectId, bool correct)
+        {
+            SubjectId = subjectId;
+            Correct = correct;
         }
     }
 

@@ -45,14 +45,19 @@ namespace PixoVR.TrainingCore.XRI
             return Multiuser.NetworkManager.Instance?.CurrentRoom?.GetLocalPlayer?.Id ?? -1;
         }
 
-        private void HandleGrab() => OnGrab?.Invoke(LocalActorNumber());
+        private void HandleGrab()
+        {
+            if (Multiuser.NetworkManager.Instance != null && Multiuser.NetworkManager.Instance.InRoom)
+                RequestOwnership();
+            OnGrab?.Invoke(LocalActorNumber());
+        }
 
         private void HandleRelease() => OnRelease?.Invoke(LocalActorNumber());
 
         /// <summary>Request local ownership of the object through the network manager.</summary>
         public virtual void RequestOwnership()
         {
-            Multiuser.NetworkManager.Instance?.SyncSpawnedObject(gameObject);
+            Multiuser.NetworkManager.Instance?.RequestOwnership(gameObject, OwnAdditionalPhotonViews);
             OnOwnerChange?.Invoke();
         }
     }

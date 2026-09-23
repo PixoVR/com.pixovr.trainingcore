@@ -281,6 +281,13 @@ namespace PixoVR.TrainingCore.Apex
         public override string SessionId => _sessionId;
 
         /// <inheritdoc/>
+        public override void SetSessionId(string sessionId)
+        {
+            base.SetSessionId(sessionId);
+            _sessionId = sessionId;
+        }
+
+        /// <inheritdoc/>
         public override Task<bool> LoginAsync(string username, string password)
         {
             var tcs = new TaskCompletionSource<bool>();
@@ -438,7 +445,16 @@ namespace PixoVR.TrainingCore.Apex
         }
 
         /// <inheritdoc/>
-        public override Task ModuleStartedAsync(string mode, string scenario, string module)
+        public override Task GetStatusAsync(string sessionId)
+        {
+            InvokeStatusUpdated(sessionId,
+                !string.IsNullOrEmpty(_sessionId) ? SessionStatus.Active : SessionStatus.Created,
+                CurrentModuleName);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        protected override Task OnModuleStartedAsync(string mode, string scenario, string module)
         {
             var tcs = new TaskCompletionSource<bool>();
             Client.JoinSession(Config != null ? Config.ScenarioId : scenario, null, (ok, sessionId) =>
@@ -454,7 +470,7 @@ namespace PixoVR.TrainingCore.Apex
         }
 
         /// <inheritdoc/>
-        public override Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
+        protected override Task OnModuleEndedAsync(string mode, string scenario, string module, bool passed)
         {
             var tcs = new TaskCompletionSource<bool>();
             var data = new SessionData(passed ? 100f : 0f, passed ? 1f : 0f, 0f, 100f, 0, true, passed);

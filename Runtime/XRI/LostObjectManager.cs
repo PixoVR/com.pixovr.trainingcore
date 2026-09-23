@@ -47,7 +47,7 @@ namespace PixoVR.TrainingCore.XRI
                     obj.ResetObject();
                     continue;
                 }
-                if (obj.ResetWhenDropped && !obj.IsHeld)
+                if (obj.ResetWhenDropped && !obj.IsHeld && obj.HasMoved && !obj.IsSanpped)
                 {
                     obj.DroppedResetTimer += deltaTime;
                     if (obj.DroppedResetTimer >= obj.DroppedWaitTime)

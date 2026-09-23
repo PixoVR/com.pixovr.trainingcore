@@ -15,6 +15,18 @@ namespace PixoVR.TrainingCore.Photon
     /// <summary>PUN component that republishes received RaiseEvent interaction payloads to the <see cref="EventBus"/>.</summary>
     public class PhotonSyncView : MonoBehaviourPun, IOnEventCallback
     {
+        private void OnEnable()
+        {
+            PhotonNetwork.AddCallbackTarget(this);
+            EventBus.Instance.OnPublished += SendInteraction;
+        }
+
+        private void OnDisable()
+        {
+            PhotonNetwork.RemoveCallbackTarget(this);
+            EventBus.Instance.OnPublished -= SendInteraction;
+        }
+
         /// <summary>Republish Photon events into the local event bus.</summary>
         public void OnEvent(EventData photonEvent)
         {
@@ -23,7 +35,10 @@ namespace PixoVR.TrainingCore.Photon
             var data = PhotonEventSerializer.DeserializeEventSyncData(photonEvent.CustomData as object[]);
             var args = PhotonEventSerializer.FromSyncData(data);
             if (args != null && !string.IsNullOrEmpty(args.SubjectId))
+            {
+                args.IsRemote = true;
                 EventBus.Instance.Publish(args.SubjectId, args);
+            }
         }
 
         /// <summary>Broadcast a local interaction event to the room.</summary>

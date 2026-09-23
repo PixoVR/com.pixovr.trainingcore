@@ -138,5 +138,17 @@ namespace PixoVR.TrainingCore.GameModes
 
         /// <summary>Notify started steps.</summary>
         public static void StepsStarted(string flowName, List<StepBase> steps) => OnStepsStarted?.Invoke(flowName, steps);
+
+        /// <summary>Notify a module start.</summary>
+        public static void ModuleStarted(string moduleName = "", Graph.TrainingGraph graph = null)
+            => OnModuleStart?.Invoke(moduleName, graph);
+
+        /// <summary>Notify a module pass/completion.</summary>
+        public static void ModuleCompleted(string moduleName = "", Graph.TrainingGraph graph = null)
+            => OnModulePassed?.Invoke(moduleName, graph);
+
+        /// <summary>Notify a module end.</summary>
+        public static void ModuleEnded(string moduleName = "", Graph.TrainingGraph graph = null)
+            => OnModuleEnd?.Invoke(moduleName, graph);
     }
 }

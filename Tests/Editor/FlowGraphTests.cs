@@ -134,10 +134,8 @@ namespace PixoVR.TrainingCore.Tests
             var data = new GraphParser(GameMode.Training).Parse(g);
             var it = data.GetIterator();
             it.StartIterator();
-            Assert.AreEqual("start", it.CurrentSteps[0].GUID);
-
-            it.CurrentSteps[0].Complete();
             Assert.AreEqual("step0", it.CurrentSteps[0].GUID);
+
             it.CurrentSteps[0].Complete();
             Assert.AreEqual("step1", it.CurrentSteps[0].GUID);
             Assert.AreEqual(3, it.VisitedNodes.Count);

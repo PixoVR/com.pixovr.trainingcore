@@ -19,31 +19,36 @@ namespace PixoVR.TrainingCore.Utility
             oneShotSource.PlayOneShot(clip);
         }
 
-        /// <summary>Play the first clip of a settings blob, on the given source or a spawned one.</summary>
+        /// <summary>Play all clips of a settings blob in sequence, on the given source or the internal one.</summary>
         public void Play(AudioClipSettings settings, AudioSource source = null)
         {
             if (settings?.ClipsToPlay == null || settings.ClipsToPlay.Count == 0)
                 return;
-            var clip = settings.ClipsToPlay[0];
-            if (clip == null)
-                return;
 
-            if (source != null)
-            {
-                source.clip = clip;
-                source.volume = settings.Volume;
-                source.spatialBlend = settings.SpatialBlend;
-                source.Play();
-                return;
-            }
-
-            if (settings.PlayFromSpecificLocation)
+            AudioSource src = source;
+            if (src == null)
             {
                 EnsureSource();
-                oneShotSource.transform.position = settings.LocationToPlayFrom;
-                oneShotSource.spatialBlend = settings.SpatialBlend;
+                src = oneShotSource;
+                if (settings.PlayFromSpecificLocation)
+                    src.transform.position = settings.LocationToPlayFrom;
             }
-            Play(clip);
+            src.volume = settings.Volume;
+            src.spatialBlend = settings.SpatialBlend;
+            StartCoroutine(PlaySequence(settings, src));
+        }
+
+        private IEnumerator PlaySequence(AudioClipSettings settings, AudioSource source)
+        {
+            foreach (var clip in settings.ClipsToPlay)
+            {
+                if (clip == null)
+                    continue;
+                source.clip = clip;
+                source.Play();
+                while (source.isPlaying)
+                    yield return null;
+            }
         }
 
         /// <summary>Stop playback.</summary>
