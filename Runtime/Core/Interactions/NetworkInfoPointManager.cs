@@ -20,6 +20,7 @@ namespace PixoVR.TrainingCore.Interactions
 
         private readonly HashSet<string> registered = new HashSet<string>();
         private readonly Dictionary<string, bool> openStates = new Dictionary<string, bool>();
+        private readonly Dictionary<string, InfoPointBase> points = new Dictionary<string, InfoPointBase>();
 
         /// <summary>Raised when a point's enable state is applied; guid, enabled.</summary>
         public event Action<string, bool> OnInfoPointStateChanged;
@@ -27,11 +28,20 @@ namespace PixoVR.TrainingCore.Interactions
         /// <summary>Register a point by guid.</summary>
         public void RegisterInfoPoint(string guid) => registered.Add(guid);
 
+        /// <summary>Register a point with its component so received states apply locally.</summary>
+        public void RegisterInfoPoint(string guid, InfoPointBase point)
+        {
+            registered.Add(guid);
+            if (point != null)
+                points[guid] = point;
+        }
+
         /// <summary>Unregister a point by guid.</summary>
         public void UnregisterInfoPoint(string guid)
         {
             registered.Remove(guid);
             openStates.Remove(guid);
+            points.Remove(guid);
         }
 
         /// <summary>Open a point and broadcast it.</summary>
@@ -73,6 +83,19 @@ namespace PixoVR.TrainingCore.Interactions
                     openStates[key] = false;
             }
             openStates[guid] = state;
+            if (points.TryGetValue(guid, out var point) && point != null)
+            {
+                if (state)
+                    point.Open();
+                else if (DisableInfoPointChildrenOnly)
+                    foreach (Transform child in point.transform)
+                        child.gameObject.SetActive(false);
+                else
+                    point.Close();
+            }
+            if (broadcast && Multiuser.NetworkManager.InstanceExists
+                && Multiuser.NetworkManager.Instance.InRoom)
+                Multiuser.NetworkManager.Instance.SendInfoPointState(guid, "setInfoPoint", state);
             OnInfoPointStateChanged?.Invoke(guid, state);
         }
     }

@@ -13,7 +13,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 namespace PixoVR.TrainingCore.Photon
 {
     /// <summary>PUN 2 implementation of the abstract <see cref="Multiuser.NetworkManager"/>.</summary>
-    public class PhotonNetworkManager : Multiuser.NetworkManager, IConnectionCallbacks, IMatchmakingCallbacks, IInRoomCallbacks
+    public class PhotonNetworkManager : Multiuser.NetworkManager, IConnectionCallbacks, IMatchmakingCallbacks, IInRoomCallbacks, IOnEventCallback
     {
         /// <summary>PUN app version / game version string.</summary>
         public string GameVersion = "1.0";
@@ -198,7 +198,45 @@ namespace PixoVR.TrainingCore.Photon
         }
 
         /// <summary>PUN player entered.</summary>
-        public void OnPlayerEnteredRoom(Player newPlayer) { }
+        public void OnPlayerEnteredRoom(Player newPlayer)
+        {
+            if (Interactions.NetworkInfoPointManager.Instance != null)
+                Interactions.NetworkInfoPointManager.Instance.UpdateNewPlayerOfStatus();
+        }
+
+        /// <inheritdoc/>
+        public override void RequestOwnership(GameObject go, IEnumerable<MonoBehaviour> additional)
+        {
+            go?.GetComponent<PhotonView>()?.RequestOwnership();
+            if (additional == null)
+                return;
+            foreach (var view in additional)
+            {
+                if (view is PhotonView pv)
+                    pv.RequestOwnership();
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void SendInfoPointState(string guid, string action, bool state)
+        {
+            if (!PhotonNetwork.InRoom)
+                return;
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.InfoPointEventCode,
+                new object[] { guid, action, state },
+                new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+                SendOptions.SendReliable);
+        }
+
+        /// <summary>PUN RaiseEvent dispatch.</summary>
+        public void OnEvent(EventData photonEvent)
+        {
+            if (photonEvent.Code != PhotonEventSerializer.InfoPointEventCode)
+                return;
+            if (photonEvent.CustomData is object[] data && data.Length >= 3
+                && data[0] is string guid && data[2] is bool state)
+                Interactions.NetworkInfoPointManager.Instance?.ReceiveSetInfoPointEnableState(guid, state);
+        }
 
         /// <summary>PUN player left.</summary>
         public void OnPlayerLeftRoom(Player otherPlayer) { }
@@ -309,6 +347,9 @@ namespace PixoVR.TrainingCore.Photon
 
         /// <summary>RaiseEvent code for step sync.</summary>
         public const byte StepSyncEventCode = 3;
+
+        /// <summary>RaiseEvent code for info-point state sync.</summary>
+        public const byte InfoPointEventCode = 4;
 
         /// <summary>InteractionEventArgs → object[] payload.</summary>
         public static object[] Serialize(InteractionEventArgs args)

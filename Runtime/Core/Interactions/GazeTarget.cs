@@ -14,18 +14,22 @@ namespace PixoVR.TrainingCore.Interactions
         /// <summary>Seconds of gaze before the first event fires.</summary>
         public float ContinuousDuration = 1f;
 
+        /// <summary>Reset accumulated gaze time on look-away (Luminous DurationSettings.IsContinuous).</summary>
+        public bool ResetGazeOnExit = true;
+
         private bool gazing;
         private float gazeTime;
-        private bool fired;
+        private float publishTimer;
 
         private void Update()
         {
-            if (!gazing || fired)
+            if (!gazing)
                 return;
             gazeTime += Time.deltaTime;
-            if (gazeTime >= ContinuousDuration)
+            publishTimer += Time.deltaTime;
+            if (publishTimer >= 0.2f)
             {
-                fired = true;
+                publishTimer = 0f;
                 Publish(new GazeInteractionEventArgs(Subject, gazeTime));
             }
         }
@@ -34,16 +38,14 @@ namespace PixoVR.TrainingCore.Interactions
         public void OnGazeEnter()
         {
             gazing = true;
-            gazeTime = 0f;
-            fired = false;
         }
 
         /// <summary>End gaze.</summary>
         public void OnGazeExit()
         {
             gazing = false;
-            gazeTime = 0f;
-            fired = false;
+            if (ResetGazeOnExit)
+                gazeTime = 0f;
         }
     }
 }

@@ -218,6 +218,22 @@ namespace PixoVR.TrainingCore.Events
             EventId = eventId;
             Payload = payload;
         }
+
+        /// <inheritdoc/>
+        public override ICommand ToCommand() => new GenericInteractionCommand(this);
+    }
+
+    /// <summary>Raised when a question answer is chosen on a display.</summary>
+    public class QuestionInteractionEventArgs : InteractionEventArgs
+    {
+        /// <summary>Whether the chosen answer was correct.</summary>
+        public bool Correct;
+
+        public QuestionInteractionEventArgs(string subjectId, bool correct)
+        {
+            SubjectId = subjectId;
+            Correct = correct;
+        }
     }
 
     /// <summary>Raised when the hand menu open state changes.</summary>

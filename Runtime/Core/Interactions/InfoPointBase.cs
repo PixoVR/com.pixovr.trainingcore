@@ -39,9 +39,11 @@ namespace PixoVR.TrainingCore.Interactions
         /// <summary>Open the point, optionally closing others.</summary>
         public virtual void Open()
         {
+            if (IsOpen)
+                return;
+            IsOpen = true;
             if (ShouldCloseAllOtherPoints)
                 CloseOtherInfoPoints();
-            IsOpen = true;
         }
 
         /// <summary>Close the point.</summary>

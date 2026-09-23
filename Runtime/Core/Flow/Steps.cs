@@ -383,7 +383,7 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void SkipForwards() => Functionality?.OnSkippedForwards();
+        public override void SkipForwards() => Functionality?.SkipForwards();
 
         /// <inheritdoc/>
         public override void SkipBackwards() => Functionality?.OnSkippedBackwards();
@@ -511,6 +511,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Required gaze seconds.</summary>
         public float RequiredDuration;
 
+        private Collider gazeCollider;
+        private bool continuous = true;
+
         /// <summary>Create from node.</summary>
         public GazeObjectStep(GazeObjectStepNode node)
         {
@@ -518,8 +521,22 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             RequiredDuration = node.DurationSettings?.IsRequired == true ? node.DurationSettings.DurationNeeded : 0f;
-            var target = node.GazeCollider;
-            SubjectId = target != null ? target.gameObject.GetGuidString() : null;
+            continuous = node.DurationSettings?.IsContinuous ?? true;
+            gazeCollider = node.GazeCollider;
+            SubjectId = gazeCollider != null ? gazeCollider.gameObject.GetGuidString() : null;
+        }
+
+        /// <inheritdoc/>
+        public override void OnEnter()
+        {
+            if (gazeCollider != null)
+            {
+                var target = gazeCollider.GetComponent<GazeTarget>()
+                             ?? gazeCollider.gameObject.AddComponent<GazeTarget>();
+                target.ContinuousDuration = RequiredDuration > 0f ? RequiredDuration : target.ContinuousDuration;
+                target.ResetGazeOnExit = continuous;
+            }
+            base.OnEnter();
         }
 
         /// <inheritdoc/>
@@ -854,7 +871,7 @@ namespace PixoVR.TrainingCore.Flow
 
     /// <summary>Multiple-choice question step; answers come from <see cref="QuizAnswer"/> components.</summary>
     [Serializable]
-    public class QuestionStep : CorrectIncorrectStepBase
+    public class QuestionStep : CorrectIncorrectStepBase, Events.IEventObserver
     {
         private GameObject questionPrefab;
 
@@ -902,8 +919,28 @@ namespace PixoVR.TrainingCore.Flow
         protected virtual void ShowQuestion()
         {
             var display = QuestionNode?.QuestionDisplay;
-            if (display != null)
-                display.SetActive(true);
+            if (display == null)
+                return;
+            display.SetActive(true);
+            var displayer = display.GetComponentInChildren<Utility.Display.Displayer>(true);
+            if (displayer == null)
+            {
+                Utility.Log.Warning("QuestionStep: no Displayer on question display", Utility.LogCategory.Flow);
+                return;
+            }
+            displayer.DisplayTextData(displayData, answerData);
+            questionSubjectId = displayer.GetComponentInParent<Events.ObservableSubject>()?.Id
+                                ?? displayer.gameObject.GetGuidString();
+            EventBus.Instance.Subscribe(questionSubjectId, this);
+        }
+
+        private string questionSubjectId;
+
+        /// <inheritdoc/>
+        public void OnEvent(Events.InteractionEventArgs args)
+        {
+            if (args is Events.QuestionInteractionEventArgs question)
+                AnswerQuestion(question.Correct);
         }
 
         /// <summary>Record an answer choice; completes the step on the matching branch.</summary>
@@ -918,6 +955,11 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void OnExit()
         {
+            if (!string.IsNullOrEmpty(questionSubjectId))
+            {
+                EventBus.Instance.Unsubscribe(questionSubjectId, this);
+                questionSubjectId = null;
+            }
             var display = QuestionNode?.QuestionDisplay;
             if (display != null)
                 display.SetActive(false);

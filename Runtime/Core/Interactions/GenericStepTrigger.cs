@@ -31,7 +31,16 @@ namespace PixoVR.TrainingCore.Interactions
         public void CompleteStep() => Publish(new GenericInteractionEventArgs(SubjectId, "Complete"));
 
         /// <summary>Fire the skipped-forwards callbacks.</summary>
-        public void SkipForwards() => SkippedForwards?.Invoke();
+        public void SkipForwards()
+        {
+            var args = new GenericInteractionEventArgs(SubjectId, "Complete");
+            Events.EventBus.Instance.AddToHistory(args);
+            var command = args.ToCommand();
+            if (command != null)
+                Commands.CommandHistory.Instance.ExecuteAndRecord(command);
+            OnStepCompleted();
+            SkippedForwards?.Invoke();
+        }
 
         /// <summary>Fire the skipped-backwards callbacks.</summary>
         public void SkipBackwards() => SkippedBackwards?.Invoke();

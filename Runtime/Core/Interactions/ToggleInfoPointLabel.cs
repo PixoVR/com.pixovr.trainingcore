@@ -69,13 +69,19 @@ namespace PixoVR.TrainingCore.Interactions
         /// <inheritdoc/>
         public override void Open()
         {
+            if (IsOpen)
+                return;
             base.Open();
             if (InfoPointLabel != null)
                 InfoPointLabel.SetActive(true);
+            if (QuizLabel != null)
+                QuizLabel.SetActive(true);
+            if (LineRenderer != null)
+                LineRenderer.gameObject.SetActive(true);
             if (Animator != null)
                 Animator.SetBool("Open", true);
             SpawnAnswers();
-            if (CompleteStepOnOpeningInTrainingMode)
+            if (CompleteStepOnOpeningInTrainingMode && GameModes.GameModeManager.CurrentMode == GameModes.GameMode.Training)
                 OnInteractionCompleted(true);
         }
 
@@ -85,6 +91,10 @@ namespace PixoVR.TrainingCore.Interactions
             base.Close();
             if (InfoPointLabel != null)
                 InfoPointLabel.SetActive(false);
+            if (QuizLabel != null)
+                QuizLabel.SetActive(false);
+            if (LineRenderer != null)
+                LineRenderer.gameObject.SetActive(false);
             if (Animator != null)
                 Animator.SetBool("Open", false);
         }
@@ -98,6 +108,8 @@ namespace PixoVR.TrainingCore.Interactions
                 if (CorrectAnswerAudioSource != null)
                     CorrectAnswerAudioSource.Play();
                 OnInteractionCompleted(true);
+                if (DisableInfoPointOnComplete)
+                    gameObject.SetActive(false);
             }
         }
 
@@ -106,6 +118,8 @@ namespace PixoVR.TrainingCore.Interactions
         {
             if (AnswerParent == null || AnswerPrefab == null)
                 return;
+            for (int i = AnswerParent.childCount - 1; i >= 0; i--)
+                Destroy(AnswerParent.GetChild(i).gameObject);
             var picked = new List<QuizAnswerData>();
             picked.AddRange(AlwaysDisplayedAnswers);
             if (CorrectAnswers.Count > 0 && !picked.Any(a => CorrectAnswers.Contains(a)))

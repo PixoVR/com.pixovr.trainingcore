@@ -114,6 +114,12 @@ namespace PixoVR.TrainingCore.Multiuser
         /// <summary>Replicate a spawned object to peers.</summary>
         public virtual void SyncSpawnedObject(GameObject spawned) { }
 
+        /// <summary>Request ownership transfer of an object and its extra views.</summary>
+        public virtual void RequestOwnership(GameObject go, System.Collections.Generic.IEnumerable<MonoBehaviour> additional) { }
+
+        /// <summary>Replicate an info-point state change to peers.</summary>
+        public virtual void SendInfoPointState(string guid, string action, bool state) { }
+
         /// <summary>Handle joining a room that is already in progress.</summary>
         public virtual void InProgressRoomJoined(string sceneToLoad) { }
 
