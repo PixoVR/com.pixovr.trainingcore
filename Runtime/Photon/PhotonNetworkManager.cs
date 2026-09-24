@@ -318,29 +318,30 @@ namespace PixoVR.TrainingCore.Photon
                         (InstructorControls as PhotonInstructorControls)?.ReceiveInstructorEvent(action, payload[1] as string ?? "", flag);
                     break;
                 case PhotonEventSerializer.GrabSyncEventCode:
-                    if (payload != null && payload.Length >= 3
-                        && payload[0] is bool held && payload[1] is string grabGuid && payload[2] is int holder)
+                    if (payload != null && payload.Length >= 2
+                        && payload[0] is bool held && payload[1] is string grabGuid)
                     {
                         var target = Identity.GuidRegistry.Resolve(grabGuid);
-                        target?.GetComponent<XRI.NetworkGrabManager>()?.SetRemotelyHeld(held, holder);
+                        target?.GetComponent<XRI.NetworkGrabManager>()?.SetRemotelyHeld(held, photonEvent.Sender);
                     }
                     break;
                 case PhotonEventSerializer.StepSyncEventCode:
                     if (payload != null && payload.Length >= 1 && payload[0] is string syncAction
                         && syncAction == "catchUp" && photonEvent.Sender != PhotonNetwork.MasterClient?.ActorNumber)
                         break;
-                    HandleStepSync(payload);
+                    HandleStepSync(payload, photonEvent.Sender);
                     break;
             }
         }
 
-        private void HandleStepSync(object[] payload)
+        private void HandleStepSync(object[] payload, int sender)
         {
             if (payload == null || payload.Length == 0 || !(payload[0] is string action))
                 return;
-            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2 && payload[1] is int requester
-                && requester != PhotonNetwork.LocalPlayer.ActorNumber)
+            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2
+                && sender != PhotonNetwork.LocalPlayer.ActorNumber)
             {
+                int requester = sender;
                 var history = Events.EventBus.Instance.History;
                 var events = new object[history.Count + 2];
                 events[0] = "catchUp";
