@@ -335,15 +335,21 @@ namespace PixoVR.TrainingCore.Platform
             moduleStartPending = true;
             int token = ++moduleRunToken;
             Utility.Log.Info($"[Apex Diag] ModuleStartedAsync → provider (module={module})", Utility.LogCategory.Platform);
-            await OnModuleStartedAsync(mode, scenario, module);
-            moduleStartPending = false;
+            try
+            {
+                await OnModuleStartedAsync(mode, scenario, module);
+            }
+            finally
+            {
+                moduleStartPending = false;
+            }
             if (token != moduleRunToken)
             {
                 if (!string.IsNullOrEmpty(SessionId))
                 {
                     Utility.Log.Warning($"[Apex Diag] module start for '{module}' completed after the run ended; reporting end", Utility.LogCategory.Platform);
-                    SetSessionId(null);
                     await OnModuleEndedAsync(mode, scenario, module, false);
+                    SetSessionId(null);
                 }
                 return;
             }
