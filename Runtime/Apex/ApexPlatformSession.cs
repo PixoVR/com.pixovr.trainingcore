@@ -84,11 +84,7 @@ namespace PixoVR.TrainingCore.Apex
         public void Login(string user, string pass, Action<bool, string> done)
         {
             ApexSystem.Login(user, pass,
-                (resp, info) =>
-                {
-                    UserId = info?.User?.ID.ToString();
-                    done?.Invoke(true, null);
-                },
+                (resp, info) => HandleLoginSuccess(info, done),
                 (resp, fail) => done?.Invoke(false, fail?.ToString() ?? "login failed"));
         }
 
@@ -96,11 +92,7 @@ namespace PixoVR.TrainingCore.Apex
         public void LoginWithToken(string token, Action<bool, string> done)
         {
             ApexSystem.LoginWithToken(token,
-                (resp, info) =>
-                {
-                    UserId = info?.User?.ID.ToString();
-                    done?.Invoke(true, null);
-                },
+                (resp, info) => HandleLoginSuccess(info, done),
                 (resp, fail) => done?.Invoke(false, fail?.ToString() ?? "token login failed"));
         }
 
@@ -108,12 +100,21 @@ namespace PixoVR.TrainingCore.Apex
         public void QuickIdLogin(string serial, string username, Action<bool, string> done)
         {
             ApexSystem.QuickIDLogin(serial, username,
-                (resp, info) =>
-                {
-                    UserId = info?.User?.ID.ToString();
-                    done?.Invoke(true, null);
-                },
+                (resp, info) => HandleLoginSuccess(info, done),
                 (resp, fail) => done?.Invoke(false, fail?.ToString() ?? "quickid login failed"));
+        }
+
+        private void HandleLoginSuccess(ActiveUserInformation info, Action<bool, string> done)
+        {
+            if (ApexSystem.LoginCheckModuleAccess && info?.ModuleUserInformation == null)
+                return;
+            if (info?.ModuleUserInformation != null && !info.ModuleUserInformation.Access)
+            {
+                done?.Invoke(false, "User has no access to this module");
+                return;
+            }
+            UserId = info?.User?.ID.ToString();
+            done?.Invoke(true, null);
         }
 
         /// <inheritdoc/>
@@ -317,7 +318,7 @@ namespace PixoVR.TrainingCore.Apex
                     InvokeConnectionFailed();
                     Log.Warning($"Apex login failed: {err}", LogCategory.Platform);
                 }
-                tcs.SetResult(ok);
+                tcs.TrySetResult(ok);
             });
             return tcs.Task;
         }
@@ -343,7 +344,7 @@ namespace PixoVR.TrainingCore.Apex
                         InvokeConnectionFailed();
                         Log.Warning($"Apex PIN/QuickID login failed: {err}", LogCategory.Platform);
                     }
-                    tcs.SetResult(ok);
+                    tcs.TrySetResult(ok);
                 });
                 return tcs.Task;
             }
@@ -378,7 +379,7 @@ namespace PixoVR.TrainingCore.Apex
                     InvokeConnectionFailed();
                     Log.Warning($"Apex token login failed: {err}", LogCategory.Platform);
                 }
-                tcs.SetResult(ok);
+                tcs.TrySetResult(ok);
             });
             return tcs.Task;
         }
