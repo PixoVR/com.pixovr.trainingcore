@@ -71,6 +71,7 @@ namespace PixoVR.TrainingCore.Flow
         public List<StepBase> CurrentSteps => ActiveFlow?.CurrentSteps;
 
         private FlowBase _activeFlow;
+        private bool _moduleEnded;
         private NormalFlow _normalFlow;
         private GraphData _graphData;
         private GraphParser _parser;
@@ -83,7 +84,14 @@ namespace PixoVR.TrainingCore.Flow
                 Log.Warning("GraphFlowManager has no NodeGraph assigned", LogCategory.Flow);
                 return;
             }
+            RefreshGuids();
             ParseGraph(gameMode);
+        }
+
+        private static void RefreshGuids()
+        {
+            foreach (var guid in FindObjectsOfType<Identity.GuidComponent>(true))
+                guid.CreateGuid();
         }
 
         /// <summary>Begin executing the parsed graph.</summary>
@@ -94,6 +102,7 @@ namespace PixoVR.TrainingCore.Flow
                 Log.Warning("GraphFlowManager.StartGraph called before Initialize", LogCategory.Flow);
                 return;
             }
+            _moduleEnded = false;
             _activeFlow = _normalFlow;
             _activeFlow.InitializeIterator();
             _activeFlow.FlowIterator.CurrentNodeChanged += OnIteratorChanged;
@@ -161,7 +170,7 @@ namespace PixoVR.TrainingCore.Flow
                 Commands.CommandHistory.Instance.Reset();
                 GameModeManager.ModuleCompleted(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
                 Events.EventBus.Instance.Reset();
-                GameModeManager.ModuleEnded(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
+                EndModule();
                 OnGraphCompleted?.Invoke();
             }
             else
@@ -237,6 +246,28 @@ namespace PixoVR.TrainingCore.Flow
         private void OnIteratorChanged() => OnCurrentStepsChanged?.Invoke(CurrentSteps);
 
         private void Update() => Tick?.Invoke();
+
+        /// <summary>Stop the active flow and report module end (Luminous parity).</summary>
+        public virtual void StopFlow()
+        {
+            if (_activeFlow == null)
+                return;
+            if (_activeFlow.CurrentSteps != null)
+                foreach (var s in _activeFlow.CurrentSteps.ToList())
+                    s?.OnExit();
+            _activeFlow = null;
+            EndModule();
+        }
+
+        private void EndModule()
+        {
+            if (_moduleEnded)
+                return;
+            _moduleEnded = true;
+            GameModeManager.ModuleEnded(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
+        }
+
+        private void OnDisable() => StopFlow();
 
         private void OnEnable()
         {

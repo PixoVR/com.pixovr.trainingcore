@@ -123,17 +123,30 @@ namespace PixoVR.TrainingCore.Apex
                 (resp, join) =>
                 {
                     SessionId = join != null ? join.SessionId : 0;
+                    Log.Info($"[Apex Diag] JoinSession ok: sessionId={SessionId}", LogCategory.Platform);
                     done?.Invoke(true, SessionId);
                 },
-                (resp, fail) => done?.Invoke(false, 0));
+                (resp, fail) =>
+                {
+                    Log.Warning($"[Apex Diag] JoinSession failed: {fail?.Message}", LogCategory.Platform);
+                    done?.Invoke(false, 0);
+                });
         }
 
         /// <inheritdoc/>
         public void CompleteSession(SessionData data, Extension context, Extension result, Action<bool> done)
         {
             ApexSystem.CompleteSession(data, context, result,
-                (resp, o) => done?.Invoke(true),
-                (resp, fail) => done?.Invoke(false));
+                (resp, o) =>
+                {
+                    Log.Info("[Apex Diag] CompleteSession ok", LogCategory.Platform);
+                    done?.Invoke(true);
+                },
+                (resp, fail) =>
+                {
+                    Log.Warning($"[Apex Diag] CompleteSession failed: {fail?.Message}", LogCategory.Platform);
+                    done?.Invoke(false);
+                });
         }
 
         /// <inheritdoc/>
@@ -457,6 +470,7 @@ namespace PixoVR.TrainingCore.Apex
         protected override Task OnModuleStartedAsync(string mode, string scenario, string module)
         {
             var tcs = new TaskCompletionSource<bool>();
+            Log.Info($"[Apex Diag] OnModuleStartedAsync: joining session (scenario={Config?.ScenarioId ?? scenario}, module={module})", LogCategory.Platform);
             Client.JoinSession(Config != null ? Config.ScenarioId : scenario, null, (ok, sessionId) =>
             {
                 if (ok)
@@ -473,6 +487,7 @@ namespace PixoVR.TrainingCore.Apex
         protected override Task OnModuleEndedAsync(string mode, string scenario, string module, bool passed)
         {
             var tcs = new TaskCompletionSource<bool>();
+            Log.Info($"[Apex Diag] OnModuleEndedAsync: completing session (module={module}, passed={passed}, sessionId={_sessionId})", LogCategory.Platform);
             var data = new SessionData(passed ? 100f : 0f, passed ? 1f : 0f, 0f, 100f, 0, true, passed);
             Client.CompleteSession(data, null, null, ok =>
             {
