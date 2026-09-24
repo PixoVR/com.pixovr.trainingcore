@@ -723,6 +723,7 @@ namespace PixoVR.TrainingCore.Flow
         public int StepsToComplete;
 
         private readonly HashSet<StepBase> pending = new HashSet<StepBase>();
+        private readonly List<StepBase> entered = new List<StepBase>();
         private bool completed;
 
         /// <inheritdoc/>
@@ -744,12 +745,13 @@ namespace PixoVR.TrainingCore.Flow
             base.OnEnter();
             completed = false;
             pending.Clear();
+            entered.Clear();
             foreach (var step in GroupedSteps)
-                if (step != null)
-                    pending.Add(step);
-            foreach (var step in pending)
+                if (step != null && pending.Add(step))
+                    entered.Add(step);
+            foreach (var step in pending.ToList())
                 step.StepCompleted += OnChildCompleted;
-            foreach (var step in pending)
+            foreach (var step in pending.ToList())
                 step.OnEnter();
         }
 
@@ -758,14 +760,17 @@ namespace PixoVR.TrainingCore.Flow
             child.StepCompleted -= OnChildCompleted;
             if (!pending.Remove(child) || completed)
                 return;
+            child.OnExit();
+            entered.Remove(child);
             int total = GroupedSteps.Count(s => s != null);
             int needed = CompleteAll || StepsToComplete <= 0 ? total : Mathf.Min(StepsToComplete, total);
             if (total - pending.Count >= needed)
             {
                 completed = true;
                 UnregisterListeners();
-                foreach (var step in pending.ToList())
+                foreach (var step in entered.ToList())
                     step.OnExit();
+                entered.Clear();
                 pending.Clear();
                 OnStepCompleted();
             }
@@ -783,8 +788,9 @@ namespace PixoVR.TrainingCore.Flow
         public override void OnExit()
         {
             UnregisterListeners();
-            foreach (var step in pending.ToList())
+            foreach (var step in entered.ToList())
                 step.OnExit();
+            entered.Clear();
             pending.Clear();
             base.OnExit();
         }
@@ -891,6 +897,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             Outcome = true;
             OutputSteps = CorrectStepOutputs.ToList();
+            RegisterUndoStepPointsForActions(correctActions);
             ExecuteActions(correctActions);
             OnStepCompleted();
         }
@@ -900,8 +907,17 @@ namespace PixoVR.TrainingCore.Flow
         {
             Outcome = false;
             OutputSteps = IncorrectStepOutputs.ToList();
+            RegisterUndoStepPointsForActions(incorrectActions);
             ExecuteActions(incorrectActions);
             OnStepCompleted();
+        }
+
+        /// <inheritdoc/>
+        public override void SkipBackwards()
+        {
+            UnregisterUndoStepPointsFor(correctActions);
+            UnregisterUndoStepPointsFor(incorrectActions);
+            base.SkipBackwards();
         }
 
         /// <inheritdoc/>

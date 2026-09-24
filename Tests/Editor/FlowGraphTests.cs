@@ -355,6 +355,61 @@ namespace PixoVR.TrainingCore.Tests
             Assert.AreEqual(1, completedCount, "group must only complete once");
         }
 
+        private sealed class SyncCompleteStep : StepBase
+        {
+            public int ExitCount;
+
+            public override void OnEnter()
+            {
+                base.OnEnter();
+                Complete();
+            }
+
+            public override void OnExit()
+            {
+                ExitCount++;
+                base.OnExit();
+            }
+        }
+
+        private sealed class CountingStep : StepBase
+        {
+            public int ExitCount;
+
+            public override void OnExit()
+            {
+                ExitCount++;
+                base.OnExit();
+            }
+        }
+
+        [Test]
+        public void AndGroupStep_SynchronousChildCompletion_ExitsEachChildOnce()
+        {
+            var node = new AndGroupStepNode { GUID = "grp" };
+            node.CompleteAll = true;
+            var group = new AndGroupStep(node);
+            var sync = new SyncCompleteStep();
+            var normal = new CountingStep();
+            group.SetGroupedSteps(new List<StepBase> { sync, normal });
+
+            int completedCount = 0;
+            group.StepCompleted += _ => completedCount++;
+
+            group.OnEnter();
+            Assert.AreEqual(0, completedCount, "a sync-completing child must not break entry");
+            Assert.AreEqual(1, sync.ExitCount, "sync child should be exited on completion");
+
+            normal.Complete();
+            Assert.AreEqual(1, completedCount, "group completes once both children complete");
+            Assert.AreEqual(1, normal.ExitCount);
+            Assert.AreEqual(1, sync.ExitCount, "each child must be exited exactly once");
+
+            group.OnExit();
+            Assert.AreEqual(1, sync.ExitCount);
+            Assert.AreEqual(1, normal.ExitCount, "group OnExit must not re-exit completed children");
+        }
+
         [Test]
         public void CancelledIterator_IgnoresLateStepCompletions()
         {

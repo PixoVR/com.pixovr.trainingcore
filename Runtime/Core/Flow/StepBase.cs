@@ -250,7 +250,8 @@ namespace PixoVR.TrainingCore.Flow
             base.SkipBackwards();
         }
 
-        private void RegisterUndoStepPointsForActions(IEnumerable<ActionBase> actions)
+        /// <summary>Register each action's undo entry points on their target steps.</summary>
+        protected void RegisterUndoStepPointsForActions(IEnumerable<ActionBase> actions)
         {
             if (actions == null)
                 return;
@@ -271,7 +272,8 @@ namespace PixoVR.TrainingCore.Flow
             }
         }
 
-        private void UnregisterUndoStepPointsFor(IEnumerable<ActionBase> actions)
+        /// <summary>Undo the undo-entry-point registrations.</summary>
+        protected void UnregisterUndoStepPointsFor(IEnumerable<ActionBase> actions)
         {
             if (actions == null)
                 return;
