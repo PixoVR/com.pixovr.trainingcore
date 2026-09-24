@@ -147,7 +147,8 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
 
         /// <summary>See the interface/base contract.</summary>
         public override bool Equals(object obj) =>
-            obj is SingleObjectFailException other && InteractedObjectParameter.Equals(other.InteractedObjectParameter);
+            obj != null && obj.GetType() == GetType() && obj is SingleObjectFailException other
+            && InteractedObjectParameter.Equals(other.InteractedObjectParameter);
 
         /// <summary>See the interface/base contract.</summary>
         public override int GetHashCode() => base.GetHashCode();

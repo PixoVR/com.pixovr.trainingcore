@@ -363,9 +363,6 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void OnStepForward() => Act();
-
-        /// <inheritdoc/>
         public override void OnStepBackward() => Undo();
 
         /// <inheritdoc/>
@@ -416,9 +413,6 @@ namespace PixoVR.TrainingCore.Flow
             foreach (var ex in failData.Exceptions)
                 results.Add(FailureDetectionManager.Instance.RemoveGlobalException(ex.Exception));
         }
-
-        /// <inheritdoc/>
-        public override void OnStepForward() => Act();
 
         /// <inheritdoc/>
         public override void OnStepBackward() => Undo();

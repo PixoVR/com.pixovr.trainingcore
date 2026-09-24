@@ -155,6 +155,8 @@ namespace PixoVR.TrainingCore.Platform
 
         private bool lastModulePassed;
         private bool moduleReportActive;
+        private int moduleRunToken;
+        private bool moduleStartPending;
 
         private bool CanReport => IsConnected && !string.IsNullOrEmpty(SessionId);
 
@@ -325,13 +327,32 @@ namespace PixoVR.TrainingCore.Platform
                 Utility.Log.Info("[Apex Diag] ModuleStartedAsync ignored: module report already active", Utility.LogCategory.Platform);
                 return;
             }
+            if (moduleStartPending)
+            {
+                Utility.Log.Warning("[Apex Diag] ModuleStartedAsync ignored: a module start report is still pending", Utility.LogCategory.Platform);
+                return;
+            }
+            moduleStartPending = true;
+            int token = ++moduleRunToken;
             Utility.Log.Info($"[Apex Diag] ModuleStartedAsync → provider (module={module})", Utility.LogCategory.Platform);
             await OnModuleStartedAsync(mode, scenario, module);
+            moduleStartPending = false;
+            if (token != moduleRunToken)
+            {
+                if (!string.IsNullOrEmpty(SessionId))
+                {
+                    Utility.Log.Warning($"[Apex Diag] module start for '{module}' completed after the run ended; reporting end", Utility.LogCategory.Platform);
+                    SetSessionId(null);
+                    await OnModuleEndedAsync(mode, scenario, module, false);
+                }
+                return;
+            }
             moduleReportActive = !string.IsNullOrEmpty(SessionId);
         }
         /// <summary>See the interface/base contract. Idempotent: ignored when no module report is active.</summary>
         public Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
         {
+            moduleRunToken++;
             if (!moduleReportActive)
             {
                 Utility.Log.Info("[Apex Diag] ModuleEndedAsync ignored: no active module report", Utility.LogCategory.Platform);
