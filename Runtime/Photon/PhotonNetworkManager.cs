@@ -385,6 +385,8 @@ namespace PixoVR.TrainingCore.Photon
                 EndSync();
                 return;
             }
+            if (Flow.GraphFlowManager.Instance != null && Flow.GraphFlowManager.Instance.GraphRunning)
+                OnGraphStartedForCatchUp();
         }
 
         private void OnGraphStartedForCatchUp()

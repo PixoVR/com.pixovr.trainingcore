@@ -61,6 +61,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Fired every Update; steps needing polling (e.g. MoveToPositionStep) subscribe.</summary>
         public event Action Tick;
 
+        /// <summary>True between graph start and <see cref="StopFlow"/>.</summary>
+        public bool GraphRunning { get; private set; }
+
         /// <summary>Active flow.</summary>
         public FlowBase ActiveFlow => _activeFlow;
 
@@ -116,6 +119,7 @@ namespace PixoVR.TrainingCore.Flow
             _activeFlow.Start();
             OnGraphStarted?.Invoke();
             GraphStarted?.Invoke();
+            GraphRunning = true;
         }
 
         /// <summary>Re-parse with a parser.</summary>
@@ -273,6 +277,7 @@ namespace PixoVR.TrainingCore.Flow
             if (!ReferenceEquals(_normalFlow, _activeFlow))
                 _normalFlow?.Cancel();
             _activeFlow = null;
+            GraphRunning = false;
             FailureDetectionManager.Instance.StopDetecting();
             EndModule();
         }
