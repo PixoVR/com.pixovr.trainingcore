@@ -57,6 +57,7 @@ namespace PixoVR.TrainingCore.Photon
             Flow.GraphFlowManager.GraphStarted -= OnGraphStartedForCatchUp;
             XRI.NetworkGrabManager.NetworkGrabbed -= RelayGrab;
             XRI.NetworkGrabManager.NetworkReleased -= RelayRelease;
+            XRI.LostObjectManager.ExternalOwnershipGate = null;
             PhotonNetwork.RemoveCallbackTarget(this);
         }
 
@@ -230,6 +231,8 @@ namespace PixoVR.TrainingCore.Photon
         public void OnJoinedRoom()
         {
             CurrentRoom = new PhotonRoom();
+            XRI.LostObjectManager.ExternalOwnershipGate = obj =>
+                PhotonNetwork.InRoom && obj.GetComponent<PhotonView>() is var pv && pv != null && !pv.IsMine;
             OnRoomJoinedEvent?.Invoke();
         }
 
@@ -244,6 +247,7 @@ namespace PixoVR.TrainingCore.Photon
         public void OnLeftRoom()
         {
             CurrentRoom = null;
+            XRI.LostObjectManager.ExternalOwnershipGate = null;
             OnRoomExitedEvent?.Invoke();
         }
 
