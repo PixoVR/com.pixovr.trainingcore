@@ -200,6 +200,7 @@ namespace PixoVR.TrainingCore.Flow
             RegisterUndoStepPointsForActions(StartActions);
             base.OnEnter();
             ExecuteActions(StartActions);
+            FailureDetectionManager.Instance.AddStepExceptions(this);
         }
 
         /// <summary>Fail path: honours <see cref="NeverFail"/>.</summary>
@@ -208,6 +209,8 @@ namespace PixoVR.TrainingCore.Flow
             if (NeverFail)
                 return;
             base.OnFail();
+            foreach (var action in StartActions)
+                action?.OnStepFailed();
         }
 
         /// <summary>See the interface/base contract.</summary>
@@ -226,6 +229,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             UnregisterListeners();
             base.OnExit();
+            FailureDetectionManager.Instance.RemoveStepExceptions(this);
         }
 
         /// <summary>Detach event subscriptions (override in event-driven steps).</summary>
@@ -237,6 +241,7 @@ namespace PixoVR.TrainingCore.Flow
             RegisterUndoStepPointsForActions(StartActions);
             SkipForwardsActions(StartActions);
             base.SkipForwardOnEnter();
+            FailureDetectionManager.Instance.AddStepExceptions(this);
         }
 
         /// <summary>See the interface/base contract.</summary>
@@ -247,6 +252,7 @@ namespace PixoVR.TrainingCore.Flow
             base.SkipForwardOnExit();
             NotifyStartActionOnStepCompleted();
             SkipForwardsActions(CompleteActions);
+            FailureDetectionManager.Instance.RemoveStepExceptions(this);
         }
 
         /// <summary>See the interface/base contract.</summary>

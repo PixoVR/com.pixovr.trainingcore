@@ -1,5 +1,6 @@
 using PixoVR.TrainingCore.Commands;
 using PixoVR.TrainingCore.Events;
+using PixoVR.TrainingCore.Identity;
 using UnityEngine;
 
 namespace PixoVR.TrainingCore.Interactions
@@ -15,7 +16,7 @@ namespace PixoVR.TrainingCore.Interactions
         protected ObservableSubject Subject { get; private set; }
 
         /// <summary>Guid string id shortcut.</summary>
-        public string SubjectId => Subject != null ? Subject.Id : null;
+        public string SubjectId => gameObject.GetGuidString();
 
         protected virtual void Awake()
         {
@@ -30,6 +31,8 @@ namespace PixoVR.TrainingCore.Interactions
             var command = args?.ToCommand();
             if (command != null)
                 CommandHistory.Instance.Record(command);
+            if (CommandHistory.Instance != null && CommandHistory.Instance.IsUndoing && args != null)
+                args.IgnoreFailure = true;
             EventBus.Instance.Publish(Subject.Id, args, alsoGlobal, toNetwork);
         }
     }

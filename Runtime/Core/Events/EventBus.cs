@@ -31,6 +31,9 @@ namespace PixoVR.TrainingCore.Events
         /// <summary>Fired after an event is published when <c>toNetwork</c> was true — the NetworkManager broadcasts from this.</summary>
         public event Action<InteractionEventArgs> OnPublished;
 
+        /// <summary>Raised at the end of each <see cref="Publish"/> after all observers were notified.</summary>
+        public event Action OnAllObserversNotified;
+
         /// <summary>Register a subject so observers can subscribe by id.</summary>
         public void Register(Subject subject)
         {
@@ -101,6 +104,8 @@ namespace PixoVR.TrainingCore.Events
 
             if (alsoGlobal && subjectId != GlobalSubjectId && subjects.TryGetValue(GlobalSubjectId, out var global))
                 global.Notify(args);
+
+            OnAllObserversNotified?.Invoke();
 
             if (isSyncReplay || args.IsRemote)
                 return;

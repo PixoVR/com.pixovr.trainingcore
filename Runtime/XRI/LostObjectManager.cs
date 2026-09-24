@@ -18,6 +18,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Tracked objects.</summary>
         public List<LostObject> TrackedObjects { get; } = new List<LostObject>();
 
+        /// <summary>Optional multiuser gate: return true to skip the object this tick (e.g. Photon ownership).</summary>
+        public static Func<LostObject, bool> ExternalOwnershipGate;
+
         /// <summary>Register an object for fall-reset tracking.</summary>
         public void TrackObject(LostObject obj)
         {
@@ -37,26 +40,40 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Process tracked objects for <paramref name="deltaTime"/> seconds (separated for testability).</summary>
         public void Tick(float deltaTime)
         {
+            var rigPos = transform.position;
+            var segment = new Vector3(0f, 2f, 0f);
             foreach (var obj in TrackedObjects)
             {
-                if (obj == null || obj.IsResetting)
+                if (obj == null || obj.IsHeld || obj.IsSanpped || obj.IsResetting || !obj.HasMoved)
                     continue;
-                if (obj.ResetWhenOutOfRange &&
-                    obj.transform.position.y < transform.position.y + VerticalResetOffsetDistance - obj.OutOfRangeDistance)
+                if (ExternalOwnershipGate != null && ExternalOwnershipGate(obj))
+                    continue;
+                if (obj.ResetWhenOutOfRange)
                 {
-                    obj.ResetObject();
-                    continue;
+                    var p = obj.transform.position - rigPos;
+                    float h = Mathf.Clamp(Vector3.Dot(p, segment.normalized), 0f, segment.magnitude);
+                    float radial = (p - segment.normalized * h).magnitude;
+                    if (radial > obj.OutOfRangeDistance)
+                    {
+                        obj.ResetObject();
+                        continue;
+                    }
                 }
-                if (obj.ResetWhenDropped && !obj.IsHeld && obj.HasMoved && !obj.IsSanpped)
+                if (obj.ResetWhenDropped)
                 {
                     obj.DroppedResetTimer += deltaTime;
                     if (obj.DroppedResetTimer >= obj.DroppedWaitTime)
+                    {
                         obj.ResetObject();
+                        continue;
+                    }
                 }
                 else
                 {
                     obj.DroppedResetTimer = 0f;
                 }
+                if (obj.transform.position.y - rigPos.y < VerticalResetOffsetDistance)
+                    obj.ResetObject();
             }
         }
     }

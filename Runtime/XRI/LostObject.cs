@@ -39,9 +39,8 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Snap zone the object resets into.</summary>
         public XRISnapZone PartneredSnapZone;
 
-        /// <summary>True once the object has been moved from its spawn pose.</summary>
-        [NonSerialized]
-        public bool IsSanpped;
+        /// <summary>True while the object is snapped into a zone.</summary>
+        public bool IsSanpped => GrabInteractable != null && GrabInteractable.IsSnapped;
 
         /// <summary>True once the object has moved.</summary>
         [NonSerialized]
@@ -73,19 +72,15 @@ namespace PixoVR.TrainingCore.XRI
             SpawnPosition = transform.position;
             SpawnRotation = transform.rotation;
             if (GrabInteractable != null)
-            {
                 GrabInteractable.OnGrab.AddListener(OnGrabbed);
-                GrabInteractable.OnSnapped.AddListener(OnSnapped);
-                GrabInteractable.OnUnsnapping.AddListener(OnUnsnapped);
-            }
             LostObjectManager.Instance?.TrackObject(this);
         }
 
-        private void OnGrabbed() => HasMoved = true;
-
-        private void OnSnapped() => IsSanpped = true;
-
-        private void OnUnsnapped() => IsSanpped = false;
+        private void OnGrabbed()
+        {
+            HasMoved = true;
+            DroppedResetTimer = 0f;
+        }
 
         private void OnDestroy()
         {

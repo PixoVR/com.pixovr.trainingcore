@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GraphProcessor;
 using PixoVR.TrainingCore.Events;
 using PixoVR.TrainingCore.GameModes;
 using PixoVR.TrainingCore.Graph;
@@ -820,6 +821,35 @@ namespace PixoVR.TrainingCore.Flow
 
         /// <summary>Fail index assigned by <see cref="Graph.FailHandlerIndexUpdater"/>.</summary>
         public string FailIndex;
+
+        /// <summary>Reason text for the failure that routed here; written into the handler's exposed parameters on entry.</summary>
+        public string FailReason;
+
+        private List<ExposedParameter> failMessageParameters;
+
+        /// <summary>Create from node.</summary>
+        public FailHandlerStep(FailHandlerNode node)
+        {
+            GUID = node.GUID;
+            Name = node.name;
+            IsDefault = node.IsDefault;
+            IsSkipPoint = node.IsSkipPoint;
+            failMessageParameters = node.FailReasonExposedParameters;
+        }
+
+        /// <summary>Parameterless ctor for tests/defaults.</summary>
+        public FailHandlerStep() { }
+
+        /// <inheritdoc/>
+        public override void OnEnter()
+        {
+            base.OnEnter();
+            if (failMessageParameters == null)
+                return;
+            foreach (var p in failMessageParameters)
+                if (p != null)
+                    p.value = FailReason;
+        }
     }
 
     /// <summary>Conditional step: picks outputs at runtime via <see cref="Choose"/>.</summary>

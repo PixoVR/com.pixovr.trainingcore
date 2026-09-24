@@ -8,6 +8,9 @@ namespace PixoVR.TrainingCore.Utility
     /// <summary>Full-screen fade-to-black overlay driven by <see cref="FadeSettings"/>.</summary>
     public class FadeManager : SingletonBehaviour<FadeManager>
     {
+        /// <summary>The rig's fade canvas; when set it is driven instead of an overlay.</summary>
+        public CanvasGroup DefaultFadeCanvas;
+
         private Image fadeImage;
         private Coroutine fadeCoroutine;
         private float targetAlpha;
@@ -15,6 +18,8 @@ namespace PixoVR.TrainingCore.Utility
 
         /// <summary>Current overlay opacity (0–1).</summary>
         public float CurrentOpacity { get; private set; }
+
+        private bool UsingDefaultCanvas => DefaultFadeCanvas != null;
 
         /// <summary>Lazily creates the overlay canvas.</summary>
         protected override void Awake()
@@ -25,12 +30,25 @@ namespace PixoVR.TrainingCore.Utility
 
         private void EnsureOverlay()
         {
+            if (UsingDefaultCanvas)
+            {
+                if (fadeImage == null)
+                {
+                    fadeImage = DefaultFadeCanvas.GetComponentInChildren<Image>(true);
+                    if (fadeImage != null)
+                        fadeImage.color = Color.black;
+                    DefaultFadeCanvas.alpha = 0f;
+                }
+                return;
+            }
             if (fadeImage != null)
                 return;
             var canvasGo = new GameObject("FadeCanvas");
             canvasGo.transform.SetParent(transform, false);
             var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = Camera.main;
+            canvas.planeDistance = 0.1f;
             canvas.sortingOrder = short.MaxValue;
             var imageGo = new GameObject("FadeImage");
             imageGo.transform.SetParent(canvasGo.transform, false);
@@ -87,6 +105,13 @@ namespace PixoVR.TrainingCore.Utility
         private void SetOpacity(float alpha)
         {
             CurrentOpacity = alpha;
+            if (UsingDefaultCanvas)
+            {
+                DefaultFadeCanvas.alpha = alpha;
+                return;
+            }
+            if (fadeImage == null)
+                return;
             var color = fadeImage.color;
             color.a = alpha;
             fadeImage.color = color;
@@ -94,10 +119,13 @@ namespace PixoVR.TrainingCore.Utility
 
         private IEnumerator FadeCoroutine(float duration, bool useUnscaledTime)
         {
+            bool useDefault = UsingDefaultCanvas;
             float start = CurrentOpacity;
             for (float t = 0f; t < duration;
                  t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime)
             {
+                if (useDefault && DefaultFadeCanvas == null)
+                    yield break;
                 SetOpacity(Mathf.Lerp(start, targetAlpha, t / duration));
                 yield return null;
             }

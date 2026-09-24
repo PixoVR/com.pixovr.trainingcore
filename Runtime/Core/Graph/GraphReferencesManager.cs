@@ -59,9 +59,15 @@ namespace PixoVR.TrainingCore.Graph
                 .Where(n => !(n is FailHandlerNode)) // handlers wired separately
                 .ToList();
 
+            new StepNumberUpdater().Update(graph);
+
             // create runtime twins
             foreach (var node in stepNodes)
-                Steps[node.GUID] = node.Create();
+            {
+                var step = node.Create();
+                step.StepNumber = node.StepNumber;
+                Steps[node.GUID] = step;
+            }
             foreach (var node in graph.nodes.OfType<ActionNode>().Where(n => n.IsIncludedInMode(GameMode)))
                 Actions[node.GUID] = node.Create();
 
@@ -125,6 +131,7 @@ namespace PixoVR.TrainingCore.Graph
                 var handlerStep = handlerNode.Create() as FailHandlerStep;
                 if (handlerStep == null)
                     continue;
+                handlerStep.StepNumber = handlerNode.StepNumber;
                 Steps[handlerNode.GUID] = handlerStep;
                 FailureSteps[handlerNode] = handlerStep;
                 graphData.FailureHandlerSteps.Add(handlerStep);
@@ -251,33 +258,68 @@ namespace PixoVR.TrainingCore.Graph
         }
     }
 
-    /// <summary>Assigns dotted step numbers (1, 1.1, ...) across the graph.</summary>
+    /// <summary>Assigns Luminous-style step numbers: main = first-input main + 1, branches suffixed.</summary>
     public class StepNumberUpdater
     {
-        private int highestNumber;
+        private readonly Queue<StepBaseNode> toVisit = new Queue<StepBaseNode>();
+        private readonly HashSet<StepBaseNode> visited = new HashSet<StepBaseNode>();
 
-        /// <summary>Assign numbers breadth-first from <paramref name="startNode"/>.</summary>
-        public void Update(StartNode startNode, GameMode gameMode)
+        /// <summary>Renumber the whole graph: main flow from start, then each fail-handler root separately.</summary>
+        public void Update(TrainingGraph graph)
         {
-            highestNumber = 0;
-            Assign(startNode, "");
+            if (graph == null)
+                return;
+            foreach (var n in graph.nodes.OfType<StepBaseNode>())
+                n.StepNumber = string.Empty;
+            UpdateStepNumbers(graph.StartNode);
+            foreach (var handler in graph.nodes.OfType<FailHandlerNode>())
+                UpdateStepNumbers(handler);
         }
 
-        private void Assign(StepBaseNode node, string prefix)
+        private void UpdateStepNumbers(StepBaseNode startNode)
         {
-            if (node == null)
+            visited.Clear();
+            toVisit.Clear();
+            if (startNode == null)
                 return;
-            if (string.IsNullOrEmpty(prefix))
+            EnqueueOutputs(startNode);
+            while (toVisit.Count > 0)
             {
-                node.StepNumber = (++highestNumber).ToString();
+                int levelSize = toVisit.Count;
+                int nodesInLevel = levelSize;
+                while (levelSize-- > 0)
+                {
+                    var node = toVisit.Dequeue();
+                    node.StepNumber = BuildStepNumber(node, nodesInLevel);
+                    EnqueueOutputs(node);
+                }
             }
-            else
+        }
+
+        private void EnqueueOutputs(StepBaseNode node)
+        {
+            foreach (var o in node.GetStepOutputs() ?? Enumerable.Empty<StepBaseNode>())
+                if (o != null && visited.Add(o))
+                    toVisit.Enqueue(o);
+        }
+
+        private string BuildStepNumber(StepBaseNode node, int nodesInLevel)
+        {
+            var input = node.GetInputFlowNodes()?.FirstOrDefault();
+            string inputNumber = input?.StepNumber ?? string.Empty;
+            int dot = inputNumber.IndexOf('.');
+            string mainText = dot > 0 ? inputNumber.Substring(0, dot) : inputNumber;
+            int main = 0;
+            int.TryParse(mainText, out main);
+            var sb = new System.Text.StringBuilder((main + 1).ToString());
+            if (nodesInLevel > 1 && input != null)
             {
-                node.StepNumber = prefix;
+                if (dot > 0)
+                    sb.Append(inputNumber.Substring(dot));
+                if (input.GetStepOutputs().Count() > 1)
+                    sb.Append('.').Append(input.GetStepOutputChildIndex(node));
             }
-            var outputs = node.GetStepOutputs().ToList();
-            for (int i = 0; i < outputs.Count; i++)
-                Assign(outputs[i], node.StepNumber + "." + (i + 1));
+            return sb.ToString();
         }
     }
 

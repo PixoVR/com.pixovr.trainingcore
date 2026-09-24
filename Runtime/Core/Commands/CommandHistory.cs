@@ -71,6 +71,9 @@ namespace PixoVR.TrainingCore.Commands
             OnRecorded?.Invoke(command);
         }
 
+        /// <summary>True while an undo is executing (events published during it are marked <see cref="Events.InteractionEventArgs.IgnoreFailure"/>).</summary>
+        public bool IsUndoing { get; private set; }
+
         /// <summary>Undo the most recent command.</summary>
         public void Undo()
         {
@@ -80,7 +83,15 @@ namespace PixoVR.TrainingCore.Commands
                 return;
             }
             var c = executed.Pop();
-            c.Unexecute();
+            IsUndoing = true;
+            try
+            {
+                c.Unexecute();
+            }
+            finally
+            {
+                IsUndoing = false;
+            }
             undone.Push(c);
             OnStepChanged?.Invoke(c.StepId);
         }

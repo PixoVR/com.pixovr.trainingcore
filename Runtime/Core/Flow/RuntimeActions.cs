@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using PixoVR.TrainingCore.Commands;
 using PixoVR.TrainingCore.Graph;
 using PixoVR.TrainingCore.Interactions;
@@ -340,6 +341,9 @@ namespace PixoVR.TrainingCore.Flow
         [SerializeField]
         private Settings.FailData failData;
 
+        [SerializeField]
+        private List<int> results = new List<int>();
+
         /// <summary>Create from node.</summary>
         public AddGlobalExceptionAction(AddGlobalExceptionActionNode node)
         {
@@ -351,7 +355,34 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void Act()
         {
-            // merged into the active fail-exception set by the flow manager; wave-3 UI hooks read FailData.
+            results.Clear();
+            if (failData?.Exceptions == null)
+                return;
+            foreach (var ex in failData.Exceptions)
+                results.Add(FailureDetectionManager.Instance.AddGlobalException(ex.Exception));
+        }
+
+        /// <inheritdoc/>
+        public override void OnStepBackward() => Undo();
+
+        /// <inheritdoc/>
+        public override void Undo()
+        {
+            if (failData?.Exceptions == null)
+                return;
+            for (int i = 0; i < failData.Exceptions.Count && i < results.Count; i++)
+            {
+                switch (results[i])
+                {
+                    case 1:
+                        FailureDetectionManager.Instance.GlobalFailures.Add(failData.Exceptions[i].Exception);
+                        break;
+                    case 2:
+                        FailureDetectionManager.Instance.GlobalFailExceptions
+                            .RemoveAll(ex => ex.ExactEquals(failData.Exceptions[i].Exception));
+                        break;
+                }
+            }
         }
     }
 
@@ -361,6 +392,9 @@ namespace PixoVR.TrainingCore.Flow
     {
         [SerializeField]
         private Settings.FailData failData;
+
+        [SerializeField]
+        private List<int> results = new List<int>();
 
         /// <summary>Create from node.</summary>
         public RemoveGlobalExceptionAction(RemoveGlobalExceptionActionNode node)
@@ -373,7 +407,34 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void Act()
         {
-            // counterpart of AddGlobalExceptionAction
+            results.Clear();
+            if (failData?.Exceptions == null)
+                return;
+            foreach (var ex in failData.Exceptions)
+                results.Add(FailureDetectionManager.Instance.RemoveGlobalException(ex.Exception));
+        }
+
+        /// <inheritdoc/>
+        public override void OnStepBackward() => Undo();
+
+        /// <inheritdoc/>
+        public override void Undo()
+        {
+            if (failData?.Exceptions == null)
+                return;
+            for (int i = 0; i < failData.Exceptions.Count && i < results.Count; i++)
+            {
+                switch (results[i])
+                {
+                    case 1:
+                        FailureDetectionManager.Instance.GlobalFailExceptions.Add(failData.Exceptions[i].Exception);
+                        break;
+                    case 2:
+                        FailureDetectionManager.Instance.GlobalFailures
+                            .RemoveAll(ex => ex.ExactEquals(failData.Exceptions[i].Exception));
+                        break;
+                }
+            }
         }
     }
 }

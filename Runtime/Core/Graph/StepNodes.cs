@@ -67,8 +67,35 @@ namespace PixoVR.TrainingCore.Graph
         /// <summary>Fired when <see cref="FailIndex"/> changes.</summary>
         public event Action OnFailNumberChanged;
 
+        /// <summary>Exposed parameters connected to the "Fail Reason" output port.</summary>
+        public List<ExposedParameter> FailReasonExposedParameters
+        {
+            get
+            {
+                var list = new List<ExposedParameter>();
+                foreach (var edge in GetEdgesForOutputPort(nameof(FailReasonParametersPort)))
+                {
+                    if (edge.inputNode is GlobalParameterNode globalNode)
+                    {
+                        var p = GlobalParameterManager.Instance.GetParameter(globalNode.ParameterName);
+                        if (p != null)
+                            list.Add(p);
+                    }
+                    else if (edge.inputNode is ParameterNode parameterNode)
+                    {
+                        var p = ExposedParameterManager.Instance?.Parameters?
+                                .FirstOrDefault(x => x.guid == parameterNode.parameterGUID)
+                            ?? parameterNode.parameter;
+                        if (p != null)
+                            list.Add(p);
+                    }
+                }
+                return list;
+            }
+        }
+
         /// <inheritdoc/>
-        public override StepBase Create() => new FailHandlerStep { GUID = GUID, Name = name, IsDefault = IsDefault, IsSkipPoint = IsSkipPoint };
+        public override StepBase Create() => new FailHandlerStep(this);
 
         /// <inheritdoc/>
         public override IEnumerable<StepBaseNode> ChooseOutputNodes() => GetStepOutputsFor((int)GameModeManager.CurrentMode);
