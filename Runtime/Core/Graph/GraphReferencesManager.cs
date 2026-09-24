@@ -165,6 +165,11 @@ namespace PixoVR.TrainingCore.Graph
                 container.SetGroupedSteps(grouped);
             }
 
+            foreach (var kvp in Steps)
+                graphData.StepsByGuid[kvp.Key] = kvp.Value;
+            foreach (var step in Steps.Values)
+                step?.Initialize(graphData);
+
             return graphData;
         }
 

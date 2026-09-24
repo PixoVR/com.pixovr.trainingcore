@@ -290,3 +290,95 @@ namespace PixoVR.TrainingCore.Tests
         }
     }
 }
+
+namespace PixoVR.TrainingCore.Tests
+{
+    [TestFixture]
+    public class UndoAndGroupIteratorTests
+    {
+        [Test]
+        public void UndoEntryOnComplete_UndoesActionWhenTargetStepCompletes()
+        {
+            var g = GraphTestHelpers.NewGraph();
+            var start = GraphTestHelpers.Node<StartNode>(g, "start");
+            var s1 = GraphTestHelpers.Node<GenericStepNode>(g, "s1");
+            var s2 = GraphTestHelpers.Node<GenericStepNode>(g, "s2");
+            var action = GraphTestHelpers.Node<SetGameObjectActiveStateNode>(g, "a1");
+            var target = new GameObject("undo-target");
+            try
+            {
+                action.TargetObject = target;
+                action.State = false;
+                action.UndoEntries = new List<UndoOnStepNodeEntry> { new UndoOnStepNodeEntry("s2") };
+                GraphTestHelpers.Flow(g, start, "executes", s1, "executed");
+                GraphTestHelpers.Flow(g, s1, "executes", s2, "executed");
+                GraphTestHelpers.Flow(g, s1, "OnStartActions", action, "ActionLink");
+
+                var data = new GraphParser(GameMode.Training).Parse(g);
+                var it = data.GetIterator();
+                it.StartIterator();
+
+                var step2 = data.FindStepByGuid("s2");
+                Assert.IsNotNull(step2);
+                Assert.IsFalse(target.activeSelf, "start action should have deactivated the target");
+
+                step2.Complete();
+                Assert.IsTrue(target.activeSelf, "undo entry on step2 complete should restore the target");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
+        public void AndGroupStep_CompletesOnce_AndIgnoresRepeatedChildCompletions()
+        {
+            var node = new AndGroupStepNode { GUID = "grp" };
+            node.CompleteAll = true;
+            var group = new AndGroupStep(node);
+            var c1 = new StepBase();
+            var c2 = new StepBase();
+            group.SetGroupedSteps(new List<StepBase> { c1, c2 });
+
+            int completedCount = 0;
+            group.StepCompleted += _ => completedCount++;
+
+            group.OnEnter();
+            c1.Complete();
+            Assert.AreEqual(0, completedCount, "one of two children should not complete an all-group");
+            c1.Complete();
+            Assert.AreEqual(0, completedCount, "a repeated child completion must not count twice");
+            c2.Complete();
+            Assert.AreEqual(1, completedCount, "group completes when all children complete");
+            c2.Complete();
+            Assert.AreEqual(1, completedCount, "group must only complete once");
+        }
+
+        [Test]
+        public void CancelledIterator_IgnoresLateStepCompletions()
+        {
+            var g = GraphTestHelpers.NewGraph();
+            var start = GraphTestHelpers.Node<StartNode>(g, "start");
+            var s1 = GraphTestHelpers.Node<GenericStepNode>(g, "s1");
+            var s2 = GraphTestHelpers.Node<GenericStepNode>(g, "s2");
+            GraphTestHelpers.Flow(g, start, "executes", s1, "executed");
+            GraphTestHelpers.Flow(g, s1, "executes", s2, "executed");
+
+            var data = new GraphParser(GameMode.Training).Parse(g);
+            var it = data.GetIterator();
+            var flowCompleted = false;
+            it.FlowCompleted += () => flowCompleted = true;
+            it.StartIterator();
+
+            var step1 = data.FindStepByGuid("s1");
+            Assert.IsNotNull(step1);
+            it.Cancel();
+            Assert.IsTrue(it.Cancelled);
+
+            step1.Complete();
+            Assert.IsFalse(flowCompleted, "cancelled iterator must not raise FlowCompleted");
+            Assert.Contains(step1, it.CurrentSteps, "cancelled iterator must not advance");
+        }
+    }
+}

@@ -459,11 +459,27 @@ namespace PixoVR.TrainingCore.Flow
             setValue = node.Value;
         }
 
+        private object previousValue;
+        private bool hasPrevious;
+
         /// <inheritdoc/>
         public override void Act()
         {
             if (!string.IsNullOrEmpty(exposedParameterName))
+            {
+                var p = ExposedParameterManager.Instance?.Get(exposedParameterName);
+                hasPrevious = p != null;
+                previousValue = p?.value;
                 ExposedParameterManager.SetExposedParameter(exposedParameterName, setValue);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void Undo()
+        {
+            if (hasPrevious && !string.IsNullOrEmpty(exposedParameterName))
+                ExposedParameterManager.Instance?.SetValue(exposedParameterName, previousValue);
+            hasPrevious = false;
         }
     }
 }

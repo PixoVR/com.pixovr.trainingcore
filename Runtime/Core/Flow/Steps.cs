@@ -722,7 +722,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Required count when not completing all.</summary>
         public int StepsToComplete;
 
-        private int completedCount;
+        private readonly HashSet<StepBase> pending = new HashSet<StepBase>();
+        private bool completed;
 
         /// <inheritdoc/>
         public void SetGroupedSteps(List<StepBase> steps) => GroupedSteps = steps ?? new List<StepBase>();
@@ -741,22 +742,33 @@ namespace PixoVR.TrainingCore.Flow
         public override void OnEnter()
         {
             base.OnEnter();
-            completedCount = 0;
+            completed = false;
+            pending.Clear();
             foreach (var step in GroupedSteps)
-            {
                 if (step != null)
-                    step.StepCompleted += OnChildCompleted;
-            }
-            foreach (var step in GroupedSteps)
-                step?.OnEnter();
+                    pending.Add(step);
+            foreach (var step in pending)
+                step.StepCompleted += OnChildCompleted;
+            foreach (var step in pending)
+                step.OnEnter();
         }
 
         private void OnChildCompleted(StepBase child)
         {
-            completedCount++;
-            int needed = CompleteAll ? GroupedSteps.Count : StepsToComplete;
-            if (completedCount >= needed)
+            child.StepCompleted -= OnChildCompleted;
+            if (!pending.Remove(child) || completed)
+                return;
+            int total = GroupedSteps.Count(s => s != null);
+            int needed = CompleteAll || StepsToComplete <= 0 ? total : Mathf.Min(StepsToComplete, total);
+            if (total - pending.Count >= needed)
+            {
+                completed = true;
+                UnregisterListeners();
+                foreach (var step in pending.ToList())
+                    step.OnExit();
+                pending.Clear();
                 OnStepCompleted();
+            }
         }
 
         /// <inheritdoc/>
@@ -765,6 +777,16 @@ namespace PixoVR.TrainingCore.Flow
             foreach (var step in GroupedSteps)
                 if (step != null)
                     step.StepCompleted -= OnChildCompleted;
+        }
+
+        /// <inheritdoc/>
+        public override void OnExit()
+        {
+            UnregisterListeners();
+            foreach (var step in pending.ToList())
+                step.OnExit();
+            pending.Clear();
+            base.OnExit();
         }
     }
 
@@ -1023,5 +1045,19 @@ namespace PixoVR.TrainingCore.Flow
             }
             Utility.TimelinePlayer.Play(Director, Timeline, onComplete: OnStepCompleted);
         }
+
+        /// <inheritdoc/>
+        public override void UnregisterListeners() => Utility.TimelinePlayer.CancelCompletion(Director);
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            Utility.TimelinePlayer.CancelCompletion(Director);
+            Utility.TimelinePlayer.SetToLastFrame(Director, Timeline);
+            base.SkipForwards();
+        }
+
+        /// <inheritdoc/>
+        public override string GetDefaultDescription() => "Playing animation.";
     }
 }

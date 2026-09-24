@@ -22,6 +22,13 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Main-flow root step.</summary>
         public StepBase mainFlowRoot;
 
+        /// <summary>All parsed steps by node GUID (filled by the parser).</summary>
+        public Dictionary<string, StepBase> StepsByGuid { get; } = new Dictionary<string, StepBase>();
+
+        /// <summary>Find a parsed step by its node GUID.</summary>
+        public StepBase FindStepByGuid(string guid) =>
+            !string.IsNullOrEmpty(guid) && StepsByGuid.TryGetValue(guid, out var s) ? s : null;
+
         /// <summary>The default fail handler root.</summary>
         public FailHandlerStep DefaultFailureHandler =>
             FailureHandlerSteps.FirstOrDefault(h => h != null && h.GUID == defaultFailHandlerGuid)
@@ -74,6 +81,24 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Whether the flow has started.</summary>
         public bool Started { get; private set; }
 
+        /// <summary>True once the iterator has been cancelled by the owning flow.</summary>
+        public bool Cancelled { get; private set; }
+
+        /// <summary>Stop the iterator: exit current steps and ignore all further events.</summary>
+        public void Cancel()
+        {
+            if (Cancelled)
+                return;
+            Cancelled = true;
+            foreach (var s in CurrentSteps.ToList())
+            {
+                if (s == null)
+                    continue;
+                s.StepCompleted -= OnStepCompleted;
+                s.OnExit();
+            }
+        }
+
         /// <summary>Currently active steps.</summary>
         public List<StepBase> CurrentSteps { get; private set; } = new List<StepBase>();
 
@@ -101,6 +126,7 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Activate the root step.</summary>
         public void StartIterator()
         {
+            Cancelled = false;
             Started = true;
             MarkVisited(Data.mainFlowRoot);
             SetCurrentSteps(Expand(Data.mainFlowRoot?.GetStepOutputs() ?? new List<StepBase>()));
@@ -109,6 +135,7 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Restart from the root.</summary>
         public virtual void Restart()
         {
+            Cancelled = false;
             Started = true;
             CurrentSteps.Clear();
             VisitedNodes.Clear();
@@ -132,6 +159,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Advance all current steps to their outputs.</summary>
         public void NextSteps()
         {
+            if (Cancelled)
+                return;
             var next = new List<StepBase>();
             foreach (var s in CurrentSteps.Where(s => s != null))
                 foreach (var o in s.GetStepOutputs() ?? new List<StepBase>())
@@ -232,6 +261,8 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Force the active step set.</summary>
         public virtual void SetCurrentSteps(List<StepBase> steps)
         {
+            if (Cancelled)
+                return;
             foreach (var s in CurrentSteps.Where(s => s != null))
             {
                 s.StepCompleted -= OnStepCompleted;
@@ -263,6 +294,8 @@ namespace PixoVR.TrainingCore.Flow
         private void OnStepCompleted(StepBase step)
         {
             step.StepCompleted -= OnStepCompleted;
+            if (Cancelled)
+                return;
             StepCompleted?.Invoke(step);
             NextSteps();
         }
@@ -361,18 +394,33 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (FlowIterator == null)
                 return;
-            FlowIterator.CurrentNodeChanged += () =>
-            {
-                if (FlowIterator.CurrentSteps != null && FlowIterator.CurrentSteps.Count > 0)
-                    GameModeManager.StepsStarted(Name, FlowIterator.CurrentSteps);
-                OnFlowChanged?.Invoke();
-            };
-            FlowIterator.StepCompleted += step =>
-            {
-                GameModeManager.StepCompleted(Name, step);
-                StepCounter.Increment();
-            };
+            FlowIterator.CurrentNodeChanged += OnIteratorNodeChanged;
+            FlowIterator.StepCompleted += OnIteratorStepCompleted;
             FlowIterator.FlowCompleted += Complete;
+        }
+
+        /// <summary>Cancel the iterator and detach flow-level subscriptions.</summary>
+        public virtual void Cancel()
+        {
+            if (FlowIterator == null)
+                return;
+            FlowIterator.Cancel();
+            FlowIterator.CurrentNodeChanged -= OnIteratorNodeChanged;
+            FlowIterator.StepCompleted -= OnIteratorStepCompleted;
+            FlowIterator.FlowCompleted -= Complete;
+        }
+
+        private void OnIteratorNodeChanged()
+        {
+            if (FlowIterator.CurrentSteps != null && FlowIterator.CurrentSteps.Count > 0)
+                GameModeManager.StepsStarted(Name, FlowIterator.CurrentSteps);
+            OnFlowChanged?.Invoke();
+        }
+
+        private void OnIteratorStepCompleted(StepBase step)
+        {
+            GameModeManager.StepCompleted(Name, step);
+            StepCounter.Increment();
         }
 
         /// <summary>Start at the root.</summary>

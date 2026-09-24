@@ -193,6 +193,7 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Run start-actions on entry, complete-actions on completion.</summary>
         public override void OnEnter()
         {
+            RegisterUndoStepPointsForActions(StartActions);
             base.OnEnter();
             ExecuteActions(StartActions);
         }
@@ -210,6 +211,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (PlaySoundOnComplete && CompleteSoundEffect != null && Utility.AudioManager.InstanceExists)
                 Utility.AudioManager.Instance.Play(CompleteSoundEffect);
+            RegisterUndoStepPointsForActions(CompleteActions);
             ExecuteActions(CompleteActions);
             NotifyStartActionOnStepCompleted();
             base.OnStepCompleted();
@@ -226,16 +228,68 @@ namespace PixoVR.TrainingCore.Flow
         public virtual void UnregisterListeners() { }
 
         /// <summary>See the interface/base contract.</summary>
-        public override void SkipForwardOnEnter() => SkipForwardsActions(StartActions);
+        public override void SkipForwardOnEnter()
+        {
+            RegisterUndoStepPointsForActions(StartActions);
+            SkipForwardsActions(StartActions);
+        }
 
         /// <summary>See the interface/base contract.</summary>
-        public override void SkipForwardOnExit() => SkipForwardsActions(CompleteActions);
+        public override void SkipForwardOnExit()
+        {
+            RegisterUndoStepPointsForActions(CompleteActions);
+            SkipForwardsActions(CompleteActions);
+        }
 
         /// <summary>See the interface/base contract.</summary>
         public override void SkipBackwards()
         {
+            UnregisterUndoStepPointsFor(StartActions);
+            UnregisterUndoStepPointsFor(CompleteActions);
             SkipBackwardActions();
             base.SkipBackwards();
+        }
+
+        private void RegisterUndoStepPointsForActions(IEnumerable<ActionBase> actions)
+        {
+            if (actions == null)
+                return;
+            foreach (var action in actions)
+            {
+                if (action?.UndoOnStepEntryPoints == null)
+                    continue;
+                foreach (var entry in action.UndoOnStepEntryPoints)
+                {
+                    var target = Graph?.FindStepByGuid(entry?.NodeGUID);
+                    if (target == null)
+                        continue;
+                    if (entry.Options == UndoActionEntryOption.OnStart)
+                        target.RegisterUndoOnStart(action);
+                    else
+                        target.RegisterUndoOnComplete(action);
+                }
+            }
+        }
+
+        private void UnregisterUndoStepPointsFor(IEnumerable<ActionBase> actions)
+        {
+            if (actions == null)
+                return;
+            foreach (var action in actions)
+            {
+                if (action?.UndoOnStepEntryPoints == null)
+                    continue;
+                foreach (var entry in action.UndoOnStepEntryPoints)
+                {
+                    var target = Graph?.FindStepByGuid(entry?.NodeGUID);
+                    if (target == null)
+                        continue;
+                    if (entry.Options == UndoActionEntryOption.OnStart)
+                        target.UnRegisterUndoOnStart(action);
+                    else
+                        target.UnRegisterUndoOnComplete(action);
+                }
+            }
         }
 
         /// <summary>All actions attached to this step.</summary>
