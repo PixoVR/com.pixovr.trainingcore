@@ -722,7 +722,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Required count when not completing all.</summary>
         public int StepsToComplete;
 
-        private int completedCount;
+        private readonly HashSet<StepBase> pending = new HashSet<StepBase>();
+        private readonly List<StepBase> entered = new List<StepBase>();
+        private bool completed;
 
         /// <inheritdoc/>
         public void SetGroupedSteps(List<StepBase> steps) => GroupedSteps = steps ?? new List<StepBase>();
@@ -741,22 +743,37 @@ namespace PixoVR.TrainingCore.Flow
         public override void OnEnter()
         {
             base.OnEnter();
-            completedCount = 0;
+            completed = false;
+            pending.Clear();
+            entered.Clear();
             foreach (var step in GroupedSteps)
-            {
-                if (step != null)
-                    step.StepCompleted += OnChildCompleted;
-            }
-            foreach (var step in GroupedSteps)
-                step?.OnEnter();
+                if (step != null && pending.Add(step))
+                    entered.Add(step);
+            foreach (var step in pending.ToList())
+                step.StepCompleted += OnChildCompleted;
+            foreach (var step in pending.ToList())
+                step.OnEnter();
         }
 
         private void OnChildCompleted(StepBase child)
         {
-            completedCount++;
-            int needed = CompleteAll ? GroupedSteps.Count : StepsToComplete;
-            if (completedCount >= needed)
+            child.StepCompleted -= OnChildCompleted;
+            if (!pending.Remove(child) || completed)
+                return;
+            child.OnExit();
+            entered.Remove(child);
+            int total = GroupedSteps.Count(s => s != null);
+            int needed = CompleteAll || StepsToComplete <= 0 ? total : Mathf.Min(StepsToComplete, total);
+            if (total - pending.Count >= needed)
+            {
+                completed = true;
+                UnregisterListeners();
+                foreach (var step in entered.ToList())
+                    step.OnExit();
+                entered.Clear();
+                pending.Clear();
                 OnStepCompleted();
+            }
         }
 
         /// <inheritdoc/>
@@ -765,6 +782,17 @@ namespace PixoVR.TrainingCore.Flow
             foreach (var step in GroupedSteps)
                 if (step != null)
                     step.StepCompleted -= OnChildCompleted;
+        }
+
+        /// <inheritdoc/>
+        public override void OnExit()
+        {
+            UnregisterListeners();
+            foreach (var step in entered.ToList())
+                step.OnExit();
+            entered.Clear();
+            pending.Clear();
+            base.OnExit();
         }
     }
 
@@ -869,6 +897,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             Outcome = true;
             OutputSteps = CorrectStepOutputs.ToList();
+            RegisterUndoStepPointsForActions(correctActions);
             ExecuteActions(correctActions);
             OnStepCompleted();
         }
@@ -878,8 +907,17 @@ namespace PixoVR.TrainingCore.Flow
         {
             Outcome = false;
             OutputSteps = IncorrectStepOutputs.ToList();
+            RegisterUndoStepPointsForActions(incorrectActions);
             ExecuteActions(incorrectActions);
             OnStepCompleted();
+        }
+
+        /// <inheritdoc/>
+        public override void SkipBackwards()
+        {
+            UnregisterUndoStepPointsFor(correctActions);
+            UnregisterUndoStepPointsFor(incorrectActions);
+            base.SkipBackwards();
         }
 
         /// <inheritdoc/>
@@ -1023,5 +1061,19 @@ namespace PixoVR.TrainingCore.Flow
             }
             Utility.TimelinePlayer.Play(Director, Timeline, onComplete: OnStepCompleted);
         }
+
+        /// <inheritdoc/>
+        public override void UnregisterListeners() => Utility.TimelinePlayer.CancelCompletion(Director);
+
+        /// <inheritdoc/>
+        public override void SkipForwards()
+        {
+            Utility.TimelinePlayer.CancelCompletion(Director);
+            Utility.TimelinePlayer.SetToLastFrame(Director, Timeline);
+            base.SkipForwards();
+        }
+
+        /// <inheritdoc/>
+        public override string GetDefaultDescription() => "Playing animation.";
     }
 }

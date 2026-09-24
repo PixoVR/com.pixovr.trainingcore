@@ -130,9 +130,13 @@ namespace PixoVR.TrainingCore.Flow
             targetObjects = node.TargetObjects;
         }
 
+        private readonly System.Collections.Generic.List<SetObjectActiveStateCommand> commands =
+            new System.Collections.Generic.List<SetObjectActiveStateCommand>();
+
         /// <inheritdoc/>
         public override void Act()
         {
+            commands.Clear();
             if (targetObject != null)
                 Record(new SetObjectActiveStateCommand(targetObject, state));
             if (targetObjects != null)
@@ -141,10 +145,19 @@ namespace PixoVR.TrainingCore.Flow
                         Record(new SetObjectActiveStateCommand(go, state));
         }
 
-        private static void Record(SetObjectActiveStateCommand command)
+        /// <inheritdoc/>
+        public override void Undo()
+        {
+            for (int i = commands.Count - 1; i >= 0; i--)
+                commands[i]?.Unexecute();
+            commands.Clear();
+        }
+
+        private void Record(SetObjectActiveStateCommand command)
         {
             command.Execute();
             CommandHistory.Instance.Record(command);
+            commands.Add(command);
         }
     }
 

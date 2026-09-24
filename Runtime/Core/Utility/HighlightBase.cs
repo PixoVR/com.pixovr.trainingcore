@@ -41,8 +41,22 @@ namespace PixoVR.TrainingCore.Utility
             if (timeline != null)
                 director.playableAsset = timeline;
             director.extrapolationMode = loop ? DirectorWrapMode.Loop : DirectorWrapMode.Hold;
-            director.stopped += _ => onComplete?.Invoke();
+            var watcher = director.GetComponent<TimelineCompletionWatcher>()
+                ?? director.gameObject.AddComponent<TimelineCompletionWatcher>();
+            director.time = 0;
+            if (onComplete != null)
+                watcher.Arm(onComplete);
+            else
+                watcher.Disarm();
             director.Play();
+        }
+
+        /// <summary>Cancel a pending completion callback on a director.</summary>
+        public static void CancelCompletion(PlayableDirector director)
+        {
+            if (director == null)
+                return;
+            director.GetComponent<TimelineCompletionWatcher>()?.Disarm();
         }
 
         /// <summary>Seek to the last frame.</summary>

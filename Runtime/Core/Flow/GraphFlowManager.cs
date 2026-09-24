@@ -250,11 +250,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Stop the active flow and report module end (Luminous parity).</summary>
         public virtual void StopFlow()
         {
-            if (_activeFlow == null)
-                return;
-            if (_activeFlow.CurrentSteps != null)
-                foreach (var s in _activeFlow.CurrentSteps.ToList())
-                    s?.OnExit();
+            _activeFlow?.Cancel();
+            if (!ReferenceEquals(_normalFlow, _activeFlow))
+                _normalFlow?.Cancel();
             _activeFlow = null;
             EndModule();
         }
