@@ -43,6 +43,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Current accumulated rotation in degrees.</summary>
         public float TotalRotation { get; private set; }
 
+        /// <summary>Multiplier applied to measured driver angle per frame.</summary>
+        public float RotationMultiplier = 1f;
+
         /// <summary>Reapply <see cref="InitialRotation"/> whenever the component enables.</summary>
         public bool ReinitializeOnEnable = true;
 
@@ -79,8 +82,8 @@ namespace PixoVR.TrainingCore.XRI
                 hasDriver = false;
                 return;
             }
-            var space = transform.parent != null ? transform.parent : transform;
-            var local = space.InverseTransformPoint(driver.position);
+            Quaternion spaceRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
+            Vector3 local = Quaternion.Inverse(spaceRot) * (driver.position - transform.position);
             var projected = Vector3.ProjectOnPlane(local, AxisVector());
             if (projected.sqrMagnitude < 1e-8f)
                 return;
@@ -91,7 +94,7 @@ namespace PixoVR.TrainingCore.XRI
                 XRIDiagnostics.Log($"Valve '{name}': driver acquired", this);
                 return;
             }
-            float delta = Vector3.SignedAngle(previousProjected, projected, AxisVector());
+            float delta = Vector3.SignedAngle(previousProjected, projected, AxisVector()) * RotationMultiplier;
             previousProjected = projected;
             if (Mathf.Abs(delta) < 1e-4f)
                 return;
