@@ -50,14 +50,30 @@ namespace PixoVR.TrainingCore.Flow
         public void StartDetecting()
         {
             if (Active)
+            {
+                ResetState();
+                EventBus.Instance.Unsubscribe(EventBus.GlobalSubjectId, this);
                 EventBus.Instance.Subscribe(EventBus.GlobalSubjectId, this);
+            }
         }
 
         /// <summary>Stop observing events.</summary>
         public void StopDetecting()
         {
             EventBus.Instance.Unsubscribe(EventBus.GlobalSubjectId, this);
+            ResetState();
+        }
+
+        private void ResetState()
+        {
+            EventBus.Instance.OnAllObserversNotified -= Fail;
+            failArgs = null;
             waitingForFail = false;
+            neverFailCounter = 0;
+            currentStepFailExceptions.Clear();
+            persistentExceptionsHistory.Clear();
+            GlobalFailExceptions.Clear();
+            GlobalFailures.Clear();
         }
 
         /// <summary>Register a step's authored fail exceptions (called on step entry / forward-skip entry).</summary>
@@ -164,9 +180,6 @@ namespace PixoVR.TrainingCore.Flow
             if (!Active)
                 return;
             Log.Warning($"[Fail] Failure detected: {failArgs}", LogCategory.GameModeFailExceptions);
-            if (GraphFlowManager.Instance?.CurrentSteps != null)
-                foreach (var s in GraphFlowManager.Instance.CurrentSteps)
-                    (s as StepExecutionBase)?.OnFail();
             GameModeManager.Fail(failArgs);
         }
 
