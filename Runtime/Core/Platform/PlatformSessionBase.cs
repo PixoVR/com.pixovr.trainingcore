@@ -156,7 +156,7 @@ namespace PixoVR.TrainingCore.Platform
         private bool lastModulePassed;
         private bool moduleReportActive;
         private int moduleRunToken;
-        private bool moduleStartPending;
+        private Task pendingModuleStart;
 
         private bool CanReport => IsConnected && !string.IsNullOrEmpty(SessionId);
 
@@ -327,33 +327,43 @@ namespace PixoVR.TrainingCore.Platform
                 Utility.Log.Info("[Apex Diag] ModuleStartedAsync ignored: module report already active", Utility.LogCategory.Platform);
                 return;
             }
-            if (moduleStartPending)
+            if (pendingModuleStart != null && !pendingModuleStart.IsCompleted)
             {
-                Utility.Log.Warning("[Apex Diag] ModuleStartedAsync ignored: a module start report is still pending", Utility.LogCategory.Platform);
-                return;
+                Utility.Log.Warning("[Apex Diag] ModuleStartedAsync waiting for the previous module start report to settle", Utility.LogCategory.Platform);
+                int requestedRun = moduleRunToken;
+                await pendingModuleStart;
+                if (moduleReportActive || requestedRun != moduleRunToken)
+                    return;
             }
-            moduleStartPending = true;
+            pendingModuleStart = RunModuleStartAsync(mode, scenario, module);
+            await pendingModuleStart;
+        }
+
+        private async Task RunModuleStartAsync(string mode, string scenario, string module)
+        {
             int token = ++moduleRunToken;
             Utility.Log.Info($"[Apex Diag] ModuleStartedAsync → provider (module={module})", Utility.LogCategory.Platform);
             try
             {
                 await OnModuleStartedAsync(mode, scenario, module);
-            }
-            finally
-            {
-                moduleStartPending = false;
-            }
-            if (token != moduleRunToken)
-            {
-                if (!string.IsNullOrEmpty(SessionId))
+                if (token != moduleRunToken)
                 {
-                    Utility.Log.Warning($"[Apex Diag] module start for '{module}' completed after the run ended; reporting end", Utility.LogCategory.Platform);
-                    await OnModuleEndedAsync(mode, scenario, module, false);
-                    SetSessionId(null);
+                    if (!string.IsNullOrEmpty(SessionId))
+                    {
+                        Utility.Log.Warning($"[Apex Diag] module start for '{module}' completed after the run ended; reporting end", Utility.LogCategory.Platform);
+                        var staleSessionId = SessionId;
+                        await OnModuleEndedAsync(mode, scenario, module, false);
+                        if (SessionId == staleSessionId)
+                            SetSessionId(null);
+                    }
+                    return;
                 }
-                return;
+                moduleReportActive = !string.IsNullOrEmpty(SessionId);
             }
-            moduleReportActive = !string.IsNullOrEmpty(SessionId);
+            catch (Exception e)
+            {
+                Utility.Log.Error($"[Apex Diag] module start report failed for '{module}': {e.Message}", Utility.LogCategory.Platform);
+            }
         }
         /// <summary>See the interface/base contract. Idempotent: ignored when no module report is active.</summary>
         public Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
