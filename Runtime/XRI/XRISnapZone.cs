@@ -127,6 +127,7 @@ namespace PixoVR.TrainingCore.XRI
                 CurrentSnappedObject.SetCurrentSnapZone(this);
                 if (CurrentSnappedObject.TryGetComponent(out ObservableSubject subject))
                     subject.SetStartingSnapzone(snapzone);
+                snapzone?.SetStartingOccupant(CurrentSnappedObject.gameObject);
             }
         }
 

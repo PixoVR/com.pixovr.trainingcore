@@ -274,7 +274,8 @@ namespace PixoVR.TrainingCore.Flow
             CurrentSteps = steps ?? new List<StepBase>();
             currentStepGuids = CurrentSteps.Select(s => s?.GUID).ToList();
 
-            foreach (var s in CurrentSteps.Where(s => s != null))
+            var entering = CurrentSteps;
+            foreach (var s in entering.Where(s => s != null))
             {
                 if (!visitedStepGuids.Contains(s.GUID))
                     visitedStepGuids.Add(s.GUID);
@@ -284,6 +285,8 @@ namespace PixoVR.TrainingCore.Flow
                 s.OnEnter();
                 foreach (var cb in onStepEntered)
                     cb(s);
+                if (!ReferenceEquals(CurrentSteps, entering))
+                    return;
             }
 
             CurrentNodeChanged?.Invoke();

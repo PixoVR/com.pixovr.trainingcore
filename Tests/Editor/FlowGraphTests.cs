@@ -425,6 +425,24 @@ namespace PixoVR.TrainingCore.Tests
             }
         }
 
+        [Test]
+        public void SetCurrentSteps_SynchronousCompletion_SkipsRemainingEntries()
+        {
+            var it = new GraphIterator(null);
+            var sync = new SyncCompleteStep();
+            var pending = new CountingStep();
+
+            it.SetCurrentSteps(new List<StepBase> { sync, pending });
+
+            Assert.AreEqual(0, it.CurrentSteps.Count, "sync completion should advance to an empty step set");
+            Assert.AreEqual(0, pending.EnterCount,
+                "a nested transition during entry must not enter the remaining steps");
+            Assert.IsFalse(it.CurrentSteps.Contains(pending));
+
+            it.SetCurrentSteps(new List<StepBase>());
+            Assert.LessOrEqual(pending.ExitCount, 1, "pending step must be exited at most once");
+        }
+
         private sealed class SyncCompleteStep : StepBase
         {
             public int ExitCount;
@@ -444,7 +462,14 @@ namespace PixoVR.TrainingCore.Tests
 
         private sealed class CountingStep : StepBase
         {
+            public int EnterCount;
             public int ExitCount;
+
+            public override void OnEnter()
+            {
+                EnterCount++;
+                base.OnEnter();
+            }
 
             public override void OnExit()
             {
