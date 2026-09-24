@@ -67,6 +67,14 @@ namespace PixoVR.TrainingCore.Interactions
                 HasCustomFailReason ? CustomFailReason : null));
         }
 
+        /// <summary>Publish a rotation applied from the network (not re-sent, ignored by failure detection).</summary>
+        public void OnRemoteValveTurn(float rotation)
+        {
+            CurrentRotation = rotation;
+            Publish(new ValveTurnEventArgs(this, rotation, WithinFailPaddingRange(rotation),
+                HasCustomFailReason ? CustomFailReason : null) { IsRemote = true }, toNetwork: false);
+        }
+
         /// <summary>Set absolute rotation; <paramref name="inverse"/> requests an animated return.</summary>
         public void SetRotation(float value, bool inverse = false)
         {

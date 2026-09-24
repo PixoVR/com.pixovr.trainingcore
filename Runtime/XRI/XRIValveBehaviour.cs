@@ -143,8 +143,14 @@ namespace PixoVR.TrainingCore.XRI
             ApplyRotation(value, true);
         }
 
-        /// <summary>Apply a remotely reported rotation without firing <see cref="OnRotationChanged"/> or publishing.</summary>
-        public void SetRotationFromNetwork(float totalRotation) => ApplyRotation(totalRotation, false);
+        /// <summary>Apply a remotely reported rotation without firing <see cref="OnRotationChanged"/> or re-broadcasting.</summary>
+        public void SetRotationFromNetwork(float totalRotation)
+        {
+            float previous = TotalRotation;
+            ApplyRotation(totalRotation, false);
+            if (valve != null && !Mathf.Approximately(previous, TotalRotation))
+                valve.OnRemoteValveTurn(TotalRotation);
+        }
 
         private void ApplyRotation(float value, bool notify)
         {
