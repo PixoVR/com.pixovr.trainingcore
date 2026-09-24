@@ -76,7 +76,11 @@ namespace PixoVR.TrainingCore.XRI
             LostObjectManager.Instance?.TrackObject(this);
         }
 
-        private void OnGrabbed() => HasMoved = true;
+        private void OnGrabbed()
+        {
+            HasMoved = true;
+            DroppedResetTimer = 0f;
+        }
 
         private void OnDestroy()
         {
