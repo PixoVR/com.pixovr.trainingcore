@@ -15,14 +15,22 @@ namespace PixoVR.TrainingCore.Photon
     /// <summary>PUN component that republishes received RaiseEvent interaction payloads to the <see cref="EventBus"/>.</summary>
     public class PhotonSyncView : MonoBehaviourPun, IOnEventCallback
     {
+        private static PhotonSyncView active;
+
         private void OnEnable()
         {
+            if (active != null && active != this)
+                return;
+            active = this;
             PhotonNetwork.AddCallbackTarget(this);
             EventBus.Instance.OnPublished += SendInteraction;
         }
 
         private void OnDisable()
         {
+            if (active != this)
+                return;
+            active = null;
             PhotonNetwork.RemoveCallbackTarget(this);
             EventBus.Instance.OnPublished -= SendInteraction;
         }
@@ -45,6 +53,8 @@ namespace PixoVR.TrainingCore.Photon
         public void SendInteraction(InteractionEventArgs args)
         {
             if (!PhotonNetwork.InRoom)
+                return;
+            if (args is ValveTurnEventArgs)
                 return;
             PhotonNetwork.RaiseEvent(PhotonEventSerializer.InteractionEventCode,
                 PhotonEventSerializer.Serialize(args),
