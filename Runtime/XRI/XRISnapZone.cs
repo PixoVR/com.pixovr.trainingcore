@@ -127,6 +127,7 @@ namespace PixoVR.TrainingCore.XRI
                 CurrentSnappedObject.SetCurrentSnapZone(this);
                 if (CurrentSnappedObject.TryGetComponent(out ObservableSubject subject))
                     subject.SetStartingSnapzone(snapzone);
+                snapzone?.SetStartingOccupant(CurrentSnappedObject.gameObject);
             }
         }
 
@@ -312,6 +313,7 @@ namespace PixoVR.TrainingCore.XRI
                 return;
 
             CurrentSnappedObject = null;
+            snapzone?.OnObjectUnsnapped(interactable.gameObject);
             OnUnsnapping?.Invoke(interactable.gameObject);
 
             interactable.transform.SetParent(interactable.OriginalParent, true);

@@ -31,10 +31,32 @@ namespace PixoVR.TrainingCore.Interactions
             }
         }
 
+        /// <summary>The snappable currently occupying the zone, if any.</summary>
+        public Snappable Occupant { get; private set; }
+
+        /// <summary>Mark a pre-placed object as occupying the zone without publishing a snap event.</summary>
+        public void SetStartingOccupant(GameObject snappedObject)
+        {
+            Occupant = snappedObject != null ? snappedObject.GetComponent<Snappable>() : null;
+        }
+
         /// <summary>Entry point from the snap implementation when an object lands in the zone.</summary>
         public void OnObjectSnapped(GameObject snappedObject)
         {
-            snappedObject.GetComponent<Snappable>()?.OnSnappedObjectEvent(this);
+            var snappable = snappedObject.GetComponent<Snappable>();
+            if (snappable != null)
+                Occupant = snappable;
+            snappable?.OnSnappedObjectEvent(this);
+        }
+
+        /// <summary>Entry point from the snap implementation when the occupant leaves the zone.</summary>
+        public void OnObjectUnsnapped(GameObject unsnappedObject)
+        {
+            var subject = unsnappedObject.GetComponent<ObservableSubject>();
+            if (subject != null && subject.CurrentSnapzone == this)
+                subject.CurrentSnapzone = null;
+            if (Occupant != null && (unsnappedObject.GetComponent<Snappable>() == Occupant || Occupant.gameObject == unsnappedObject))
+                Occupant = null;
         }
 
         /// <summary>Snap an object in; unsnaps it from any previous zone first.</summary>

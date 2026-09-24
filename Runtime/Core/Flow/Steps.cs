@@ -186,23 +186,28 @@ namespace PixoVR.TrainingCore.Flow
         public override void OnEnter()
         {
             base.OnEnter();
-            if (!string.IsNullOrEmpty(SnapzoneSubjectId))
-                EventBus.Instance.Subscribe(SnapzoneSubjectId, this);
+            EventBus.Instance.Subscribe(EventBus.GlobalSubjectId, this);
+            if (zone != null && zone.Occupant != null &&
+                (SnapObjectId == 0 || zone.Occupant.SnapId == SnapObjectId))
+                OnStepCompleted();
         }
 
         /// <inheritdoc/>
         public override void UnregisterListeners()
         {
-            if (!string.IsNullOrEmpty(SnapzoneSubjectId))
-                EventBus.Instance.Unsubscribe(SnapzoneSubjectId, this);
+            EventBus.Instance.Unsubscribe(EventBus.GlobalSubjectId, this);
         }
 
         /// <inheritdoc/>
         public void OnEvent(InteractionEventArgs args)
         {
-            if (args is SnapInteractionEventArgs snap &&
-                (SnapObjectId == 0 || (snap.SnappedObject != null && snap.SnappedObject.SnapId == SnapObjectId)))
-                OnStepCompleted();
+            if (args is not SnapInteractionEventArgs snap)
+                return;
+            if (zone != null && snap.Snapzone != zone)
+                return;
+            if (SnapObjectId != 0 && snap.SnappedObject?.SnapId != SnapObjectId)
+                return;
+            OnStepCompleted();
         }
 
         /// <inheritdoc/>
@@ -213,6 +218,8 @@ namespace PixoVR.TrainingCore.Flow
                 return;
             if (!zone.IsFree)
             {
+                if (zone.Occupant != null && (SnapObjectId == 0 || zone.Occupant.SnapId == SnapObjectId))
+                    return;
                 Utility.Log.Warning($"SnapOnZoneStep: snap zone {zone.gameObject.name} is not free",
                     Utility.LogCategory.Flow);
                 return;
@@ -314,6 +321,7 @@ namespace PixoVR.TrainingCore.Flow
             base.OnEnter();
             if (!string.IsNullOrEmpty(ValveSubjectId))
                 EventBus.Instance.Subscribe(ValveSubjectId, this);
+            valve?.SetFreeze(false);
         }
 
         /// <inheritdoc/>
@@ -324,14 +332,21 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
+        public override void OnExit()
+        {
+            base.OnExit();
+            valve?.SetFreeze(true);
+        }
+
+        /// <inheritdoc/>
         public void OnEvent(InteractionEventArgs args)
         {
             if (args is not ValveTurnEventArgs turn)
                 return;
             bool done = CompletionState switch
             {
-                ValveState.Open => Mathf.Approximately(turn.RotationAmount, valve != null ? valve.OpenRotation : turn.OpenRotation),
-                ValveState.Close => Mathf.Approximately(turn.RotationAmount, valve != null ? valve.ClosedRotation : turn.ClosedRotation),
+                ValveState.Open => Mathf.Abs(turn.RotationAmount - (valve != null ? valve.OpenRotation : turn.OpenRotation)) <= 0.5f,
+                ValveState.Close => Mathf.Abs(turn.RotationAmount - (valve != null ? valve.ClosedRotation : turn.ClosedRotation)) <= 0.5f,
                 _ => turn.RotationAmount >= CompletionRange.x && turn.RotationAmount <= CompletionRange.y
             };
             if (done)

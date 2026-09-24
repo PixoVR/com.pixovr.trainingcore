@@ -43,6 +43,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Current accumulated rotation in degrees.</summary>
         public float TotalRotation { get; private set; }
 
+        /// <summary>Multiplier applied to measured driver angle per frame.</summary>
+        public float RotationMultiplier = 1f;
+
         /// <summary>Reapply <see cref="InitialRotation"/> whenever the component enables.</summary>
         public bool ReinitializeOnEnable = true;
 
@@ -79,8 +82,10 @@ namespace PixoVR.TrainingCore.XRI
                 hasDriver = false;
                 return;
             }
-            var space = transform.parent != null ? transform.parent : transform;
-            var local = space.InverseTransformPoint(driver.position);
+            Vector3 toDriver = driver.position - transform.position;
+            Vector3 local = transform.parent != null
+                ? transform.parent.InverseTransformVector(toDriver)
+                : toDriver;
             var projected = Vector3.ProjectOnPlane(local, AxisVector());
             if (projected.sqrMagnitude < 1e-8f)
                 return;
@@ -88,9 +93,10 @@ namespace PixoVR.TrainingCore.XRI
             {
                 previousProjected = projected;
                 hasDriver = true;
+                XRIDiagnostics.Log($"Valve '{name}': driver acquired", this);
                 return;
             }
-            float delta = Vector3.SignedAngle(previousProjected, projected, AxisVector());
+            float delta = Vector3.SignedAngle(previousProjected, projected, AxisVector()) * RotationMultiplier;
             previousProjected = projected;
             if (Mathf.Abs(delta) < 1e-4f)
                 return;
@@ -139,12 +145,23 @@ namespace PixoVR.TrainingCore.XRI
             applyingProgrammatic = true;
             foreach (var clamp in Clamps)
                 value = Mathf.Clamp(value, Mathf.Min(clamp.x, clamp.y), Mathf.Max(clamp.x, clamp.y));
+            if (Clamps.Count == 0 && valve != null)
+                value = Mathf.Clamp(value,
+                    Mathf.Min(valve.OpenRotation, valve.ClosedRotation),
+                    Mathf.Max(valve.OpenRotation, valve.ClosedRotation));
+            float previous = TotalRotation;
             TotalRotation = value;
+            if (valve != null && !NearEnd(previous) && NearEnd(value))
+                XRIDiagnostics.Log($"Valve '{name}': rotation {value:F1} reached open/close endpoint", this);
             var axis = RotationAxis == Axis.x ? Vector3.right : RotationAxis == Axis.y ? Vector3.up : Vector3.forward;
             transform.localRotation = Quaternion.AngleAxis(value, axis);
             applyingProgrammatic = false;
             OnRotationChanged?.Invoke(value);
         }
+
+        private bool NearEnd(float v) =>
+            valve != null &&
+            (Mathf.Abs(v - valve.OpenRotation) <= 0.5f || Mathf.Abs(v - valve.ClosedRotation) <= 0.5f);
 
         /// <inheritdoc/>
         public virtual void SetFreeze(bool state) => frozen = state;

@@ -7,6 +7,8 @@ using PixoVR.TrainingCore.GameModes;
 using PixoVR.TrainingCore.Graph;
 using PixoVR.TrainingCore.Photon;
 using PixoVR.TrainingCore.Events;
+using PixoVR.TrainingCore.Identity;
+using PixoVR.TrainingCore.Interactions;
 using PixoVR.Apex;
 using PixoVR.Apex.XAPI;
 using UnityEngine;
@@ -355,6 +357,92 @@ namespace PixoVR.TrainingCore.Tests
             Assert.AreEqual(1, completedCount, "group must only complete once");
         }
 
+        [Test]
+        public void SkipForwards_RunsUndoCompleteEntries_OnSkippedStep()
+        {
+            var g = GraphTestHelpers.NewGraph();
+            var start = GraphTestHelpers.Node<StartNode>(g, "start");
+            var s1 = GraphTestHelpers.Node<GenericStepNode>(g, "s1");
+            var s2 = GraphTestHelpers.Node<GenericStepNode>(g, "s2");
+            var action = GraphTestHelpers.Node<SetGameObjectActiveStateNode>(g, "a1");
+            var target = new GameObject("skip-undo-target");
+            try
+            {
+                action.TargetObject = target;
+                action.State = false;
+                action.UndoEntries = new List<UndoOnStepNodeEntry> { new UndoOnStepNodeEntry("s1") };
+                GraphTestHelpers.Flow(g, start, "executes", s1, "executed");
+                GraphTestHelpers.Flow(g, s1, "executes", s2, "executed");
+                GraphTestHelpers.Flow(g, s1, "OnStartActions", action, "ActionLink");
+
+                var data = new GraphParser(GameMode.Training).Parse(g);
+                var it = data.GetIterator();
+                it.StartIterator();
+                Assert.IsFalse(target.activeSelf, "start action should have deactivated the target");
+
+                new ForwardSkippingBehaviour(it).SkipOneStep();
+
+                Assert.IsTrue(target.activeSelf, "skipping a step must run its undo-on-complete entries");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
+        public void SnapOnZoneStep_Completes_OnSnapEventPublishedOnSnappedObject()
+        {
+            var node = new SnapOnZoneStepNode { GUID = "snap" };
+            var step = new SnapOnZoneStep(node) { SnapObjectId = 7 };
+
+            var objGo = new GameObject("snappable");
+            var zoneGo = new GameObject("zone");
+            try
+            {
+                objGo.AddComponent<GuidComponent>();
+                zoneGo.AddComponent<GuidComponent>();
+                var snappable = objGo.AddComponent<Snappable>();
+                snappable.SnapId = 7;
+                var subject = objGo.GetComponent<ObservableSubject>();
+                var zone = zoneGo.AddComponent<Snapzone>();
+
+                int completed = 0;
+                step.StepCompleted += _ => completed++;
+                step.OnEnter();
+
+                var args = new SnapInteractionEventArgs(subject, snappable, zone);
+                EventBus.Instance.Publish(subject.Id, args);
+
+                Assert.AreEqual(1, completed, "snap event on the object's subject must reach the zone step");
+
+                step.OnExit();
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(objGo);
+                UnityEngine.Object.DestroyImmediate(zoneGo);
+            }
+        }
+
+        [Test]
+        public void SetCurrentSteps_SynchronousCompletion_SkipsRemainingEntries()
+        {
+            var it = new GraphIterator(null);
+            var sync = new SyncCompleteStep();
+            var pending = new CountingStep();
+
+            it.SetCurrentSteps(new List<StepBase> { sync, pending });
+
+            Assert.AreEqual(0, it.CurrentSteps.Count, "sync completion should advance to an empty step set");
+            Assert.AreEqual(0, pending.EnterCount,
+                "a nested transition during entry must not enter the remaining steps");
+            Assert.IsFalse(it.CurrentSteps.Contains(pending));
+
+            it.SetCurrentSteps(new List<StepBase>());
+            Assert.LessOrEqual(pending.ExitCount, 1, "pending step must be exited at most once");
+        }
+
         private sealed class SyncCompleteStep : StepBase
         {
             public int ExitCount;
@@ -374,7 +462,14 @@ namespace PixoVR.TrainingCore.Tests
 
         private sealed class CountingStep : StepBase
         {
+            public int EnterCount;
             public int ExitCount;
+
+            public override void OnEnter()
+            {
+                EnterCount++;
+                base.OnEnter();
+            }
 
             public override void OnExit()
             {
