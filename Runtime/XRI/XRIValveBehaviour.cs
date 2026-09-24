@@ -82,8 +82,10 @@ namespace PixoVR.TrainingCore.XRI
                 hasDriver = false;
                 return;
             }
-            Quaternion spaceRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
-            Vector3 local = Quaternion.Inverse(spaceRot) * (driver.position - transform.position);
+            Vector3 toDriver = driver.position - transform.position;
+            Vector3 local = transform.parent != null
+                ? transform.parent.InverseTransformVector(toDriver)
+                : toDriver;
             var projected = Vector3.ProjectOnPlane(local, AxisVector());
             if (projected.sqrMagnitude < 1e-8f)
                 return;
