@@ -5,6 +5,7 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using PixoVR.TrainingCore.Events;
+using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Multiuser;
 using PixoVR.TrainingCore.Utility;
 using UnityEngine;
@@ -45,6 +46,8 @@ namespace PixoVR.TrainingCore.Photon
             if (FlowEventHandler == null)
                 Log.Warning("PhotonNetworkManager: no IFlowEventHandler on object", LogCategory.Multiuser);
             Flow.GraphFlowManager.GraphStarted += OnGraphStartedForCatchUp;
+            XRI.NetworkGrabManager.NetworkGrabbed += RelayGrab;
+            XRI.NetworkGrabManager.NetworkReleased += RelayRelease;
             PhotonNetwork.AddCallbackTarget(this);
         }
 
@@ -52,7 +55,29 @@ namespace PixoVR.TrainingCore.Photon
         protected virtual void OnDisable()
         {
             Flow.GraphFlowManager.GraphStarted -= OnGraphStartedForCatchUp;
+            XRI.NetworkGrabManager.NetworkGrabbed -= RelayGrab;
+            XRI.NetworkGrabManager.NetworkReleased -= RelayRelease;
             PhotonNetwork.RemoveCallbackTarget(this);
+        }
+
+        private void RelayGrab(XRI.NetworkGrabManager mgr)
+        {
+            if (!PhotonNetwork.InRoom || mgr == null)
+                return;
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.GrabSyncEventCode,
+                new object[] { true, mgr.gameObject.GetGuidString(), PhotonNetwork.LocalPlayer.ActorNumber },
+                new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+                SendOptions.SendReliable);
+        }
+
+        private void RelayRelease(XRI.NetworkGrabManager mgr)
+        {
+            if (!PhotonNetwork.InRoom || mgr == null)
+                return;
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.GrabSyncEventCode,
+                new object[] { false, mgr.gameObject.GetGuidString(), PhotonNetwork.LocalPlayer.ActorNumber },
+                new RaiseEventOptions { Receivers = ReceiverGroup.All },
+                SendOptions.SendReliable);
         }
 
         /// <inheritdoc/>
@@ -288,6 +313,14 @@ namespace PixoVR.TrainingCore.Photon
                         && payload[0] is string action && payload[2] is bool flag)
                         (InstructorControls as PhotonInstructorControls)?.ReceiveInstructorEvent(action, payload[1] as string ?? "", flag);
                     break;
+                case PhotonEventSerializer.GrabSyncEventCode:
+                    if (payload != null && payload.Length >= 3
+                        && payload[0] is bool held && payload[1] is string grabGuid && payload[2] is int holder)
+                    {
+                        var target = Identity.GuidRegistry.Resolve(grabGuid);
+                        target?.GetComponent<XRI.NetworkGrabManager>()?.SetRemotelyHeld(held, holder);
+                    }
+                    break;
                 case PhotonEventSerializer.StepSyncEventCode:
                     if (payload != null && payload.Length >= 1 && payload[0] is string syncAction
                         && syncAction == "catchUp" && photonEvent.Sender != PhotonNetwork.MasterClient?.ActorNumber)
@@ -383,6 +416,9 @@ namespace PixoVR.TrainingCore.Photon
             if (CurrentRoom is PhotonRoom room)
                 room.NotifyPlayerExit(player);
             OnPlayerLeftEvent?.Invoke(player);
+            if (player != null)
+                foreach (var mgr in XRI.NetworkGrabManager.Instances)
+                    mgr.ClearRemoteHoldFor(player.Id);
         }
 
         /// <summary>PUN room props changed.</summary>
@@ -565,6 +601,9 @@ namespace PixoVR.TrainingCore.Photon
 
         /// <summary>RaiseEvent code for info-point state sync.</summary>
         public const byte InfoPointEventCode = 4;
+
+        /// <summary>RaiseEvent code for grab/release state sync.</summary>
+        public const byte GrabSyncEventCode = 5;
 
         /// <summary>InteractionEventArgs → object[] payload.</summary>
         public static object[] Serialize(InteractionEventArgs args)
