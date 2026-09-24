@@ -130,7 +130,7 @@ namespace PixoVR.TrainingCore.XRI
 
         private static Transform GrabbingTransform(XRIGrabBehaviour grab)
         {
-            var interactor = grab.interactorsSelecting.Count > 0 ? grab.interactorsSelecting[0] : null;
+            var interactor = grab.HoldingInteractor;
             if (interactor == null)
                 return null;
             var attach = interactor.GetAttachTransform(grab);
