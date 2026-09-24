@@ -85,7 +85,14 @@ namespace PixoVR.TrainingCore.XRI
         public UnityEvent OnGrabExit;
 
         /// <summary>True while the object is selected.</summary>
-        public bool IsGrabbed => isSelected;
+        public bool IsGrabbed => isSelected || snappedHoldInteractor != null;
+
+        /// <summary>
+        /// Interactor currently holding the object: the XRI selector, or the hand gripping it
+        /// while it remains snapped inside a detach-range zone.
+        /// </summary>
+        public IXRSelectInteractor HoldingInteractor =>
+            interactorsSelecting.Count > 0 ? interactorsSelecting[0] : snappedHoldInteractor;
 
         private readonly List<XRISnapZone> possibleSnapZones = new List<XRISnapZone>();
         private XRBaseControllerInteractor lastController;
@@ -97,6 +104,7 @@ namespace PixoVR.TrainingCore.XRI
         private bool storedGravity = true;
         private bool storedKinematic;
         private bool hasStored;
+        private IXRSelectInteractor snappedHoldInteractor;
 
         /// <summary>See the interface/base contract.</summary>
         protected override void Awake()
@@ -168,19 +176,27 @@ namespace PixoVR.TrainingCore.XRI
 
         private IEnumerator StartTracking(SelectEnterEventArgs args)
         {
-            var interactorTransform = (args.interactorObject as Component)?.transform;
+            var interactor = args.interactorObject;
+            var interactorTransform = (interactor as Component)?.transform;
             if (interactorTransform == null)
                 yield break;
 
+            snappedHoldInteractor = interactor;
             OnGrab?.Invoke();
 
             while (CurrentSnapZone != null && CurrentSnapZone.CheckWithinRange(interactorTransform.position) && selected)
                 yield return null;
 
+            snappedHoldInteractor = null;
             if (!selected || CurrentSnapZone == null)
                 yield break;
 
-            OnSelectEntering(args);
+            OnSelectEntering(new SelectEnterEventArgs
+            {
+                interactorObject = interactor,
+                interactableObject = this,
+                manager = interactionManager
+            });
         }
 
         /// <summary>See the interface/base contract.</summary>
@@ -246,6 +262,7 @@ namespace PixoVR.TrainingCore.XRI
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
             selected = false;
+            snappedHoldInteractor = null;
 
             XRIDiagnostics.Log($"Release '{name}' by '{args.interactorObject}' pos={transform.position} parent={(transform.parent != null ? transform.parent.name : "null")} kinematic={(grabbableRigidbody != null && grabbableRigidbody.isKinematic)} gravity={(grabbableRigidbody != null && grabbableRigidbody.useGravity)} snapZone={(CurrentSnapZone != null ? CurrentSnapZone.name : "null")} activeInHierarchy={gameObject.activeInHierarchy}", this);
 
