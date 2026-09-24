@@ -109,6 +109,8 @@ namespace PixoVR.TrainingCore.Flow
             _activeFlow.OnFlowCompleted += OnFlowCompleted;
             GameModeManager.ModuleStarted(NodeGraph.name, NodeGraph);
             _activeFlow.Start();
+            if (CanFail)
+                FailureDetectionManager.Instance.StartDetecting();
             OnGraphStarted?.Invoke();
         }
 
@@ -154,7 +156,11 @@ namespace PixoVR.TrainingCore.Flow
             }
             if (_normalFlow?.CurrentSteps != null)
                 foreach (var s in _normalFlow.CurrentSteps)
+                {
+                    s?.OnFail();
                     s?.OnExit();
+                }
+            handler.FailReason = reason;
             var flow = new FailHandlerFlow(handler, _normalFlow);
             flow.InitializeIterator();
             flow.OnFlowCompleted += ReturnToNormalFlow;
@@ -263,6 +269,7 @@ namespace PixoVR.TrainingCore.Flow
             if (!ReferenceEquals(_normalFlow, _activeFlow))
                 _normalFlow?.Cancel();
             _activeFlow = null;
+            FailureDetectionManager.Instance.StopDetecting();
             EndModule();
         }
 

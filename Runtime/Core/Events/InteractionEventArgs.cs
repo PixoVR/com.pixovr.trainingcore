@@ -1,4 +1,5 @@
 using System;
+using PixoVR.TrainingCore.Flow.Exceptions;
 using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Commands;
 using PixoVR.TrainingCore.Flow;
@@ -48,16 +49,20 @@ namespace PixoVR.TrainingCore.Events
     }
 
     /// <summary>Raised when an object is grabbed.</summary>
-    public class GrabInteractionEventArgs : ObjectInteractionEventArgs
+    public class GrabInteractionEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         public GrabInteractionEventArgs(ObservableSubject subject) : base(subject) { }
+
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new GrabFailException(Subject != null ? new GuidReference(Subject.gameObject) : null);
 
         
         public override ICommand ToCommand() => new GrabCommand(Subject);
     }
 
     /// <summary>Raised when a snappable enters/holds a snapzone.</summary>
-    public class SnapInteractionEventArgs : ObjectInteractionEventArgs
+    public class SnapInteractionEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>The zone the object was snapped into.</summary>
         public Snapzone Snapzone { get; }
@@ -72,11 +77,14 @@ namespace PixoVR.TrainingCore.Events
         }
 
         
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() => new SnapFailException(SnappedObject, Snapzone);
+
         public override ICommand ToCommand() => new SnapCommand(Subject, Snapzone);
     }
 
     /// <summary>Raised while an object is tapped (repeats at the configured rate).</summary>
-    public class TapInteractionEventArgs : ObjectInteractionEventArgs
+    public class TapInteractionEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>Seconds the tap has been held.</summary>
         public float TapDuration;
@@ -85,10 +93,14 @@ namespace PixoVR.TrainingCore.Events
         {
             TapDuration = duration;
         }
+
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new TapFailException(Subject != null ? new GuidReference(Subject.gameObject) : null);
     }
 
     /// <summary>Raised when the user "uses" an object for a duration (valve-like holds without rotation).</summary>
-    public class UseInteractionEventArgs : ObjectInteractionEventArgs
+    public class UseInteractionEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>Seconds the object has been used.</summary>
         public float Duration;
@@ -103,11 +115,15 @@ namespace PixoVR.TrainingCore.Events
         }
 
         
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new UseFailException(Subject != null ? new GuidReference(Subject.gameObject) : null);
+
         public override ICommand ToCommand() => new UseObjectCommand(Subject, InteractionLocation, Duration);
     }
 
     /// <summary>Raised when the player teleports onto a teleport target.</summary>
-    public class TeleportEventArgs : InteractionEventArgs
+    public class TeleportEventArgs : InteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>Guid string of the teleported object (usually the player).</summary>
         public string teleportedObjectGuid;
@@ -135,11 +151,16 @@ namespace PixoVR.TrainingCore.Events
         }
 
         
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new TeleportFailException(TeleportLocationMiddleman != null
+                ? new GuidReference(TeleportLocationMiddleman.gameObject) : null);
+
         public override ICommand ToCommand() => new TeleportMovementCommand(this);
     }
 
     /// <summary>Raised when a valve is turned.</summary>
-    public class ValveTurnEventArgs : InteractionEventArgs
+    public class ValveTurnEventArgs : InteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>Rotation the valve had when the interaction started.</summary>
         public float StartRotation;
@@ -175,11 +196,15 @@ namespace PixoVR.TrainingCore.Events
         }
 
         
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new ValveTurnException(ValveMiddleman != null ? new GuidReference(ValveMiddleman.gameObject) : null);
+
         public override ICommand ToCommand() => new ValveTurnCommand(this);
     }
 
     /// <summary>Raised when a ColliderTrigger sees a tagged/colliding object enter or exit.</summary>
-    public class CollisionInteractionEventArgs : ObjectInteractionEventArgs
+    public class CollisionInteractionEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>The other collider's GameObject.</summary>
         public GameObject OtherObject { get; }
@@ -192,6 +217,12 @@ namespace PixoVR.TrainingCore.Events
             OtherObject = other;
             Entered = entered;
         }
+
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() =>
+            new CollideFailException(
+                Subject != null ? new GuidReference(Subject.gameObject) : null,
+                OtherObject != null ? new GuidReference(OtherObject) : null);
     }
 
     /// <summary>Raised on gaze enter/dwell/exit of a GazeTarget.</summary>
@@ -240,7 +271,7 @@ namespace PixoVR.TrainingCore.Events
     }
 
     /// <summary>Raised when the hand menu open state changes.</summary>
-    public class HandMenuStateChangeEventArgs : ObjectInteractionEventArgs
+    public class HandMenuStateChangeEventArgs : ObjectInteractionEventArgs, IFailExceptionConvertible
     {
         /// <summary>New open state.</summary>
         public bool State;
@@ -249,6 +280,9 @@ namespace PixoVR.TrainingCore.Events
         {
             State = state;
         }
+
+        /// <inheritdoc/>
+        public FailExceptionBase ToFailException() => new HandMenuFailException(State);
 
         /// <inheritdoc/>
         public override string ToString() => $"HandMenuStateChange({SubjectId}, state={State})";

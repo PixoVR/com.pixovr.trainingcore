@@ -235,6 +235,31 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
         /// <summary>Empty snap exception.</summary>
         public SnapFailException() { }
 
+        /// <summary>Snap exception raised by a snap interaction event.</summary>
+        public SnapFailException(Interactions.Snappable snappedObject, Interactions.Snapzone snapzone)
+        {
+            if (snappedObject != null)
+            {
+                SnappedObjectParameter = new ObjectReferenceFailParameter(
+                    new Identity.GuidReference(snappedObject.gameObject), typeof(Interactions.Snappable));
+                SnappedObjectId = snappedObject.SnapId;
+            }
+            else
+            {
+                SnappedObjectParameter.Ignore = true;
+            }
+            if (snapzone != null)
+            {
+                SnapzoneObjectParameter = new ObjectReferenceFailParameter(
+                    new Identity.GuidReference(snapzone.gameObject), typeof(Interactions.Snapzone));
+                SnapzoneId = snapzone.SnapzoneID;
+            }
+            else
+            {
+                SnapzoneObjectParameter.Ignore = true;
+            }
+        }
+
         /// <summary>Snap exception bound to a snap step.</summary>
         public SnapFailException(StepBase snapStep, GuidReference objectReference, int idParameter)
         {

@@ -31,6 +31,8 @@ namespace PixoVR.TrainingCore.Interactions
             var command = args?.ToCommand();
             if (command != null)
                 CommandHistory.Instance.Record(command);
+            if (CommandHistory.Instance != null && CommandHistory.Instance.IsUndoing && args != null)
+                args.IgnoreFailure = true;
             EventBus.Instance.Publish(Subject.Id, args, alsoGlobal, toNetwork);
         }
     }
