@@ -39,8 +39,18 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
         public override bool Equals(object obj) => obj is FailExceptionParameter<T> other && Equals(other);
 
         /// <summary>See the interface/base contract.</summary>
-        public bool Equals(FailExceptionParameter<T> other) =>
-            other != null && EqualityComparer<T>.Default.Equals(Value, other.Value);
+        public bool Equals(FailExceptionParameter<T> other)
+        {
+            if (other == null)
+                return false;
+            if (Ignore ^ other.Ignore)
+                return false;
+            if (Value == null && other.Value == null)
+                return true;
+            if ((Value == null) ^ (other.Value == null))
+                return false;
+            return Value.Equals(other.Value);
+        }
 
         /// <summary>See the interface/base contract.</summary>
         public override string ToString() => Ignore ? "(ignored)" : Value?.ToString();
@@ -134,6 +144,13 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
         {
             InteractedObjectParameter = new ObjectReferenceFailParameter(objectReference, type);
         }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override bool Equals(object obj) =>
+            obj is SingleObjectFailException other && InteractedObjectParameter.Equals(other.InteractedObjectParameter);
+
+        /// <summary>See the interface/base contract.</summary>
+        public override int GetHashCode() => base.GetHashCode();
     }
 
     /// <summary>Exception: wrong/mistimed grab.</summary>
@@ -266,6 +283,61 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
             SnappedObjectParameter = new ObjectReferenceFailParameter(objectReference, typeof(Interactions.Snappable));
             SnappedObjectId = idParameter;
         }
+
+        private void ResolveSnapIds()
+        {
+            if (SnappedObjectId == 0 && !SnappedObjectParameter.Ignore)
+                SnappedObjectId = SnappedObjectParameter.Value?.GetComponent<Interactions.Snappable>()?.SnapId ?? 0;
+            if (SnapzoneId == 0 && !SnapzoneObjectParameter.Ignore)
+                SnapzoneId = SnapzoneObjectParameter.Value?.GetComponent<Interactions.Snapzone>()?.SnapzoneID ?? 0;
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override bool Equals(object obj) => obj is SnapFailException other && Equals(other);
+
+        /// <summary>Per-parameter match: ignore on either side, or ids equal.</summary>
+        public bool Equals(SnapFailException other)
+        {
+            if (other == null)
+                return false;
+            ResolveSnapIds();
+            other.ResolveSnapIds();
+            bool objectMatch = SnappedObjectParameter.Ignore || other.SnappedObjectParameter.Ignore
+                || SnappedObjectId.Equals(other.SnappedObjectId);
+            bool zoneMatch = SnapzoneObjectParameter.Ignore || other.SnapzoneObjectParameter.Ignore
+                || SnapzoneId.Equals(other.SnapzoneId);
+            return objectMatch && zoneMatch;
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override bool ExactEquals(object obj) => obj is SnapFailException other && ExactEquals(other);
+
+        /// <summary>Strict match: same type-scoped flag, same ignore flags, ids equal where used.</summary>
+        public bool ExactEquals(SnapFailException other)
+        {
+            if (other == null)
+                return false;
+            if (TypeException && other.TypeException)
+                return true;
+            if (TypeException ^ other.TypeException)
+                return false;
+            if (SnappedObjectParameter.Ignore != other.SnappedObjectParameter.Ignore)
+                return false;
+            if (SnapzoneObjectParameter.Ignore != other.SnapzoneObjectParameter.Ignore)
+                return false;
+            ResolveSnapIds();
+            other.ResolveSnapIds();
+            if (!SnappedObjectParameter.Ignore && !SnapzoneObjectParameter.Ignore)
+                return SnappedObjectId.Equals(other.SnappedObjectId) && SnapzoneId.Equals(other.SnapzoneId);
+            if (!SnappedObjectParameter.Ignore)
+                return SnappedObjectId.Equals(other.SnappedObjectId);
+            if (!SnapzoneObjectParameter.Ignore)
+                return SnapzoneId.Equals(other.SnapzoneId);
+            return false;
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override int GetHashCode() => base.GetHashCode();
     }
 
     /// <summary>Exception: unexpected collision pair.</summary>
@@ -290,6 +362,21 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
             collideObjectA = new ObjectReferenceFailParameter(objectAReference, typeof(Collider));
             collideObjectB = new ObjectReferenceFailParameter(objectBReference, typeof(Collider));
         }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override bool Equals(object obj) => obj is CollideFailException other && Equals(other);
+
+        /// <summary>Symmetric A/B compare.</summary>
+        public bool Equals(CollideFailException other)
+        {
+            if (other == null)
+                return false;
+            return (collideObjectA.Equals(other.collideObjectA) && collideObjectB.Equals(other.collideObjectB))
+                || (collideObjectA.Equals(other.collideObjectB) && collideObjectB.Equals(other.collideObjectA));
+        }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override int GetHashCode() => base.GetHashCode();
     }
 
     /// <summary>Exception: hand-menu state change at the wrong time.</summary>
@@ -310,5 +397,12 @@ namespace PixoVR.TrainingCore.Flow.Exceptions
         {
             OpenMenuParameter = new FailExceptionParameter<bool> { Value = open };
         }
+
+        /// <summary>See the interface/base contract.</summary>
+        public override bool Equals(object obj) =>
+            obj is HandMenuFailException other && OpenMenuParameter.Equals(other.OpenMenuParameter);
+
+        /// <summary>See the interface/base contract.</summary>
+        public override int GetHashCode() => base.GetHashCode();
     }
 }

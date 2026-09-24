@@ -209,4 +209,45 @@ namespace PixoVR.TrainingCore.Tests
             Assert.IsTrue(added);
         }
     }
+
+    public class FailExceptionTests
+    {
+        private GameObject MakeGo()
+        {
+            var go = new GameObject();
+            go.AddComponent<GuidComponent>().OnAfterDeserialize();
+            return go;
+        }
+
+        [Test]
+        public void GrabFailException_EqualsByGuid()
+        {
+            var go = MakeGo();
+            var other = MakeGo();
+            var a = new Flow.Exceptions.GrabFailException(new GuidReference(go));
+            var b = new Flow.Exceptions.GrabFailException(new GuidReference(go));
+            Assert.IsTrue(a.Equals(b));
+            var c = new Flow.Exceptions.GrabFailException(new GuidReference(other));
+            Assert.IsFalse(a.Equals(c));
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(other);
+        }
+
+        [Test]
+        public void SnapFailException_IgnoredZoneParam_MatchesAnyZone()
+        {
+            var go = MakeGo();
+            var snapped = go.AddComponent<Interactions.Snappable>();
+            snapped.SnapId = 7;
+            var zoneA = MakeGo().AddComponent<Interactions.Snapzone>();
+            var zoneB = MakeGo().AddComponent<Interactions.Snapzone>();
+            var authored = new Flow.Exceptions.SnapFailException(snapped, zoneA);
+            authored.SnapzoneObjectParameter.Ignore = true;
+            var observed = new Flow.Exceptions.SnapFailException(snapped, zoneB);
+            Assert.IsTrue(authored.Equals(observed));
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(zoneA.gameObject);
+            UnityEngine.Object.DestroyImmediate(zoneB.gameObject);
+        }
+    }
 }
