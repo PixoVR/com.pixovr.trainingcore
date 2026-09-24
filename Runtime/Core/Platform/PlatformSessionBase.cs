@@ -194,7 +194,11 @@ namespace PixoVR.TrainingCore.Platform
             if (CanReport)
                 _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, true);
             else
+            {
+                moduleReportActive = false;
+                SetSessionId(null);
                 Utility.Log.Warning($"[Apex Diag] module passed report skipped for '{moduleName}': IsConnected={IsConnected} SessionId='{SessionId}'", Utility.LogCategory.Platform);
+            }
         }
 
         private void ReportModuleEnd(string moduleName, Graph.TrainingGraph graph)
@@ -206,7 +210,11 @@ namespace PixoVR.TrainingCore.Platform
                 if (CanReport)
                     _ = ModuleEndedAsync(GameModes.GameModeManager.CurrentMode.ToString(), null, moduleName, false);
                 else
+                {
+                    moduleReportActive = false;
+                    SetSessionId(null);
                     Utility.Log.Warning($"[Apex Diag] module end skipped for '{moduleName}': IsConnected={IsConnected} SessionId='{SessionId}'", Utility.LogCategory.Platform);
+                }
             }
         }
 
@@ -285,6 +293,8 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>See the interface/base contract.</summary>
         public virtual void SetSessionId(string sessionId)
         {
+            if (sessionId == null)
+                moduleReportActive = false;
             if (SessionContext.Instance != null)
                 SessionContext.Instance.SessionId = sessionId;
         }
@@ -308,16 +318,16 @@ namespace PixoVR.TrainingCore.Platform
         /// <summary>See the interface/base contract.</summary>
         public abstract Task SetStatusAsync(string sessionId, SessionStatus status, string moduleScene);
         /// <summary>See the interface/base contract. Idempotent: repeated starts within one run return early.</summary>
-        public Task ModuleStartedAsync(string mode, string scenario, string module)
+        public async Task ModuleStartedAsync(string mode, string scenario, string module)
         {
             if (moduleReportActive)
             {
                 Utility.Log.Info("[Apex Diag] ModuleStartedAsync ignored: module report already active", Utility.LogCategory.Platform);
-                return Task.CompletedTask;
+                return;
             }
-            moduleReportActive = true;
             Utility.Log.Info($"[Apex Diag] ModuleStartedAsync → provider (module={module})", Utility.LogCategory.Platform);
-            return OnModuleStartedAsync(mode, scenario, module);
+            await OnModuleStartedAsync(mode, scenario, module);
+            moduleReportActive = !string.IsNullOrEmpty(SessionId);
         }
         /// <summary>See the interface/base contract. Idempotent: ignored when no module report is active.</summary>
         public Task ModuleEndedAsync(string mode, string scenario, string module, bool passed)
@@ -328,6 +338,7 @@ namespace PixoVR.TrainingCore.Platform
                 return Task.CompletedTask;
             }
             moduleReportActive = false;
+            SetSessionId(null);
             Utility.Log.Info($"[Apex Diag] ModuleEndedAsync → provider (module={module}, passed={passed})", Utility.LogCategory.Platform);
             return OnModuleEndedAsync(mode, scenario, module, passed);
         }
