@@ -30,6 +30,9 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>Queued lobby join while the master-server connection is pending.</summary>
         private bool joinLobbyPending;
 
+        /// <summary>In-progress joiner waiting for the module graph before requesting catch-up.</summary>
+        private bool pendingCatchUp;
+
         /// <summary>Connection callbacks wired in OnEnable.</summary>
         protected virtual void OnEnable()
         {
@@ -41,12 +44,14 @@ namespace PixoVR.TrainingCore.Photon
             FlowEventHandler = GetComponent<IFlowEventHandler>();
             if (FlowEventHandler == null)
                 Log.Warning("PhotonNetworkManager: no IFlowEventHandler on object", LogCategory.Multiuser);
+            Flow.GraphFlowManager.GraphStarted += OnGraphStartedForCatchUp;
             PhotonNetwork.AddCallbackTarget(this);
         }
 
         /// <summary>Cleanup.</summary>
         protected virtual void OnDisable()
         {
+            Flow.GraphFlowManager.GraphStarted -= OnGraphStartedForCatchUp;
             PhotonNetwork.RemoveCallbackTarget(this);
         }
 
@@ -201,7 +206,6 @@ namespace PixoVR.TrainingCore.Photon
         {
             CurrentRoom = new PhotonRoom();
             OnRoomJoinedEvent?.Invoke();
-            InProgressRoomJoined(null);
         }
 
         /// <summary>PUN join failed.</summary>
@@ -297,7 +301,8 @@ namespace PixoVR.TrainingCore.Photon
         {
             if (payload == null || payload.Length == 0 || !(payload[0] is string action))
                 return;
-            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2 && payload[1] is int requester)
+            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2 && payload[1] is int requester
+                && requester != PhotonNetwork.LocalPlayer.ActorNumber)
             {
                 var history = Events.EventBus.Instance.History;
                 var events = new object[history.Count + 2];
@@ -312,6 +317,7 @@ namespace PixoVR.TrainingCore.Photon
             else if (action == "catchUp" && payload.Length >= 2)
             {
                 var stepGuid = payload[1] as string;
+                Events.EventBus.Instance.ClearHistory();
                 for (int i = 2; i < payload.Length; i++)
                 {
                     var data = PhotonEventSerializer.DeserializeEventSyncData(payload[i] as object[]);
@@ -334,6 +340,20 @@ namespace PixoVR.TrainingCore.Photon
             if (!PhotonNetwork.InRoom)
                 return;
             Sync();
+            pendingCatchUp = true;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                pendingCatchUp = false;
+                EndSync();
+                return;
+            }
+        }
+
+        private void OnGraphStartedForCatchUp()
+        {
+            if (!pendingCatchUp || !PhotonNetwork.InRoom)
+                return;
+            pendingCatchUp = false;
             PhotonNetwork.RaiseEvent(PhotonEventSerializer.StepSyncEventCode,
                 new object[] { "catchUpRequest", PhotonNetwork.LocalPlayer.ActorNumber },
                 new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } },

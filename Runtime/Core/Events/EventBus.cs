@@ -140,6 +140,9 @@ namespace PixoVR.TrainingCore.Events
         /// <summary>Remove history events stamped after <paramref name="stepNumber"/>.</summary>
         public void RemoveEventsAfter(int stepNumber) => history.RemoveAll(e => e.StepNumber > stepNumber);
 
+        /// <summary>Clear only the recorded event history (e.g. before a master-history catch-up replay).</summary>
+        public void ClearHistory() => history.Clear();
+
         /// <summary>Clear subjects, history and the unsynced queue.</summary>
         public void Reset()
         {

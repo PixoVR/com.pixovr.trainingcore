@@ -40,6 +40,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Fired when parsing finished and the graph starts.</summary>
         public event Action OnGraphStarted;
 
+        /// <summary>Static counterpart of <see cref="OnGraphStarted"/> usable before an instance exists.</summary>
+        public static event Action GraphStarted;
+
         /// <summary>Fired when the normal flow completes.</summary>
         public event Action OnGraphCompleted;
 
@@ -112,6 +115,7 @@ namespace PixoVR.TrainingCore.Flow
             if (CanFail)
                 FailureDetectionManager.Instance.StartDetecting();
             OnGraphStarted?.Invoke();
+            GraphStarted?.Invoke();
         }
 
         /// <summary>Re-parse with a parser.</summary>
