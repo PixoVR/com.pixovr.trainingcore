@@ -105,6 +105,7 @@ namespace PixoVR.TrainingCore.XRI
         private bool storedKinematic;
         private bool hasStored;
         private IXRSelectInteractor snappedHoldInteractor;
+        private Coroutine trackingCoroutine;
 
         /// <summary>See the interface/base contract.</summary>
         protected override void Awake()
@@ -188,6 +189,7 @@ namespace PixoVR.TrainingCore.XRI
                 yield return null;
 
             snappedHoldInteractor = null;
+            trackingCoroutine = null;
             if (!selected || CurrentSnapZone == null)
                 yield break;
 
@@ -209,7 +211,7 @@ namespace PixoVR.TrainingCore.XRI
                 var interactorTransform = (args.interactorObject as Component)?.transform;
                 if (CurrentSnapZone.HasDetachRange && interactorTransform != null && CurrentSnapZone.CheckWithinRange(interactorTransform.position))
                 {
-                    StartCoroutine(StartTracking(args));
+                    trackingCoroutine = StartCoroutine(StartTracking(args));
                     return;
                 }
 
@@ -332,10 +334,26 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>Force the object out of the grabber's hand.</summary>
         public virtual void ForceUngrab()
         {
+            EndSnappedHold(true);
             if (interactionManager == null)
                 return;
             foreach (var interactor in interactorsSelecting.ToList())
                 interactionManager.SelectExit(interactor, this);
+        }
+
+        private void EndSnappedHold(bool notify)
+        {
+            if (trackingCoroutine != null)
+            {
+                StopCoroutine(trackingCoroutine);
+                trackingCoroutine = null;
+            }
+            if (snappedHoldInteractor == null)
+                return;
+            snappedHoldInteractor = null;
+            selected = false;
+            if (notify)
+                OnGrabExit?.Invoke();
         }
 
         /// <summary>See the interface/base contract.</summary>
