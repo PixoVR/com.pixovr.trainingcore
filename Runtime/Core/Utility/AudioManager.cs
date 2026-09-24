@@ -35,8 +35,12 @@ namespace PixoVR.TrainingCore.Utility
             }
             src.volume = settings.Volume;
             src.spatialBlend = settings.SpatialBlend;
-            StartCoroutine(PlaySequence(settings, src));
+            if (running.TryGetValue(src, out var existing))
+                StopCoroutine(existing);
+            running[src] = StartCoroutine(PlaySequence(settings, src));
         }
+
+        private readonly Dictionary<AudioSource, Coroutine> running = new Dictionary<AudioSource, Coroutine>();
 
         private IEnumerator PlaySequence(AudioClipSettings settings, AudioSource source)
         {
@@ -49,13 +53,21 @@ namespace PixoVR.TrainingCore.Utility
                 while (source.isPlaying)
                     yield return null;
             }
+            running.Remove(source);
         }
 
-        /// <summary>Stop playback.</summary>
-        public void StopPlaying()
+        /// <summary>Stop playback on the given source, or the internal one when null.</summary>
+        public void StopPlaying(AudioSource source = null)
         {
-            if (oneShotSource != null)
-                oneShotSource.Stop();
+            var src = source != null ? source : oneShotSource;
+            if (src == null)
+                return;
+            if (running.TryGetValue(src, out var coroutine))
+            {
+                StopCoroutine(coroutine);
+                running.Remove(src);
+            }
+            src.Stop();
         }
 
         /// <summary>Preview a clip (editor tooling hook).</summary>

@@ -222,6 +222,9 @@ namespace PixoVR.TrainingCore.Flow
         [SerializeField]
         private Settings.AudioClipSettings audioSettings;
 
+        [SerializeField]
+        private Settings.SkipOnCompleteSettings skipSettings;
+
         private AudioSource source;
 
         /// <summary>Create from node.</summary>
@@ -231,6 +234,7 @@ namespace PixoVR.TrainingCore.Flow
             UndoOnStepEntryPoints = node.UndoEntries;
             audioSettings = node.AudioSettings;
             source = node.AudioSource;
+            skipSettings = node.SkipOnCompleteSettings;
         }
 
         /// <inheritdoc/>
@@ -238,6 +242,28 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (AudioManager.InstanceExists)
                 AudioManager.Instance.Play(audioSettings, source);
+        }
+
+        /// <inheritdoc/>
+        public override void OnStepCompleted()
+        {
+            if (skipSettings == null || skipSettings.SkipOnComplete)
+                Stop();
+        }
+
+        /// <inheritdoc/>
+        public override void OnStepFailed() => Stop();
+
+        /// <inheritdoc/>
+        public override void OnStepForward() => Stop();
+
+        /// <inheritdoc/>
+        public override void Undo() => Stop();
+
+        private void Stop()
+        {
+            if (AudioManager.InstanceExists)
+                AudioManager.Instance.StopPlaying(source);
         }
     }
 

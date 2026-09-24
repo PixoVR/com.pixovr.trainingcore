@@ -312,6 +312,7 @@ namespace PixoVR.TrainingCore.XRI
                 return;
 
             CurrentSnappedObject = null;
+            snapzone?.OnObjectUnsnapped(interactable.gameObject);
             OnUnsnapping?.Invoke(interactable.gameObject);
 
             interactable.transform.SetParent(interactable.OriginalParent, true);

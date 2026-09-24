@@ -103,6 +103,7 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Enter the step: undoes start-actions and fires <see cref="StepStarted"/>.</summary>
         public virtual void OnEnter()
         {
+            Utility.Log.Info($"Step entered: {Name} [{GUID}]", Utility.LogCategory.Flow);
             UndoActions(UndoStartActionList);
             StepStarted?.Invoke(this);
         }
@@ -127,15 +128,18 @@ namespace PixoVR.TrainingCore.Flow
         public void OnSkipForwards()
         {
             SkipForwardOnEnter();
-            SkipForwards();
             SkipForwardOnExit();
         }
 
         /// <summary>Skip hook: called when a forward skip lands on this step.</summary>
-        public virtual void SkipForwardOnEnter() { }
+        public virtual void SkipForwardOnEnter() => UndoActions(UndoStartActionList);
 
         /// <summary>Skip hook: called when a forward skip leaves this step.</summary>
-        public virtual void SkipForwardOnExit() { }
+        public virtual void SkipForwardOnExit()
+        {
+            SkipForwards();
+            UndoActions(UndoCompleteActionList);
+        }
 
         /// <summary>Skip hook: called when skipping backwards over this step.</summary>
         public virtual void SkipBackwards() { }
@@ -232,12 +236,16 @@ namespace PixoVR.TrainingCore.Flow
         {
             RegisterUndoStepPointsForActions(StartActions);
             SkipForwardsActions(StartActions);
+            base.SkipForwardOnEnter();
         }
 
         /// <summary>See the interface/base contract.</summary>
         public override void SkipForwardOnExit()
         {
             RegisterUndoStepPointsForActions(CompleteActions);
+            UnregisterListeners();
+            base.SkipForwardOnExit();
+            NotifyStartActionOnStepCompleted();
             SkipForwardsActions(CompleteActions);
         }
 

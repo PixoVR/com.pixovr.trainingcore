@@ -21,7 +21,10 @@ namespace PixoVR.TrainingCore.Interactions
         protected override void Awake()
         {
             if (Application.isPlaying)
+            {
                 base.Awake();
+                SnappableRegistry.Add(this);
+            }
         }
 
         private void OnValidate()
