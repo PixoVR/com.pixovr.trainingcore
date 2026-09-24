@@ -359,6 +359,8 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>See the interface/base contract.</summary>
         protected override void OnDisable()
         {
+            EndSnappedHold(true);
+            trackingCoroutine = null;
             if (lastController != null)
             {
                 lastController.enabled = true;
