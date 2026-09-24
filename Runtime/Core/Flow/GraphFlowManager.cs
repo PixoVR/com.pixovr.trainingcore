@@ -108,9 +108,9 @@ namespace PixoVR.TrainingCore.Flow
             _activeFlow.FlowIterator.CurrentNodeChanged += OnIteratorChanged;
             _activeFlow.OnFlowCompleted += OnFlowCompleted;
             GameModeManager.ModuleStarted(NodeGraph.name, NodeGraph);
-            _activeFlow.Start();
             if (CanFail)
                 FailureDetectionManager.Instance.StartDetecting();
+            _activeFlow.Start();
             OnGraphStarted?.Invoke();
         }
 
