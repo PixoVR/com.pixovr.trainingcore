@@ -36,12 +36,8 @@ namespace PixoVR.TrainingCore.Utility
                 {
                     fadeImage = DefaultFadeCanvas.GetComponentInChildren<Image>(true);
                     if (fadeImage != null)
-                    {
-                        var c = fadeImage.color;
-                        c = Color.black;
-                        c.a = 0f;
-                        fadeImage.color = c;
-                    }
+                        fadeImage.color = Color.black;
+                    DefaultFadeCanvas.alpha = 0f;
                 }
                 return;
             }
@@ -123,11 +119,12 @@ namespace PixoVR.TrainingCore.Utility
 
         private IEnumerator FadeCoroutine(float duration, bool useUnscaledTime)
         {
+            bool useDefault = UsingDefaultCanvas;
             float start = CurrentOpacity;
             for (float t = 0f; t < duration;
                  t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime)
             {
-                if (UsingDefaultCanvas && DefaultFadeCanvas == null)
+                if (useDefault && DefaultFadeCanvas == null)
                     yield break;
                 SetOpacity(Mathf.Lerp(start, targetAlpha, t / duration));
                 yield return null;
