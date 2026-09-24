@@ -140,6 +140,20 @@ namespace PixoVR.TrainingCore.XRI
         /// <inheritdoc/>
         public virtual void SetRotation(float value, bool inverse = true)
         {
+            ApplyRotation(value, true);
+        }
+
+        /// <summary>Apply a remotely reported rotation without firing <see cref="OnRotationChanged"/> or re-broadcasting.</summary>
+        public void SetRotationFromNetwork(float totalRotation)
+        {
+            float previous = TotalRotation;
+            ApplyRotation(totalRotation, false);
+            if (valve != null && !Mathf.Approximately(previous, TotalRotation))
+                valve.OnRemoteValveTurn(TotalRotation);
+        }
+
+        private void ApplyRotation(float value, bool notify)
+        {
             if (frozen)
                 return;
             applyingProgrammatic = true;
@@ -156,7 +170,8 @@ namespace PixoVR.TrainingCore.XRI
             var axis = RotationAxis == Axis.x ? Vector3.right : RotationAxis == Axis.y ? Vector3.up : Vector3.forward;
             transform.localRotation = Quaternion.AngleAxis(value, axis);
             applyingProgrammatic = false;
-            OnRotationChanged?.Invoke(value);
+            if (notify)
+                OnRotationChanged?.Invoke(value);
         }
 
         private bool NearEnd(float v) =>

@@ -40,6 +40,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Fired when parsing finished and the graph starts.</summary>
         public event Action OnGraphStarted;
 
+        /// <summary>Static counterpart of <see cref="OnGraphStarted"/> usable before an instance exists.</summary>
+        public static event Action GraphStarted;
+
         /// <summary>Fired when the normal flow completes.</summary>
         public event Action OnGraphCompleted;
 
@@ -57,6 +60,9 @@ namespace PixoVR.TrainingCore.Flow
 
         /// <summary>Fired every Update; steps needing polling (e.g. MoveToPositionStep) subscribe.</summary>
         public event Action Tick;
+
+        /// <summary>True while the normal flow is running (graph start until completion or <see cref="StopFlow"/>).</summary>
+        public bool GraphRunning { get; private set; }
 
         /// <summary>Active flow.</summary>
         public FlowBase ActiveFlow => _activeFlow;
@@ -111,7 +117,9 @@ namespace PixoVR.TrainingCore.Flow
             if (CanFail)
                 FailureDetectionManager.Instance.StartDetecting();
             _activeFlow.Start();
+            GraphRunning = true;
             OnGraphStarted?.Invoke();
+            GraphStarted?.Invoke();
         }
 
         /// <summary>Re-parse with a parser.</summary>
@@ -173,6 +181,7 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (_activeFlow is NormalFlow)
             {
+                GraphRunning = false;
                 Commands.CommandHistory.Instance.Reset();
                 GameModeManager.ModuleCompleted(NodeGraph != null ? NodeGraph.name : string.Empty, NodeGraph);
                 Events.EventBus.Instance.Reset();
@@ -269,6 +278,7 @@ namespace PixoVR.TrainingCore.Flow
             if (!ReferenceEquals(_normalFlow, _activeFlow))
                 _normalFlow?.Cancel();
             _activeFlow = null;
+            GraphRunning = false;
             FailureDetectionManager.Instance.StopDetecting();
             EndModule();
         }

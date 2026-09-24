@@ -5,6 +5,7 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using PixoVR.TrainingCore.Events;
+using PixoVR.TrainingCore.Identity;
 using PixoVR.TrainingCore.Multiuser;
 using PixoVR.TrainingCore.Utility;
 using UnityEngine;
@@ -30,6 +31,9 @@ namespace PixoVR.TrainingCore.Photon
         /// <summary>Queued lobby join while the master-server connection is pending.</summary>
         private bool joinLobbyPending;
 
+        /// <summary>In-progress joiner waiting for the module graph before requesting catch-up.</summary>
+        private bool pendingCatchUp;
+
         /// <summary>Connection callbacks wired in OnEnable.</summary>
         protected virtual void OnEnable()
         {
@@ -41,13 +45,40 @@ namespace PixoVR.TrainingCore.Photon
             FlowEventHandler = GetComponent<IFlowEventHandler>();
             if (FlowEventHandler == null)
                 Log.Warning("PhotonNetworkManager: no IFlowEventHandler on object", LogCategory.Multiuser);
+            Flow.GraphFlowManager.GraphStarted += OnGraphStartedForCatchUp;
+            XRI.NetworkGrabManager.NetworkGrabbed += RelayGrab;
+            XRI.NetworkGrabManager.NetworkReleased += RelayRelease;
             PhotonNetwork.AddCallbackTarget(this);
         }
 
         /// <summary>Cleanup.</summary>
         protected virtual void OnDisable()
         {
+            Flow.GraphFlowManager.GraphStarted -= OnGraphStartedForCatchUp;
+            XRI.NetworkGrabManager.NetworkGrabbed -= RelayGrab;
+            XRI.NetworkGrabManager.NetworkReleased -= RelayRelease;
+            XRI.LostObjectManager.ExternalOwnershipGate = null;
             PhotonNetwork.RemoveCallbackTarget(this);
+        }
+
+        private void RelayGrab(XRI.NetworkGrabManager mgr)
+        {
+            if (!PhotonNetwork.InRoom || mgr == null)
+                return;
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.GrabSyncEventCode,
+                new object[] { true, mgr.gameObject.GetGuidString(), PhotonNetwork.LocalPlayer.ActorNumber },
+                new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+                SendOptions.SendReliable);
+        }
+
+        private void RelayRelease(XRI.NetworkGrabManager mgr)
+        {
+            if (!PhotonNetwork.InRoom || mgr == null)
+                return;
+            PhotonNetwork.RaiseEvent(PhotonEventSerializer.GrabSyncEventCode,
+                new object[] { false, mgr.gameObject.GetGuidString(), PhotonNetwork.LocalPlayer.ActorNumber },
+                new RaiseEventOptions { Receivers = ReceiverGroup.All },
+                SendOptions.SendReliable);
         }
 
         /// <inheritdoc/>
@@ -200,8 +231,9 @@ namespace PixoVR.TrainingCore.Photon
         public void OnJoinedRoom()
         {
             CurrentRoom = new PhotonRoom();
+            XRI.LostObjectManager.ExternalOwnershipGate = obj =>
+                PhotonNetwork.InRoom && obj.GetComponent<PhotonView>() is var pv && pv != null && !pv.IsMine;
             OnRoomJoinedEvent?.Invoke();
-            InProgressRoomJoined(null);
         }
 
         /// <summary>PUN join failed.</summary>
@@ -215,6 +247,7 @@ namespace PixoVR.TrainingCore.Photon
         public void OnLeftRoom()
         {
             CurrentRoom = null;
+            XRI.LostObjectManager.ExternalOwnershipGate = null;
             OnRoomExitedEvent?.Invoke();
         }
 
@@ -284,21 +317,31 @@ namespace PixoVR.TrainingCore.Photon
                         && payload[0] is string action && payload[2] is bool flag)
                         (InstructorControls as PhotonInstructorControls)?.ReceiveInstructorEvent(action, payload[1] as string ?? "", flag);
                     break;
+                case PhotonEventSerializer.GrabSyncEventCode:
+                    if (payload != null && payload.Length >= 2
+                        && payload[0] is bool held && payload[1] is string grabGuid)
+                    {
+                        var target = Identity.GuidRegistry.Resolve(grabGuid);
+                        target?.GetComponent<XRI.NetworkGrabManager>()?.SetRemotelyHeld(held, photonEvent.Sender);
+                    }
+                    break;
                 case PhotonEventSerializer.StepSyncEventCode:
                     if (payload != null && payload.Length >= 1 && payload[0] is string syncAction
                         && syncAction == "catchUp" && photonEvent.Sender != PhotonNetwork.MasterClient?.ActorNumber)
                         break;
-                    HandleStepSync(payload);
+                    HandleStepSync(payload, photonEvent.Sender);
                     break;
             }
         }
 
-        private void HandleStepSync(object[] payload)
+        private void HandleStepSync(object[] payload, int sender)
         {
             if (payload == null || payload.Length == 0 || !(payload[0] is string action))
                 return;
-            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2 && payload[1] is int requester)
+            if (action == "catchUpRequest" && IsMasterClient && payload.Length >= 2
+                && sender != PhotonNetwork.LocalPlayer.ActorNumber)
             {
+                int requester = sender;
                 var history = Events.EventBus.Instance.History;
                 var events = new object[history.Count + 2];
                 events[0] = "catchUp";
@@ -312,6 +355,7 @@ namespace PixoVR.TrainingCore.Photon
             else if (action == "catchUp" && payload.Length >= 2)
             {
                 var stepGuid = payload[1] as string;
+                Events.EventBus.Instance.ClearHistory();
                 for (int i = 2; i < payload.Length; i++)
                 {
                     var data = PhotonEventSerializer.DeserializeEventSyncData(payload[i] as object[]);
@@ -334,6 +378,22 @@ namespace PixoVR.TrainingCore.Photon
             if (!PhotonNetwork.InRoom)
                 return;
             Sync();
+            pendingCatchUp = true;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                pendingCatchUp = false;
+                EndSync();
+                return;
+            }
+            if (Flow.GraphFlowManager.Instance != null && Flow.GraphFlowManager.Instance.GraphRunning)
+                OnGraphStartedForCatchUp();
+        }
+
+        private void OnGraphStartedForCatchUp()
+        {
+            if (!pendingCatchUp || !PhotonNetwork.InRoom)
+                return;
+            pendingCatchUp = false;
             PhotonNetwork.RaiseEvent(PhotonEventSerializer.StepSyncEventCode,
                 new object[] { "catchUpRequest", PhotonNetwork.LocalPlayer.ActorNumber },
                 new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } },
@@ -363,6 +423,9 @@ namespace PixoVR.TrainingCore.Photon
             if (CurrentRoom is PhotonRoom room)
                 room.NotifyPlayerExit(player);
             OnPlayerLeftEvent?.Invoke(player);
+            if (player != null)
+                foreach (var mgr in XRI.NetworkGrabManager.Instances)
+                    mgr.ClearRemoteHoldFor(player.Id);
         }
 
         /// <summary>PUN room props changed.</summary>
@@ -545,6 +608,9 @@ namespace PixoVR.TrainingCore.Photon
 
         /// <summary>RaiseEvent code for info-point state sync.</summary>
         public const byte InfoPointEventCode = 4;
+
+        /// <summary>RaiseEvent code for grab/release state sync.</summary>
+        public const byte GrabSyncEventCode = 5;
 
         /// <summary>InteractionEventArgs → object[] payload.</summary>
         public static object[] Serialize(InteractionEventArgs args)

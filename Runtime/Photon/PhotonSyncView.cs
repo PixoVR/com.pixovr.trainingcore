@@ -13,16 +13,39 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 namespace PixoVR.TrainingCore.Photon
 {
     /// <summary>PUN component that republishes received RaiseEvent interaction payloads to the <see cref="EventBus"/>.</summary>
-    public class PhotonSyncView : MonoBehaviourPun, IOnEventCallback
+    public class PhotonSyncView : MonoBehaviourPun, IOnEventCallback, IPunObservable
     {
+        private static PhotonSyncView active;
+
+        private XRI.XRIValveBehaviour valve;
+
+        private void Awake() => valve = GetComponent<XRI.XRIValveBehaviour>();
+
+        /// <summary>Serialize a sibling valve's total rotation (owner writes, others apply).</summary>
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (valve == null)
+                return;
+            if (stream.IsWriting)
+                stream.SendNext(valve.TotalRotation);
+            else
+                valve.SetRotationFromNetwork((float)stream.ReceiveNext());
+        }
+
         private void OnEnable()
         {
+            if (active != null && active != this)
+                return;
+            active = this;
             PhotonNetwork.AddCallbackTarget(this);
             EventBus.Instance.OnPublished += SendInteraction;
         }
 
         private void OnDisable()
         {
+            if (active != this)
+                return;
+            active = null;
             PhotonNetwork.RemoveCallbackTarget(this);
             EventBus.Instance.OnPublished -= SendInteraction;
         }
@@ -45,6 +68,8 @@ namespace PixoVR.TrainingCore.Photon
         public void SendInteraction(InteractionEventArgs args)
         {
             if (!PhotonNetwork.InRoom)
+                return;
+            if (args is ValveTurnEventArgs)
                 return;
             PhotonNetwork.RaiseEvent(PhotonEventSerializer.InteractionEventCode,
                 PhotonEventSerializer.Serialize(args),
