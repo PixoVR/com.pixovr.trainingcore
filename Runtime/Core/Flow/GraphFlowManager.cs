@@ -195,9 +195,18 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>Skip to a step by index, optionally syncing over the network.</summary>
         public virtual void SkipToStep(int targetStepIndex, bool invokeToNetwork)
         {
-            var step = _graphData?.GetStepByIndex(targetStepIndex);
-            if (step != null)
-                SkipToStep(step.GUID);
+            var current = CurrentSteps?.FirstOrDefault();
+            if (current == null)
+                return;
+            int here = current.GetMainStepNumber();
+            if (targetStepIndex > here)
+                ActiveFlow?.ForwardSkip.SkipUntil(targetStepIndex);
+            else if (targetStepIndex < here)
+                ActiveFlow?.BackwardSkip.SkipUntil(targetStepIndex);
+            else
+                return;
+            OnSkipMultipleStepsCompleted?.Invoke();
+            OnCurrentStepsChanged?.Invoke(CurrentSteps);
         }
 
         public virtual void SkipToStep(string guid)
