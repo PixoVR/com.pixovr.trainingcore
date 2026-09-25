@@ -211,7 +211,22 @@ namespace PixoVR.TrainingCore.Graph
     [Serializable]
     public class GroupNodeFunctionality
     {
+        /// <summary>Stacks of grouped nodes (matches the serialized graph data).</summary>
+        [HideInInspector]
+        public List<BaseStackNode> Stacks = new List<BaseStackNode>();
+
+        /// <summary>Number of groups (matches the serialized graph data).</summary>
+        [HideInInspector]
+        public int Groups = 1;
+
+        /// <summary>Fresh nodes get one stack to drop into.</summary>
+        public GroupNodeFunctionality()
+        {
+            Stacks.Add(new BaseStackNode(Vector2.zero, "Step Group 1", true, true));
+        }
+
         /// <summary>Step node GUIDs inside this group.</summary>
-        public List<string> GroupedStepGuids = new List<string>();
+        public IEnumerable<string> GroupedStepGuids =>
+            Stacks.Where(s => s != null && s.nodeGUIDs != null).SelectMany(s => s.nodeGUIDs);
     }
 }

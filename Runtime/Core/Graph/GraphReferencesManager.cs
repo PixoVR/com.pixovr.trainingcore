@@ -162,13 +162,10 @@ namespace PixoVR.TrainingCore.Graph
                     : groupNode is GroupedInfoPointsStepNode g ? g.GroupNodeFunctionality
                     : groupNode is ShowDisplayGroupStepNode d ? d.GroupNodeFunctionality
                     : null;
-                var grouped = groupFn?.GroupedStepGuids?
+                var grouped = groupFn?.GroupedStepGuids
                     .Select(g => Steps.TryGetValue(g ?? "", out var s) ? s : null)
                     .Where(s => s != null).ToList();
-                if (grouped == null || grouped.Count == 0)
-                    grouped = groupNode.GetStepOutputs(GameMode)
-                        .Select(n => Steps.TryGetValue(n?.GUID ?? "", out var s) ? s : null)
-                        .Where(s => s != null).ToList();
+                grouped ??= new List<StepBase>();
                 container.SetGroupedSteps(grouped);
             }
 
