@@ -54,10 +54,12 @@ namespace PixoVR.TrainingCore.XRI
         private Valve valve;
         private bool hasDriver;
         private Vector3 previousProjected;
+        private float nextNoDriverLog;
 
         private void Awake()
         {
             valve = GetComponent<Valve>();
+            SetRotation(InitialRotation, false);
         }
 
         private void OnEnable()
@@ -71,15 +73,32 @@ namespace PixoVR.TrainingCore.XRI
 
         private void Update()
         {
-            if (frozen || applyingProgrammatic)
+            if (applyingProgrammatic)
             {
                 hasDriver = false;
                 return;
             }
-            var driver = FindDriver();
+            var driver = frozen ? null : FindDriver();
             if (driver == null)
             {
-                hasDriver = false;
+                if (hasDriver)
+                {
+                    hasDriver = false;
+                    XRIDiagnostics.Log($"Valve '{name}': driver lost", this);
+                }
+                if (Time.time >= nextNoDriverLog)
+                {
+                    foreach (var zone in ToolSnapzones)
+                    {
+                        var snapped = zone != null ? zone.CurrentSnappedObject : null;
+                        if (snapped != null)
+                        {
+                            nextNoDriverLog = Time.time + 2f;
+                            XRIDiagnostics.Log($"Valve '{name}': '{snapped.name}' snapped in '{zone.name}' but no driver (IsGrabbed={snapped.IsGrabbed} holding={snapped.HoldingInteractor} frozen={frozen})", this);
+                            break;
+                        }
+                    }
+                }
                 return;
             }
             Vector3 toDriver = driver.position - transform.position;
@@ -154,8 +173,6 @@ namespace PixoVR.TrainingCore.XRI
 
         private void ApplyRotation(float value, bool notify)
         {
-            if (frozen)
-                return;
             applyingProgrammatic = true;
             foreach (var clamp in Clamps)
                 value = Mathf.Clamp(value, Mathf.Min(clamp.x, clamp.y), Mathf.Max(clamp.x, clamp.y));
