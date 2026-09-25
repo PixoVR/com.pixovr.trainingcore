@@ -47,5 +47,6 @@ The migration tool is under `Tools/PixoVR/Migrate Luminous Project…` (Editor w
 or `-executeMethod PixoVR.TrainingCore.Editor.Migration.LuminousMigrator.RunFromCommandLine`
 in batchmode. It rewrites `m_Script` refs, managed-reference `type:` blocks, qualified
 type-name strings, UnityEvent targets, and known asset guids in scenes/prefabs/assets,
-and writes `Logs/luminous-migration-report.csv`. See `Documentation~/index.md` —
-`migration-guide.md` for usage and `migration-checklist.md` for the manual work.
+and writes `Logs/luminous-migration-report.csv`. Full docs (architecture, migration
+guide, manual-work checklist, troubleshooting) live on the SDK docs site:
+<https://pixovr.github.io/SDK-docs/docs/Unity%20TrainingCore/>
