@@ -154,7 +154,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
 
         /// <summary>Resolve a Pixo class to its .cs meta guid via AssetDatabase. Unity binds m_Script
         /// references by file name, so only a class declared in a file of the same name is a valid target.</summary>
-        private static string ResolvePixoGuid(string ns, string className, bool wantsComponent)
+        private static ScriptResolution ResolvePixoGuid(string ns, string className, bool wantsComponent)
         {
             if (string.IsNullOrEmpty(className))
                 return null;
@@ -172,8 +172,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
                     continue;
                 var cls = AssetDatabase.LoadAssetAtPath<MonoScript>(path)?.GetClass();
                 if (cls != null && wantsComponent != typeof(Component).IsAssignableFrom(cls))
-                    return null;
-                return guid;
+                    return new ScriptResolution { KindMismatch = true };
+                return new ScriptResolution { Guid = guid };
             }
             return null;
         }

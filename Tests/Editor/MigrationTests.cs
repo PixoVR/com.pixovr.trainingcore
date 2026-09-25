@@ -41,8 +41,11 @@ namespace PixoVR.TrainingCore.Tests.Editor
             return MigrationMap.Load(json);
         }
 
-        private static string PixoGuidResolver(string ns, string cls, bool wantsComponent) =>
-            cls == "TrainingGraph" ? "aaaa1111" : cls == "Renamer" ? "bbbb2222" : null;
+        private static ScriptResolution PixoGuidResolver(string ns, string cls, bool wantsComponent)
+        {
+            var guid = cls == "TrainingGraph" ? "aaaa1111" : cls == "Renamer" ? "bbbb2222" : null;
+            return guid == null ? null : new ScriptResolution { Guid = guid };
+        }
 
         [Test]
         public void Rewrite_ManagedRef_TypeBlock()
@@ -278,11 +281,28 @@ namespace PixoVR.TrainingCore.Tests.Editor
                 "  m_Script: {fileID: " + FileIDUtil.ComputeFileID("Luminous.GraphSystem", "DefaultGraph") +
                 ", guid: " + LuminousGuid + ", type: 3}\n";
             var report = new List<MigrationReportEntry>();
-            string NullForComponents(string ns, string cls, bool wantsComponent) =>
-                wantsComponent ? null : "aaaa1111";
-            var output = YamlRewriter.Rewrite(yaml, BuildMap(), NullForComponents, report, "f.unity");
+            ScriptResolution MismatchForComponents(string ns, string cls, bool wantsComponent) =>
+                wantsComponent
+                    ? new ScriptResolution { KindMismatch = true }
+                    : new ScriptResolution { Guid = "aaaa1111" };
+            var output = YamlRewriter.Rewrite(yaml, BuildMap(), MismatchForComponents, report, "f.unity");
             StringAssert.Contains(LuminousGuid, output);
             Assert.AreEqual("target-kind-mismatch", report[0].Status);
+        }
+
+        [Test]
+        public void TargetKind_NotFound_UnresolvedPixoScript()
+        {
+            var yaml =
+                "MonoBehaviour:\n" +
+                "  m_GameObject: {fileID: 5}\n" +
+                "  m_Script: {fileID: " + FileIDUtil.ComputeFileID("Luminous.GraphSystem", "DefaultGraph") +
+                ", guid: " + LuminousGuid + ", type: 3}\n";
+            var report = new List<MigrationReportEntry>();
+            ScriptResolution NotFound(string ns, string cls, bool wantsComponent) => null;
+            var output = YamlRewriter.Rewrite(yaml, BuildMap(), NotFound, report, "f.unity");
+            StringAssert.Contains(LuminousGuid, output);
+            Assert.AreEqual("unresolved-pixo-script", report[0].Status);
         }
 
         [Test]

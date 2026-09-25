@@ -24,11 +24,20 @@ namespace PixoVR.TrainingCore.Editor.Migration
             $"\"{File}\",{Line},\"{From?.Replace("\"", "\"\"")}\",\"{To?.Replace("\"", "\"\"")}\",{Status}";
     }
 
+    /// <summary>Result of resolving a pixo class to a script guid.</summary>
+    public class ScriptResolution
+    {
+        /// <summary>Resolved .meta guid (null = not found).</summary>
+        public string Guid;
+        /// <summary>Script found but it is not the right kind (component vs asset) for the site.</summary>
+        public bool KindMismatch;
+    }
+
     /// <summary>Resolved pixo script guid for a mapped class.</summary>
     /// <param name="pixoNs">Pixo namespace.</param>
     /// <param name="pixoClass">Pixo class name.</param>
     /// <param name="wantsComponent">True when the reference lives on a component (MonoBehaviour doc).</param>
-    public delegate string PixoGuidResolver(string pixoNs, string pixoClass, bool wantsComponent);
+    public delegate ScriptResolution PixoGuidResolver(string pixoNs, string pixoClass, bool wantsComponent);
 
     /// <summary>
     /// Byte-preserving line rewriter for Unity YAML files. Rewrites:
@@ -139,12 +148,12 @@ namespace PixoVR.TrainingCore.Editor.Migration
                         }
                         else if (mapping.IsMapped)
                         {
-                            var pixoGuid = resolve?.Invoke(mapping.PixoNs, mapping.PixoClass,
+                            var resolution = resolve?.Invoke(mapping.PixoNs, mapping.PixoClass,
                                 currentGameObjectFileId != 0);
-                            if (pixoGuid != null)
+                            if (resolution != null && resolution.Guid != null)
                             {
                                 rewritten = line.Replace(scriptMatch.Value,
-                                    $"m_Script: {{fileID: 11500000, guid: {pixoGuid}, type: 3}}");
+                                    $"m_Script: {{fileID: 11500000, guid: {resolution.Guid}, type: 3}}");
                                 changed = true;
                                 currentComponent = mapping;
                                 report?.Add(new MigrationReportEntry
@@ -159,7 +168,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
                                 {
                                     File = fileName, Line = i + 1, From = mapping.Key,
                                     To = mapping.PixoQualifiedName,
-                                    Status = currentGameObjectFileId != 0
+                                    Status = resolution != null && resolution.KindMismatch
                                         ? "target-kind-mismatch" : "unresolved-pixo-script"
                                 });
                             }
