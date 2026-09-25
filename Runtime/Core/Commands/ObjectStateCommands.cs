@@ -290,6 +290,8 @@ namespace PixoVR.TrainingCore.Commands
         /// <summary>Event invoked on unexecute.</summary>
         public UnityEvent FunctionalityUndo;
 
+        private bool executed;
+
         public GenericActionCommand(UnityEvent action, UnityEvent undo) : base(string.Empty)
         {
             FunctionalityAction = action;
@@ -297,10 +299,20 @@ namespace PixoVR.TrainingCore.Commands
         }
 
         /// <inheritdoc/>
-        public override void Execute() => FunctionalityAction?.Invoke();
+        public override void Execute()
+        {
+            FunctionalityAction?.Invoke();
+            executed = true;
+        }
 
         /// <inheritdoc/>
-        public override void Unexecute() => FunctionalityUndo?.Invoke();
+        public override void Unexecute()
+        {
+            if (!executed)
+                return;
+            FunctionalityUndo?.Invoke();
+            executed = false;
+        }
 
         /// <inheritdoc/>
         public override CommandBase GetInverse() => new GenericActionCommand(FunctionalityUndo, FunctionalityAction);

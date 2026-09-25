@@ -782,6 +782,24 @@ namespace PixoVR.TrainingCore.Flow
             }
         }
 
+        /// <inheritdoc/>
+        public override void SkipForwardOnExit()
+        {
+            foreach (var step in entered.ToList())
+                step.SkipForwardOnExit();
+            entered.Clear();
+            pending.Clear();
+            base.SkipForwardOnExit();
+        }
+
+        /// <inheritdoc/>
+        public override void SkipBackwards()
+        {
+            foreach (var step in entered.ToList())
+                step.SkipBackwards();
+            base.SkipBackwards();
+        }
+
         private void OnChildCompleted(StepBase child)
         {
             child.StepCompleted -= OnChildCompleted;
