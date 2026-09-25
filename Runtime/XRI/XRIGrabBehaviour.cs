@@ -76,7 +76,7 @@ namespace PixoVR.TrainingCore.XRI
 
         /// <summary>Controller currently holding the object.</summary>
         [NonSerialized]
-        public XRBaseControllerInteractor CurrentController;
+        public XRBaseInputInteractor CurrentController;
 
         /// <summary>Fired on grab.</summary>
         public UnityEvent OnGrab;
@@ -95,7 +95,7 @@ namespace PixoVR.TrainingCore.XRI
             interactorsSelecting.Count > 0 ? interactorsSelecting[0] : snappedHoldInteractor;
 
         private readonly List<XRISnapZone> possibleSnapZones = new List<XRISnapZone>();
-        private XRBaseControllerInteractor lastController;
+        private XRBaseInputInteractor lastController;
         private Grabbable grabbable;
         private Tappable tappable;
         private Usable usable;
@@ -236,7 +236,7 @@ namespace PixoVR.TrainingCore.XRI
                 attachTransform.position = interactorT.position;
             }
 
-            CurrentController = args.interactorObject as XRBaseControllerInteractor;
+            CurrentController = args.interactorObject as XRBaseInputInteractor;
             base.OnSelectEntering(args);
             OnGrab?.Invoke();
             if (Audio != null)
