@@ -73,12 +73,12 @@ namespace PixoVR.TrainingCore.XRI
 
         private void Update()
         {
-            if (frozen || applyingProgrammatic)
+            if (applyingProgrammatic)
             {
                 hasDriver = false;
                 return;
             }
-            var driver = FindDriver();
+            var driver = frozen ? null : FindDriver();
             if (driver == null)
             {
                 if (hasDriver)
