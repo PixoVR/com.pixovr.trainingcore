@@ -138,6 +138,12 @@ namespace PixoVR.TrainingCore.XRI
                 deactivated.AddListener(_ => usable.OnStopUsing());
             }
             base.Awake();
+
+            // Trigger-only interactables (tap nuts, hand-grab zones) get no colliders from XRI.
+            if (colliders.Count == 0)
+                foreach (var col in GetComponentsInChildren<Collider>())
+                    if (col != null && col.isTrigger)
+                        colliders.Add(col);
         }
 
         /// <summary>See the interface/base contract.</summary>

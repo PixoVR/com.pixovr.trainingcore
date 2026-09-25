@@ -10,6 +10,11 @@
 ### Changed
 - `AutoRayManager.ControllerManager` is now typed `ControllerModeManager` and drives
   `ExternalStartRay`/`ExternalEndRay` on UI-hit edges.
+### Fixed
+- `XRIGrabBehaviour` populates its collider list from child trigger colliders when XRI's
+  auto-registration left it empty, so trigger-only tap/grab targets are hoverable.
+- `XRRig.prefab` direct interactors now detect trigger colliders
+  (`m_PhysicsTriggerInteraction: 2`) and use `StateChange` select trigger.
 
 ## [0.1.0] - Unreleased
 ### Fixed
