@@ -473,7 +473,7 @@ namespace PixoVR.TrainingCore.Apex
             var baseId = !string.IsNullOrEmpty(module) ? module
                 : Config != null && !string.IsNullOrEmpty(Config.ScenarioId) ? Config.ScenarioId
                 : scenario;
-            return $"{baseId} - {GameModes.GameModeManager.CurrentMode.ToDisplayName()}";
+            return $"{baseId} - {GameModes.GameModeManager.CurrentMode}";
         }
 
         /// <inheritdoc/>
