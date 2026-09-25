@@ -2950,7 +2950,7 @@ MonoBehaviour:
     m_ManualQueueWasPerformedThisFrame: 0
     m_ManualQueueValue: 0
     m_ManualQueueTargetFrame: 0
-  m_SelectActionTrigger: 0
+  m_SelectActionTrigger: 1
   m_AllowHoveredActivate: 0
   m_TargetPriorityMode: 0
   m_HideControllerOnSelect: 0
@@ -2991,7 +2991,7 @@ MonoBehaviour:
   m_PhysicsLayerMask:
     serializedVersion: 2
     m_Bits: -1
-  m_PhysicsTriggerInteraction: 1
+  m_PhysicsTriggerInteraction: 2
 --- !u!135 &3168004053602853831
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -3533,7 +3533,7 @@ MonoBehaviour:
     m_ManualQueueWasPerformedThisFrame: 0
     m_ManualQueueValue: 0
     m_ManualQueueTargetFrame: 0
-  m_SelectActionTrigger: 0
+  m_SelectActionTrigger: 1
   m_AllowHoveredActivate: 0
   m_TargetPriorityMode: 0
   m_HideControllerOnSelect: 0
@@ -3574,7 +3574,7 @@ MonoBehaviour:
   m_PhysicsLayerMask:
     serializedVersion: 2
     m_Bits: -1
-  m_PhysicsTriggerInteraction: 1
+  m_PhysicsTriggerInteraction: 2
 --- !u!135 &6429078281992299305
 SphereCollider:
   m_ObjectHideFlags: 0
