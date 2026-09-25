@@ -26,6 +26,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
             _options.DeleteLuminousPackages = EditorGUILayout.Toggle("Delete Luminous Packages/", _options.DeleteLuminousPackages);
             _options.RelocateThirdParty = EditorGUILayout.Toggle("Relocate third-party (HighlightPlus…)", _options.RelocateThirdParty);
             _options.AddHighlightPlusDefine = EditorGUILayout.Toggle("Add HIGHLIGHT_PLUS define", _options.AddHighlightPlusDefine);
+            _options.ExtendedRules = EditorGUILayout.Toggle("Extended rules (type strings, event targets, asset guids)", _options.ExtendedRules);
+            _options.ExtraMapPath = EditorGUILayout.TextField("Extra map (optional)", _options.ExtraMapPath);
 
             EditorGUILayout.Space();
             if (GUILayout.Button(_options.DryRun ? "Run dry-run" : "RUN MIGRATION"))
@@ -40,6 +42,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 EditorGUILayout.LabelField($"Files touched: {_lastResult.FilesTouched}");
                 EditorGUILayout.LabelField($"Refs rewritten: {_lastResult.RefsRewritten}");
                 EditorGUILayout.LabelField($"Unmapped refs: {_lastResult.Unmapped}");
+                EditorGUILayout.LabelField($"Warnings: {_lastResult.Warnings}");
+                EditorGUILayout.LabelField($"Residual Luminous: {_lastResult.Residual}");
                 EditorGUILayout.LabelField("Report: Logs/luminous-migration-report.csv");
             }
             EditorGUILayout.EndScrollView();

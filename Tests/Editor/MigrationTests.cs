@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using PixoVR.TrainingCore.Editor.Migration;
 
@@ -40,7 +41,7 @@ namespace PixoVR.TrainingCore.Tests.Editor
             return MigrationMap.Load(json);
         }
 
-        private static string PixoGuidResolver(string ns, string cls) =>
+        private static string PixoGuidResolver(string ns, string cls, bool wantsComponent) =>
             cls == "TrainingGraph" ? "aaaa1111" : cls == "Renamer" ? "bbbb2222" : null;
 
         [Test]
@@ -111,6 +112,177 @@ namespace PixoVR.TrainingCore.Tests.Editor
             // rename applied inside the Renamer's document only
             Assert.IsTrue(output.Contains("newName: 5"));
             Assert.IsTrue(output.Contains("oldName: 7"));
+        }
+
+        private static MigrationMap BuildExtendedMap()
+        {
+            var json = @"{
+                ""dlls"": [""" + LuminousGuid + @"""],
+                ""luminousAsm"": ""CoreSystemRuntime"",
+                ""pixoAsm"": ""PixoVR.TrainingCore"",
+                ""types"": [
+                    { ""luminous"": { ""ns"": ""Luminous.Unity"", ""class"": ""DisplayInteractionMiddleman"" },
+                      ""pixo"": { ""ns"": ""PixoVR.TrainingCore.Utility.Display"", ""class"": ""DisplayInteraction"" } },
+                    { ""luminous"": { ""ns"": ""Luminous.GraphSystem"", ""class"": ""DefaultGraph"" },
+                      ""pixo"": { ""ns"": ""PixoVR.TrainingCore.Graph"", ""class"": ""TrainingGraph"",
+                        ""asm"": ""PixoVR.TrainingCore.XRI"" } }
+                ],
+                ""scripts"": [
+                    { ""guid"": ""11111111111111111111111111111111"",
+                      ""luminous"": { ""ns"": ""Luminous.Interactables"", ""class"": ""GrabbableOpenXR"" },
+                      ""pixo"": { ""ns"": ""PixoVR.TrainingCore.XRI"", ""class"": ""XRIGrabBehaviour"",
+                        ""asm"": ""PixoVR.TrainingCore.XRI"" } },
+                    { ""guid"": ""22222222222222222222222222222222"",
+                      ""luminous"": { ""ns"": ""Luminous.Middleman"", ""class"": ""GenericActionFunctionality"" },
+                      ""pixo"": null, ""keep"": true,
+                      ""fields"": { ""LocomotionSystem"": ""LocomotionMediator"" } }
+                ],
+                ""assets"": [
+                    { ""luminous"": ""c348712bda248c246b8c49b3db54643f"",
+                      ""pixo"": ""3d1634cb0140478092fc030578072e4d"", ""note"": ""input actions"" }
+                ]
+            }";
+            return MigrationMap.Load(json);
+        }
+
+        // real snippets from sa-collect-gas-sample commit a17adaf8
+        private const string QualifiedNameLine =
+            "        assemblyQualifiedName: Luminous.Interactables.GrabbableOpenXR, MiddlemanRuntime,\n";
+        private const string EventTargetSnippet =
+            "      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName\n" +
+            "      value: Luminous.Unity.DisplayInteractionMiddleman, CoreSystemRuntime\n";
+        private const string AssetRefLine =
+            "    m_Reference: {fileID: 6539153397825551058, guid: c348712bda248c246b8c49b3db54643f, type: 3}\n";
+
+        [Test]
+        public void QualifiedName_GrabbableOpenXR_Rewritten()
+        {
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(QualifiedNameLine, BuildExtendedMap(), PixoGuidResolver, report, "f.asset");
+            StringAssert.Contains("assemblyQualifiedName: PixoVR.TrainingCore.XRI.XRIGrabBehaviour, " +
+                "PixoVR.TrainingCore.XRI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", output);
+            Assert.AreEqual("mapped-qualified-name", report[0].Status);
+        }
+
+        [Test]
+        public void QualifiedName_UnmappedLuminous_ReportedNotRewritten()
+        {
+            var yaml = "        assemblyQualifiedName: Luminous.Mystery.Unknown, Somewhere,\n";
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.asset");
+            StringAssert.Contains("Luminous.Mystery.Unknown", output);
+            Assert.AreEqual("unmapped-qualified-name", report[0].Status);
+        }
+
+        [Test]
+        public void EventTarget_DisplayInteractionMiddleman_Rewritten()
+        {
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(EventTargetSnippet, BuildExtendedMap(), PixoGuidResolver, report, "f.prefab");
+            StringAssert.Contains("value: PixoVR.TrainingCore.Utility.Display.DisplayInteraction, PixoVR.TrainingCore", output);
+            Assert.AreEqual("mapped-event-target", report[0].Status);
+        }
+
+        [Test]
+        public void AssetGuid_PlainAndJsonEscaped_Rewritten()
+        {
+            var yaml = AssetRefLine +
+                "    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\": {\\\"guid\\\": \\\"c348712bda248c246b8c49b3db54643f\\\"}}\",\n";
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.prefab");
+            StringAssert.Contains("3d1634cb0140478092fc030578072e4d", output);
+            StringAssert.DoesNotContain("c348712bda248c246b8c49b3db54643f", output);
+            Assert.AreEqual(2, report.Count(r => r.Status == "mapped-asset-guid"));
+        }
+
+        [Test]
+        public void KeepMapping_FieldRenamed()
+        {
+            var yaml =
+                "--- !u!114 &1\n" +
+                "MonoBehaviour:\n" +
+                "  m_GameObject: {fileID: 5}\n" +
+                "  m_Script: {fileID: 11500000, guid: 22222222222222222222222222222222, type: 3}\n" +
+                "  LocomotionSystem: {fileID: 0}\n";
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.prefab");
+            StringAssert.Contains("LocomotionMediator: {fileID: 0}", output);
+            Assert.IsTrue(report.Exists(r => r.Status == "kept"));
+            Assert.IsTrue(report.Exists(r => r.Status == "field-renamed"));
+        }
+
+        [Test]
+        public void RemovedComponents_Reported()
+        {
+            var yaml =
+                "--- !u!1001 &9\n" +
+                "PrefabInstance:\n" +
+                "    m_RemovedComponents:\n" +
+                "    - {fileID: 1}\n" +
+                "    - {fileID: 2}\n";
+            var report = new List<MigrationReportEntry>();
+            YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.unity");
+            Assert.IsTrue(report.Exists(r => r.Status == "info-removed-components" && r.From == "m_RemovedComponents (2)"));
+        }
+
+        [Test]
+        public void Residual_Reported()
+        {
+            var yaml = "  someField: Luminous.Something\n";
+            var report = new List<MigrationReportEntry>();
+            YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.asset");
+            Assert.IsTrue(report.Exists(r => r.Status == "residual-luminous"));
+        }
+
+        [Test]
+        public void ExtendedRulesDisabled_LeavesQualifiedNameAndEventTarget()
+        {
+            var yaml = QualifiedNameLine + EventTargetSnippet;
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.asset",
+                extendedRules: false);
+            StringAssert.Contains("Luminous.Interactables.GrabbableOpenXR", output);
+            StringAssert.Contains("Luminous.Unity.DisplayInteractionMiddleman", output);
+            Assert.IsFalse(report.Exists(r => r.Status.StartsWith("mapped-") || r.Status == "unmapped-event-target"));
+        }
+
+        [Test]
+        public void ManagedRef_UsesPerTypeAsm()
+        {
+            var yaml = "  type: {class: DefaultGraph, ns: Luminous.GraphSystem, asm: CoreSystemRuntime}\n";
+            var report = new List<MigrationReportEntry>();
+            var output = YamlRewriter.Rewrite(yaml, BuildExtendedMap(), PixoGuidResolver, report, "f.asset");
+            StringAssert.Contains("asm: PixoVR.TrainingCore.XRI", output);
+        }
+
+        [Test]
+        public void Merge_OverlayOverridesAndAddsAssets()
+        {
+            var map = BuildExtendedMap();
+            map.Merge(@"{ ""types"": [
+                    { ""luminous"": { ""ns"": ""Luminous.Unity"", ""class"": ""DisplayInteractionMiddleman"" },
+                      ""pixo"": { ""ns"": ""Over.Ride"", ""class"": ""Other"" } } ],
+                ""assets"": [ { ""luminous"": ""aa"", ""pixo"": ""bb"" } ] }");
+            Assert.AreEqual("Other", map.QualifiedNames["Luminous.Unity.DisplayInteractionMiddleman"].PixoClass);
+            Assert.AreEqual("bb", map.AssetGuids["aa"]);
+            Assert.AreEqual("3d1634cb0140478092fc030578072e4d",
+                map.AssetGuids["c348712bda248c246b8c49b3db54643f"]);
+        }
+
+        [Test]
+        public void TargetKind_Mismatch_NotRewritten()
+        {
+            var yaml =
+                "MonoBehaviour:\n" +
+                "  m_GameObject: {fileID: 5}\n" +
+                "  m_Script: {fileID: " + FileIDUtil.ComputeFileID("Luminous.GraphSystem", "DefaultGraph") +
+                ", guid: " + LuminousGuid + ", type: 3}\n";
+            var report = new List<MigrationReportEntry>();
+            string NullForComponents(string ns, string cls, bool wantsComponent) =>
+                wantsComponent ? null : "aaaa1111";
+            var output = YamlRewriter.Rewrite(yaml, BuildMap(), NullForComponents, report, "f.unity");
+            StringAssert.Contains(LuminousGuid, output);
+            Assert.AreEqual("target-kind-mismatch", report[0].Status);
         }
 
         [Test]

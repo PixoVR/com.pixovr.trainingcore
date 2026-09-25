@@ -28,6 +28,12 @@ namespace PixoVR.TrainingCore.Editor.Migration
             /// <summary>Unmapped references.</summary>
             public int Unmapped;
 
+            /// <summary>Residual Luminous strings left after rewriting.</summary>
+            public int Residual;
+
+            /// <summary>target-kind-mismatch + info-removed-components + unmapped-* rows.</summary>
+            public int Warnings;
+
             /// <summary>Full report rows.</summary>
             public List<MigrationReportEntry> Report = new List<MigrationReportEntry>();
 
@@ -41,6 +47,13 @@ namespace PixoVR.TrainingCore.Editor.Migration
             var result = new Result();
             var root = options.ProjectRoot ?? Directory.GetCurrentDirectory();
             var map = MigrationMap.LoadFile(ResolveMapPath());
+            if (!string.IsNullOrEmpty(options.ExtraMapPath))
+            {
+                if (File.Exists(options.ExtraMapPath))
+                    map.Merge(File.ReadAllText(options.ExtraMapPath));
+                else
+                    result.ManifestNotes.Add($"extra map not found: {options.ExtraMapPath}");
+            }
             var report = result.Report;
 
             var exts = new HashSet<string>(options.Extensions ?? new string[0], StringComparer.OrdinalIgnoreCase);
@@ -57,7 +70,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
                         continue;
                     var text = File.ReadAllText(file);
                     var rel = file.Substring(root.Length).TrimStart('/', '\\');
-                    var rewritten = YamlRewriter.Rewrite(text, map, ResolvePixoGuid, report, rel);
+                    var rewritten = YamlRewriter.Rewrite(text, map, ResolvePixoGuid, report, rel,
+                        options.ExtendedRules);
                     if (!ReferenceEquals(rewritten, text))
                     {
                         result.FilesTouched++;
@@ -67,8 +81,13 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 }
             }
 
-            result.RefsRewritten = report.Count(r => r.Status == "mapped" || r.Status == "field-renamed");
+            result.RefsRewritten = report.Count(r => r.Status == "mapped" || r.Status == "field-renamed"
+                || r.Status == "mapped-qualified-name" || r.Status == "mapped-event-target"
+                || r.Status == "mapped-asset-guid");
             result.Unmapped = report.Count(r => r.Status.StartsWith("unmapped") || r.Status == "unresolved-pixo-script");
+            result.Residual = report.Count(r => r.Status == "residual-luminous");
+            result.Warnings = report.Count(r => r.Status == "target-kind-mismatch"
+                || r.Status == "info-removed-components" || r.Status.StartsWith("unmapped"));
 
             var manifestPath = Path.Combine(root, "Packages", "manifest.json");
             if (File.Exists(manifestPath))
@@ -113,9 +132,13 @@ namespace PixoVR.TrainingCore.Editor.Migration
                     options.DryRun = true;
                 else if (args[i] == "-luminousPackageSource" && i + 1 < args.Length)
                     options.TrainingCoreDependency = args[++i];
+                else if (args[i] == "-luminousNoExtendedRules")
+                    options.ExtendedRules = false;
+                else if (args[i] == "-luminousExtraMap" && i + 1 < args.Length)
+                    options.ExtraMapPath = args[++i];
             }
             var result = Run(options);
-            UnityEngine.Debug.Log($"LuminousMigrator: {result.FilesTouched} files, {result.RefsRewritten} refs, {result.Unmapped} unmapped");
+            UnityEngine.Debug.Log($"LuminousMigrator: {result.FilesTouched} files, {result.RefsRewritten} refs, {result.Unmapped} unmapped, {result.Warnings} warnings, {result.Residual} residual");
         }
 
         private static string ResolveMapPath()
@@ -131,7 +154,7 @@ namespace PixoVR.TrainingCore.Editor.Migration
 
         /// <summary>Resolve a Pixo class to its .cs meta guid via AssetDatabase. Unity binds m_Script
         /// references by file name, so only a class declared in a file of the same name is a valid target.</summary>
-        private static string ResolvePixoGuid(string ns, string className)
+        private static string ResolvePixoGuid(string ns, string className, bool wantsComponent)
         {
             if (string.IsNullOrEmpty(className))
                 return null;
@@ -143,10 +166,14 @@ namespace PixoVR.TrainingCore.Editor.Migration
                 if (Path.GetFileNameWithoutExtension(path) != className)
                     continue;
                 var text = File.ReadAllText(path);
-                if (System.Text.RegularExpressions.Regex.IsMatch(text,
-                        @"\bclass\s+" + System.Text.RegularExpressions.Regex.Escape(className) + @"\b") &&
-                    (string.IsNullOrEmpty(ns) || text.Contains("namespace " + ns)))
-                    return guid;
+                if (!System.Text.RegularExpressions.Regex.IsMatch(text,
+                        @"\bclass\s+" + System.Text.RegularExpressions.Regex.Escape(className) + @"\b") ||
+                    (!string.IsNullOrEmpty(ns) && !text.Contains("namespace " + ns)))
+                    continue;
+                var cls = AssetDatabase.LoadAssetAtPath<MonoScript>(path)?.GetClass();
+                if (cls != null && wantsComponent != typeof(Component).IsAssignableFrom(cls))
+                    return null;
+                return guid;
             }
             return null;
         }
@@ -282,6 +309,14 @@ namespace PixoVR.TrainingCore.Editor.Migration
                     w.WriteLine();
                     w.WriteLine("unmapped types:");
                     foreach (var g in unmapped.GroupBy(u => u.From))
+                        w.WriteLine($"{g.Key},{g.Count()}");
+                }
+                var residual = report.Where(r => r.Status == "residual-luminous").ToList();
+                if (residual.Count > 0)
+                {
+                    w.WriteLine();
+                    w.WriteLine("residual Luminous strings by file:");
+                    foreach (var g in residual.GroupBy(u => u.File))
                         w.WriteLine($"{g.Key},{g.Count()}");
                 }
             }
