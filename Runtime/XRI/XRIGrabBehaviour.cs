@@ -106,6 +106,8 @@ namespace PixoVR.TrainingCore.XRI
         private bool hasStored;
         private IXRSelectInteractor snappedHoldInteractor;
         private Coroutine trackingCoroutine;
+        private bool snappedHold;
+        private bool snappedHoldLogged;
 
         /// <summary>See the interface/base contract.</summary>
         protected override void Awake()
@@ -190,6 +192,8 @@ namespace PixoVR.TrainingCore.XRI
 
             snappedHoldInteractor = null;
             trackingCoroutine = null;
+            snappedHold = false;
+            snappedHoldLogged = false;
             if (!selected || CurrentSnapZone == null)
                 yield break;
 
@@ -204,6 +208,9 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
+            if (snappedHold && ReferenceEquals(args.interactorObject, snappedHoldInteractor))
+                return;
+
             selected = true;
 
             if (CurrentSnapZone != null)
@@ -211,6 +218,9 @@ namespace PixoVR.TrainingCore.XRI
                 var interactorTransform = (args.interactorObject as Component)?.transform;
                 if (CurrentSnapZone.HasDetachRange && interactorTransform != null && CurrentSnapZone.CheckWithinRange(interactorTransform.position))
                 {
+                    if (trackingCoroutine != null)
+                        StopCoroutine(trackingCoroutine);
+                    snappedHold = true;
                     trackingCoroutine = StartCoroutine(StartTracking(args));
                     return;
                 }
@@ -249,6 +259,15 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectEntered(SelectEnterEventArgs args)
         {
+            if (snappedHold)
+            {
+                if (!snappedHoldLogged)
+                {
+                    snappedHoldLogged = true;
+                    XRIDiagnostics.Log($"Snapped-hold '{name}' by '{args.interactorObject}' in '{(CurrentSnapZone != null ? CurrentSnapZone.name : "null")}'", this);
+                }
+                return;
+            }
             base.OnSelectEntered(args);
             grabbable?.OnGrabbedObjectEvent();
             XRIDiagnostics.Log($"Grab '{name}' by '{args.interactorObject}' pos={transform.position} parent={(transform.parent != null ? transform.parent.name : "null")} kinematic={(grabbableRigidbody != null && grabbableRigidbody.isKinematic)} gravity={(grabbableRigidbody != null && grabbableRigidbody.useGravity)} snapZone={(CurrentSnapZone != null ? CurrentSnapZone.name : "null")} activeInHierarchy={gameObject.activeInHierarchy}", this);
@@ -257,12 +276,31 @@ namespace PixoVR.TrainingCore.XRI
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
+            if (snappedHold)
+                return;
             base.OnSelectExiting(args);
         }
 
         /// <summary>See the interface/base contract.</summary>
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
+            if (snappedHold)
+            {
+                snappedHold = false;
+                snappedHoldLogged = false;
+                if (trackingCoroutine != null)
+                {
+                    StopCoroutine(trackingCoroutine);
+                    trackingCoroutine = null;
+                }
+                snappedHoldInteractor = null;
+                selected = false;
+                XRIDiagnostics.Log($"Release-snapped '{name}' by '{args.interactorObject}' snapZone={(CurrentSnapZone != null ? CurrentSnapZone.name : "null")}", this);
+                OnGrabExit?.Invoke();
+                CurrentController = null;
+                return;
+            }
+
             selected = false;
             snappedHoldInteractor = null;
 
@@ -351,6 +389,8 @@ namespace PixoVR.TrainingCore.XRI
             if (snappedHoldInteractor == null)
                 return;
             snappedHoldInteractor = null;
+            snappedHold = false;
+            snappedHoldLogged = false;
             selected = false;
             if (notify)
                 OnGrabExit?.Invoke();
