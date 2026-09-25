@@ -467,12 +467,22 @@ namespace PixoVR.TrainingCore.Apex
             return Task.CompletedTask;
         }
 
+        /// <summary>Scenario id reported to Apex: "&lt;module&gt; - &lt;mode&gt;" so every module/mode pair is tracked separately.</summary>
+        protected virtual string BuildScenarioId(string scenario, string module)
+        {
+            var baseId = !string.IsNullOrEmpty(module) ? module
+                : Config != null && !string.IsNullOrEmpty(Config.ScenarioId) ? Config.ScenarioId
+                : scenario;
+            return $"{baseId} - {GameModes.GameModeManager.CurrentMode.ToDisplayName()}";
+        }
+
         /// <inheritdoc/>
         protected override Task OnModuleStartedAsync(string mode, string scenario, string module)
         {
             var tcs = new TaskCompletionSource<bool>();
-            Log.Info($"[Apex Diag] OnModuleStartedAsync: joining session (scenario={Config?.ScenarioId ?? scenario}, module={module})", LogCategory.Platform);
-            Client.JoinSession(Config != null ? Config.ScenarioId : scenario, null, (ok, sessionId) =>
+            var scenarioId = BuildScenarioId(scenario, module);
+            Log.Info($"[Apex Diag] OnModuleStartedAsync: joining session (scenarioId={scenarioId}, module={module})", LogCategory.Platform);
+            Client.JoinSession(scenarioId, null, (ok, sessionId) =>
             {
                 if (ok)
                 {

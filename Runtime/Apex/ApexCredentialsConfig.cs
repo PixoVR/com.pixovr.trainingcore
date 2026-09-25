@@ -14,7 +14,7 @@ namespace PixoVR.TrainingCore.Apex
     [CreateAssetMenu(fileName = "ApexCredentialsConfig", menuName = "TrainingCore/Apex Credentials Config")]
     public class ApexCredentialsConfig : ScriptableObject
     {
-        /// <summary>Apex scenario id.</summary>
+        /// <summary>Fallback scenario base id used when no module name is available.</summary>
         public string ScenarioId;
 
         /// <summary>Device serial used by QuickID login.</summary>

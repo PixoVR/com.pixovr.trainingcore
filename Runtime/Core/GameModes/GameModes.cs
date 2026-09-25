@@ -51,6 +51,15 @@ namespace PixoVR.TrainingCore.GameModes
             GameMode.Practice => 'P',
             _ => 'A'
         };
+
+        /// <summary>Human-readable mode name used in reporting ids.</summary>
+        public static string ToDisplayName(this GameMode gameMode) => gameMode switch
+        {
+            GameMode.Training => "Assisted Training",
+            GameMode.Practice => "Practice",
+            GameMode.Assessment => "Assessment",
+            _ => gameMode.ToString()
+        };
     }
 
     /// <summary>Static event hub for the active game mode, step lifecycle and module transitions.</summary>
