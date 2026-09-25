@@ -250,6 +250,9 @@ namespace PixoVR.TrainingCore.Flow
             RegisterUndoStepPointsForActions(CompleteActions);
             UnregisterListeners();
             base.SkipForwardOnExit();
+            if (StartActions != null)
+                foreach (var action in StartActions)
+                    action?.OnStepForward();
             NotifyStartActionOnStepCompleted();
             SkipForwardsActions(CompleteActions);
             FailureDetectionManager.Instance.RemoveStepExceptions(this);

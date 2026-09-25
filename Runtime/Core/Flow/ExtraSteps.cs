@@ -569,7 +569,7 @@ namespace PixoVR.TrainingCore.Flow
         public override void SkipForwardOnExit()
         {
             foreach (var step in GroupedSteps)
-                step?.OnSkipForwards();
+                step?.SkipForwardOnExit();
             base.SkipForwardOnExit();
         }
 

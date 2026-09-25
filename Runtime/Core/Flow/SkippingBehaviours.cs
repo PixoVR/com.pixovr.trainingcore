@@ -41,7 +41,7 @@ namespace PixoVR.TrainingCore.Flow
             do
             {
                 foreach (var s in iterator.CurrentSteps.ToList())
-                    s?.OnSkipForwards();
+                    s?.SkipForwardOnExit();
                 StepCounter.Increment();
                 iterator.NextSteps();
             }

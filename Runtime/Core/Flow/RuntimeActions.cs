@@ -62,6 +62,7 @@ namespace PixoVR.TrainingCore.Flow
         private bool state;
 
         private Utility.HighlightBase highlightObject;
+        private HighlightObjectCommand command;
 
         /// <summary>Create from node.</summary>
         public HighlightAction(HighlightActionNode node)
@@ -73,10 +74,16 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
-        public override void Act() => highlightObject?.ToggleHighlight(state);
+        public override void Act()
+        {
+            if (highlightObject == null)
+                return;
+            command = new HighlightObjectCommand(highlightObject, state);
+            CommandHistory.Instance.ExecuteAndRecord(command);
+        }
 
         /// <inheritdoc/>
-        public override void Undo() => highlightObject?.ToggleHighlight(!state);
+        public override void Undo() => command?.Unexecute();
     }
 
     /// <summary>Updates hand-menu text.</summary>
@@ -180,19 +187,19 @@ namespace PixoVR.TrainingCore.Flow
             target = node.TargetBehavior;
         }
 
+        private SetComponentStateCommand command;
+
         /// <inheritdoc/>
         public override void Act()
         {
-            if (target != null)
-                target.enabled = state;
+            if (target == null)
+                return;
+            command = new SetComponentStateCommand(target, state);
+            CommandHistory.Instance.ExecuteAndRecord(command);
         }
 
         /// <inheritdoc/>
-        public override void Undo()
-        {
-            if (target != null)
-                target.enabled = !state;
-        }
+        public override void Undo() => command?.Unexecute();
     }
 
     /// <summary>Fires the bound <see cref="GenericActionTrigger"/> events.</summary>
@@ -209,11 +216,19 @@ namespace PixoVR.TrainingCore.Flow
             functionality = node.Functionality;
         }
 
-        /// <inheritdoc/>
-        public override void Act() => functionality?.Act();
+        private GenericActionCommand command;
 
         /// <inheritdoc/>
-        public override void Undo() => functionality?.OnUndo();
+        public override void Act()
+        {
+            if (functionality == null)
+                return;
+            command = new GenericActionCommand(functionality.Execute, functionality.Undo);
+            CommandHistory.Instance.ExecuteAndRecord(command);
+        }
+
+        /// <inheritdoc/>
+        public override void Undo() => command?.Unexecute();
     }
 
     /// <summary>Plays audio clips via <see cref="AudioManager"/>.</summary>
