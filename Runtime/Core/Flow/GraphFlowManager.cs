@@ -116,8 +116,8 @@ namespace PixoVR.TrainingCore.Flow
             GameModeManager.ModuleStarted(NodeGraph.name, NodeGraph);
             if (CanFail)
                 FailureDetectionManager.Instance.StartDetecting();
-            _activeFlow.Start();
             GraphRunning = true;
+            _activeFlow.Start();
             OnGraphStarted?.Invoke();
             GraphStarted?.Invoke();
         }

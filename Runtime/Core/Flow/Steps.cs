@@ -763,8 +763,8 @@ namespace PixoVR.TrainingCore.Flow
             pending.Clear();
             entered.Clear();
             foreach (var step in GroupedSteps)
-                if (step != null && pending.Add(step))
-                    entered.Add(step);
+                if (step != null)
+                    pending.Add(step);
             if (pending.Count == 0)
             {
                 Utility.Log.Warning($"AndGroupStep '{Name}' has no grouped steps", Utility.LogCategory.Flow);
@@ -774,7 +774,12 @@ namespace PixoVR.TrainingCore.Flow
             foreach (var step in pending.ToList())
                 step.StepCompleted += OnChildCompleted;
             foreach (var step in pending.ToList())
+            {
+                if (completed)
+                    break;
+                entered.Add(step);
                 step.OnEnter();
+            }
         }
 
         private void OnChildCompleted(StepBase child)
