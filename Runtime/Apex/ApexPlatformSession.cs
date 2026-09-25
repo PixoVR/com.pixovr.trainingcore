@@ -470,7 +470,9 @@ namespace PixoVR.TrainingCore.Apex
         /// <summary>Scenario id reported to Apex: "&lt;module&gt; - &lt;mode&gt;" so every module/mode pair is tracked separately.</summary>
         protected virtual string BuildScenarioId(string scenario, string module)
         {
-            var baseId = !string.IsNullOrEmpty(module) ? module
+            var selected = SelectedModuleName;
+            var baseId = !string.IsNullOrEmpty(selected) ? selected
+                : !string.IsNullOrEmpty(module) ? module
                 : Config != null && !string.IsNullOrEmpty(Config.ScenarioId) ? Config.ScenarioId
                 : scenario;
             return $"{baseId} - {GameModes.GameModeManager.CurrentMode}";
