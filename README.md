@@ -43,30 +43,10 @@ references the `HighlightPlus` assembly and only compiles when the define is set
 
 ## Migrating a Luminous project
 
-The editor migration tool (`Pixo > Training Core > Migrate from Luminous…`) rewrites
-`m_Script` refs and managed-reference `type:` blocks in scenes/prefabs/assets. Serialized
-field names and `serializedGuid` byte arrays are intentionally kept identical so saved data
-survives. See `DESIGN.md`.
-
-Graph coverage includes the Luminous step nodes `InputActionStepNode`, `HandMenuStepNode`
-and `InfoPointStepNode` (`Luminous.GraphSystem` → `PixoVR.TrainingCore.Graph`, same class
-names and serialized fields). The platform layer also exposes the portal catalog API the
-lobby code expects: `IPlatformSession.GetUserScenarios()` (`UserScenarios`/`Scenario`/
-`Module`/`SessionDescription` in `PixoVR.TrainingCore.Platform`), `GetStatusAsync`,
-`ModuleInfoStartedAsync`/`ModuleInfoEndedAsync`, and `StudentNickname`; the Apex provider
-populates the catalog from `GetCurrentUserModules()`/`GetModulesList()` after login.
-
-Options (`MigrationOptions` / migration window):
-
-- `DryRun` (default) — writes `Logs/luminous-migration-report.csv` without touching files.
-- `RelocateThirdParty` (default on) — moves `Luminous Packages/…/HighlightPlus`,
-  `…/Ultimate Replay`, `…/Ultimate Replay 2.0` and the loose
-  `HighlightPlusRenderPassFeature.cs` into `Assets/Plugins/<Name>/`, preserving `.meta`
-  GUIDs so existing `HighlightEffect`/`HighlightPlusRenderPassFeature` refs keep resolving
-  (reported as `kept (relocated)` in the CSV, not unmapped).
-- `AddHighlightPlusDefine` (default on) — adds `HIGHLIGHT_PLUS` to the scripting define
-  symbols of every installed build target group.
-- `DeleteLuminousPackages` (default off) — deletes `Luminous Packages/` after rewriting.
-
-Batchmode entry point: `-executeMethod PixoVR.TrainingCore.Editor.Migration.LuminousMigrator.RunFromCommandLine`
-with `-luminousProjectRoot <path>`, `-luminousDryRun`, `-luminousPackageSource <dep spec>`.
+The migration tool is under `Tools/PixoVR/Migrate Luminous Project…` (Editor window)
+or `-executeMethod PixoVR.TrainingCore.Editor.Migration.LuminousMigrator.RunFromCommandLine`
+in batchmode. It rewrites `m_Script` refs, managed-reference `type:` blocks, qualified
+type-name strings, UnityEvent targets, and known asset guids in scenes/prefabs/assets,
+and writes `Logs/luminous-migration-report.csv`. Full docs (architecture, migration
+guide, manual-work checklist, troubleshooting) live on the SDK docs site:
+<https://pixovr.github.io/SDK-docs/docs/Unity%20TrainingCore/>

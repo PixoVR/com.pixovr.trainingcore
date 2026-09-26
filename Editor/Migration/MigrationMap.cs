@@ -28,6 +28,9 @@ namespace PixoVR.TrainingCore.Editor.Migration
         /// <summary>Pixo class name.</summary>
         public string PixoClass;
 
+        /// <summary>Pixo assembly name (null → map default).</summary>
+        public string PixoAsm;
+
         /// <summary>Serialized field renames old→new.</summary>
         public Dictionary<string, string> Fields = new Dictionary<string, string>();
 
@@ -69,71 +72,93 @@ namespace PixoVR.TrainingCore.Editor.Migration
         /// <summary>"ns.Class" managed-ref key → mapping.</summary>
         public Dictionary<string, TypeMapping> ManagedRefTypes = new Dictionary<string, TypeMapping>();
 
+        /// <summary>"ns.Class" (or "Class" when ns empty) → mapping, for all types and scripts.</summary>
+        public Dictionary<string, TypeMapping> QualifiedNames = new Dictionary<string, TypeMapping>();
+
+        /// <summary>Luminous asset guid → Pixo asset guid.</summary>
+        public Dictionary<string, string> AssetGuids = new Dictionary<string, string>();
+
         /// <summary>Load and index the map.</summary>
         public static MigrationMap Load(string json)
         {
+            var map = new MigrationMap();
+            map.Merge(json);
+            return map;
+        }
+
+        /// <summary>Parse the same schema and add/override entries (later wins; re-index).</summary>
+        public void Merge(string json)
+        {
             var root = JObject.Parse(json);
-            var map = new MigrationMap
-            {
-                DllGuids = root["dlls"]?.ToObject<List<string>>() ?? new List<string>(),
-                LuminousAsm = root["luminousAsm"]?.ToString() ?? "CoreSystemRuntime",
-                PixoAsm = root["pixoAsm"]?.ToString() ?? "PixoVR.TrainingCore",
-            };
+            if (root["dlls"] != null)
+                DllGuids = root["dlls"].ToObject<List<string>>();
+            if (root["luminousAsm"] != null)
+                LuminousAsm = root["luminousAsm"].ToString();
+            if (root["pixoAsm"] != null)
+                PixoAsm = root["pixoAsm"].ToString();
 
             foreach (var t in (root["types"] as JArray) ?? new JArray())
-            {
-                var lum = t["luminous"];
-                var m = new TypeMapping
-                {
-                    LuminousNs = lum?["ns"]?.ToString() ?? "",
-                    LuminousClass = lum?["class"]?.ToString() ?? "",
-                };
-                var pixo = t["pixo"];
-                if (pixo != null && pixo.Type != JTokenType.Null)
-                {
-                    m.PixoNs = pixo["ns"]?.ToString();
-                    m.PixoClass = pixo["class"]?.ToString();
-                }
-                var fields = t["fields"] as JObject;
-                if (fields != null)
-                    foreach (var p in fields.Properties())
-                        m.Fields[p.Name] = p.Value.ToString();
-                m.Keep = t["keep"]?.ToObject<bool>() ?? false;
-                m.FileID = FileIDUtil.ComputeFileID(m.LuminousNs, m.LuminousClass);
-                map.Types.Add(m);
-                map.ManagedRefTypes[m.Key] = m;
-            }
-
+                AddType(ParseMapping(t, null), true);
             foreach (var s in (root["scripts"] as JArray) ?? new JArray())
+                AddType(ParseMapping(s, s["guid"]?.ToString()), false);
+            foreach (var a in (root["assets"] as JArray) ?? new JArray())
             {
-                var lum = s["luminous"];
-                var m = new TypeMapping
-                {
-                    ScriptGuid = s["guid"]?.ToString(),
-                    LuminousNs = lum?["ns"]?.ToString() ?? "",
-                    LuminousClass = lum?["class"]?.ToString() ?? "",
-                };
-                var pixo = s["pixo"];
-                if (pixo != null && pixo.Type != JTokenType.Null)
-                {
-                    m.PixoNs = pixo["ns"]?.ToString();
-                    m.PixoClass = pixo["class"]?.ToString();
-                }
-                var fields = s["fields"] as JObject;
-                if (fields != null)
-                    foreach (var p in fields.Properties())
-                        m.Fields[p.Name] = p.Value.ToString();
-                m.Keep = s["keep"]?.ToObject<bool>() ?? false;
-                map.Types.Add(m);
-                if (m.ScriptGuid != null)
-                    map.LooseScripts[m.ScriptGuid] = m;
+                var from = a["luminous"]?.ToString();
+                var to = a["pixo"]?.ToString();
+                if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
+                    AssetGuids[from] = to;
             }
+            Reindex();
+        }
 
-            foreach (var m in map.Types.Where(t => t.ScriptGuid == null))
-                foreach (var g in map.DllGuids)
-                    map.ScriptRefs[$"{m.FileID}:{g}"] = m;
+        private static TypeMapping ParseMapping(JToken t, string scriptGuid)
+        {
+            var lum = t["luminous"];
+            var m = new TypeMapping
+            {
+                ScriptGuid = scriptGuid,
+                LuminousNs = lum?["ns"]?.ToString() ?? "",
+                LuminousClass = lum?["class"]?.ToString() ?? "",
+            };
+            var pixo = t["pixo"];
+            if (pixo != null && pixo.Type != JTokenType.Null)
+            {
+                m.PixoNs = pixo["ns"]?.ToString();
+                m.PixoClass = pixo["class"]?.ToString();
+                m.PixoAsm = pixo["asm"]?.ToString();
+            }
+            var fields = t["fields"] as JObject;
+            if (fields != null)
+                foreach (var p in fields.Properties())
+                    m.Fields[p.Name] = p.Value.ToString();
+            m.Keep = t["keep"]?.ToObject<bool>() ?? false;
+            m.FileID = FileIDUtil.ComputeFileID(m.LuminousNs, m.LuminousClass);
+            return m;
+        }
 
-            return map;
+        private void AddType(TypeMapping m, bool isTypeEntry)
+        {
+            Types.RemoveAll(x => x.LuminousClass == m.LuminousClass && x.LuminousNs == m.LuminousNs
+                                 && x.ScriptGuid == m.ScriptGuid);
+            Types.Add(m);
+        }
+
+        private void Reindex()
+        {
+            ScriptRefs.Clear();
+            LooseScripts.Clear();
+            ManagedRefTypes.Clear();
+            QualifiedNames.Clear();
+            foreach (var m in Types)
+            {
+                QualifiedNames[m.Key] = m;
+                if (m.ScriptGuid != null)
+                    LooseScripts[m.ScriptGuid] = m;
+                else
+                    foreach (var g in DllGuids)
+                        ScriptRefs[$"{m.FileID}:{g}"] = m;
+                ManagedRefTypes[m.Key] = m;
+            }
         }
 
         /// <summary>Load from a file path.</summary>

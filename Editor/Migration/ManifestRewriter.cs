@@ -28,7 +28,8 @@ namespace PixoVR.TrainingCore.Editor.Migration
         public string TrainingCoreDependency = "file:../com.pixovr.trainingcore";
 
         /// <summary>Asset extensions to rewrite.</summary>
-        public string[] Extensions = { ".unity", ".prefab", ".asset", ".playable", ".controller" };
+        public string[] Extensions = { ".unity", ".prefab", ".asset", ".playable", ".controller",
+            ".shadergraph", ".shadersubgraph", ".mat", ".overrideController", ".anim" };
 
         /// <summary>Manifest dependency version for Addressables.</summary>
         public string AddressablesVersion = "1.28.0";
@@ -49,6 +50,14 @@ namespace PixoVR.TrainingCore.Editor.Migration
         /// <summary>NodeGraphProcessor git dependency spec.</summary>
         public string NodeGraphProcessorDependency =
             "https://github.com/alelievr/NodeGraphProcessor.git?path=/Assets/com.alelievr.NodeGraphProcessor#1.3.1";
+
+        /// <summary>Apply the extended rules learned from the sa-collect-gas-sample migration:
+        /// qualified type strings, UnityEvent target names, asset guid remaps, residual-Luminous
+        /// report rows. Disable to run only script/managed-ref rewrites.</summary>
+        public bool ExtendedRules = true;
+
+        /// <summary>Optional project-specific overlay map merged over luminous-map.json.</summary>
+        public string ExtraMapPath;
 
         /// <summary>Report output path; null → &lt;project&gt;/Logs/luminous-migration-report.csv.</summary>
         public string ReportPath;

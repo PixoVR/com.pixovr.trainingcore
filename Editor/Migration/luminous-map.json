@@ -293,7 +293,8 @@
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Apex",
-    "class": "ApexPlatformBootstrap"
+    "class": "ApexPlatformBootstrap",
+    "asm": "PixoVR.TrainingCore.Apex"
    }
   },
   {
@@ -380,7 +381,8 @@
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Apex",
-    "class": "ApexCredentialsLoader"
+    "class": "ApexCredentialsLoader",
+    "asm": "PixoVR.TrainingCore.Apex"
    }
   },
   {
@@ -2498,21 +2500,24 @@
   {
    "guid": "3fe36e8b7155f624492304cc58c6241c",
    "luminous": {
-    "class": "ActionBasedControllerManager"
+    "class": "ActionBasedControllerManager",
+    "ns": "Luminous.Interactables.Input"
    },
    "pixo": null
   },
   {
    "guid": "76c668081c6372e4ba7a3caf9ce57e68",
    "luminous": {
-    "class": "ActiveHazardsOnTeleport"
+    "class": "ActiveHazardsOnTeleport",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "7d75027099798c34d8286f0a5104294d",
    "luminous": {
-    "class": "AnimatorPreparer"
+    "class": "AnimatorPreparer",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -2520,38 +2525,44 @@
   {
    "guid": "cf0d2103a6982d449a82c2ea81eb945e",
    "luminous": {
-    "class": "AnswerSelectedEventArgs"
+    "class": "AnswerSelectedEventArgs",
+    "ns": "Luminous.Observer.SubjectEvents"
    },
    "pixo": null
   },
   {
    "guid": "5b79848309f08714baabf1186d988a12",
    "luminous": {
-    "class": "AssessmentHazardVisuals"
+    "class": "AssessmentHazardVisuals",
+    "ns": "Luminous.Assessment"
    },
    "pixo": null
   },
   {
    "guid": "0fb280ac4c43ebd4fb7d97a0e757fd6e",
    "luminous": {
-    "class": "AssessmentModeHazardSelector"
+    "class": "AssessmentModeHazardSelector",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "561941b84d3a43ca8deb055e33f754c7",
    "luminous": {
-    "class": "AutoRayManager"
+    "class": "AutoRayManager",
+    "ns": "Luminous.Interactables.Input"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "AutoRayManager"
+    "class": "AutoRayManager",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "e8510557ffbb30f4d9375488903054b7",
    "luminous": {
-    "class": "AvatarControllerBase"
+    "class": "AvatarControllerBase",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Multiuser",
@@ -2561,7 +2572,8 @@
   {
    "guid": "4171528f1b33d424294a32d0b739ea9f",
    "luminous": {
-    "class": "BehaviourPreparer"
+    "class": "BehaviourPreparer",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -2569,7 +2581,8 @@
   {
    "guid": "dd6b2ba1c0275b147983a97f5b14ab79",
    "luminous": {
-    "class": "BitConverterNonAlloc"
+    "class": "BitConverterNonAlloc",
+    "ns": "UltimateReplay.Util"
    },
    "pixo": null,
    "keep": true
@@ -2577,7 +2590,8 @@
   {
    "guid": "5e7c5711db7b47cb82c60142fef102c6",
    "luminous": {
-    "class": "CircularPlayerPlacer"
+    "class": "CircularPlayerPlacer",
+    "ns": "Luminous.Utils"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Utils",
@@ -2587,7 +2601,8 @@
   {
    "guid": "2890f7a9456436e46baf65e0924e61c8",
    "luminous": {
-    "class": "ColliderPreparer"
+    "class": "ColliderPreparer",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -2595,7 +2610,8 @@
   {
    "guid": "39be4c82d444bfa49b3c82e9422ec9d2",
    "luminous": {
-    "class": "ComponentPreparer"
+    "class": "ComponentPreparer",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -2603,28 +2619,32 @@
   {
    "guid": "cb2ddcc90d0c15740bf191944373464b",
    "luminous": {
-    "class": "ControllerState"
+    "class": "ControllerState",
+    "ns": "Luminous.Interactables.Input"
    },
    "pixo": null
   },
   {
    "guid": "07348a91a4fef9e4f8f3495e6f6e0575",
    "luminous": {
-    "class": "CoreSettingsWindow"
+    "class": "CoreSettingsWindow",
+    "ns": "Luminous.Core.Settings"
    },
    "pixo": null
   },
   {
    "guid": "e987dae9d90a6e74c8fea04f3d428a30",
    "luminous": {
-    "class": "CrossSceneReferences"
+    "class": "CrossSceneReferences",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "f584999149f75874a851efe6544b7740",
    "luminous": {
-    "class": "DefaultReplayPreparer"
+    "class": "DefaultReplayPreparer",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -2632,7 +2652,8 @@
   {
    "guid": "7fb50493cf3d96a4ebe5d0d37cd778ca",
    "luminous": {
-    "class": "DesktopFreezeBehaviour"
+    "class": "DesktopFreezeBehaviour",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Utility",
@@ -2642,24 +2663,28 @@
   {
    "guid": "de2b683d2350cae4ca96aeac3ab3fd26",
    "luminous": {
-    "class": "DeviceReferences"
+    "class": "DeviceReferences",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "DeviceReferences"
+    "class": "DeviceReferences",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "7ef37ef266af49c6acc4d512060a3a2a",
    "luminous": {
-    "class": "DynamicSpawnReplayInit"
+    "class": "DynamicSpawnReplayInit",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "b272ac3b8a67ccc479828f2cf2176690",
    "luminous": {
-    "class": "EditorMenu"
+    "class": "EditorMenu",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -2667,156 +2692,180 @@
   {
    "guid": "2034b140d5fd7cf428be494908b92918",
    "luminous": {
-    "class": "EditorWindowReferenceHolder"
+    "class": "EditorWindowReferenceHolder",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "8974902564fa1f8409c3449e40940d02",
    "luminous": {
-    "class": "EyeTrackerMRTK"
+    "class": "EyeTrackerMRTK",
+    "ns": "Luminous.Core.Interactions"
    },
    "pixo": null
   },
   {
    "guid": "deafe872019f1944c81ae1b1a50a1034",
    "luminous": {
-    "class": "GameModeRandomSetup"
+    "class": "GameModeRandomSetup",
+    "ns": "Luminous.Assessment"
    },
    "pixo": null
   },
   {
    "guid": "9042a916068cfb8449ca8d405c79a131",
    "luminous": {
-    "class": "GazeManager"
+    "class": "GazeManager",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "GazeManager"
+    "class": "GazeManager",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "38e751d8e89c2fe438370381fbf54590",
    "luminous": {
-    "class": "GenericHazardStateTracker"
+    "class": "GenericHazardStateTracker",
+    "ns": "Luminous.HazardPerception"
    },
    "pixo": null
   },
   {
    "guid": "7e71ea772b5cf0c4ea1f84cc8677179f",
    "luminous": {
-    "class": "GlobalDefaultsSettingsElement"
+    "class": "GlobalDefaultsSettingsElement",
+    "ns": "Luminous.Core.CustomElements"
    },
    "pixo": null
   },
   {
    "guid": "cc53bdc9d8245a6409ac7a0f19a82b74",
    "luminous": {
-    "class": "GlobalGeneralSettingsElement"
+    "class": "GlobalGeneralSettingsElement",
+    "ns": "Luminous.Core.CustomElements"
    },
    "pixo": null
   },
   {
    "guid": "109fb1b602f94924b9cbaa3f88395cb2",
    "luminous": {
-    "class": "GlobalInteractionsSettingsElement"
+    "class": "GlobalInteractionsSettingsElement",
+    "ns": "Luminous.Core.Interactions"
    },
    "pixo": null
   },
   {
    "guid": "a50db771fdb4a5f478151e171a58a6ee",
    "luminous": {
-    "class": "GlobalPlatformSettingsElement"
+    "class": "GlobalPlatformSettingsElement",
+    "ns": "Luminous.Core.CustomElements"
    },
    "pixo": null
   },
   {
    "guid": "eaf334c4ad2ed49459a6a8ae5a8efe49",
    "luminous": {
-    "class": "GlobalVoiceAndLanguageSettingsElement"
+    "class": "GlobalVoiceAndLanguageSettingsElement",
+    "ns": "Luminous.Core.CustomElements"
    },
    "pixo": null
   },
   {
    "guid": "0a3397d42bd53c34abc64b8be3239a64",
    "luminous": {
-    "class": "GrabbableOpenXR"
+    "class": "GrabbableOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRIGrabBehaviour"
+    "class": "XRIGrabBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "aaba865ed4e13d74ca5c006503779327",
    "luminous": {
-    "class": "GraphHighlightInterface"
+    "class": "GraphHighlightInterface",
+    "ns": "Luminous.Core.Interactions"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Highlight",
-    "class": "HighlightPlusHighlighter"
+    "class": "HighlightPlusHighlighter",
+    "asm": "PixoVR.TrainingCore.HighlightPlus"
    }
   },
   {
    "guid": "b47dd59b750dfb84c9e11a4dce68da93",
    "luminous": {
-    "class": "HandMenuScraper"
+    "class": "HandMenuScraper",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "955292d89b40a2c4786371eddd231d16",
    "luminous": {
-    "class": "HazardGameModeSetter"
+    "class": "HazardGameModeSetter",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "008701e8fd09ba74da8a88058e20bcb4",
    "luminous": {
-    "class": "HazardPoint"
+    "class": "HazardPoint",
+    "ns": "Luminous.HazardPerception"
    },
    "pixo": null
   },
   {
    "guid": "8f7e7f2fdda8810439a5a2a4f1008fcc",
    "luminous": {
-    "class": "HazardStateUI"
+    "class": "HazardStateUI",
+    "ns": "Luminous.HazardPerception"
    },
    "pixo": null
   },
   {
    "guid": "e849689c37074674da1fd2801cc605ad",
    "luminous": {
-    "class": "HazardsToActivate"
+    "class": "HazardsToActivate",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "2cab0b9505169414abfbb0d64973052a",
    "luminous": {
-    "class": "HighlightColourChange"
+    "class": "HighlightColourChange",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "871b322a952f444583f166eb0e6cba25",
    "luminous": {
-    "class": "HighlightComponentManagerMRTK"
+    "class": "HighlightComponentManagerMRTK",
+    "ns": "Luminous.EditorTools.ComponentSetters.Highlights"
    },
    "pixo": null
   },
   {
    "guid": "645683f9adb64c34a81f83890aa449a3",
    "luminous": {
-    "class": "HighlightComponentManagerOpenXR"
+    "class": "HighlightComponentManagerOpenXR",
+    "ns": "Luminous.EditorTools.ComponentSetters.Highlights"
    },
    "pixo": null
   },
   {
    "guid": "3a7b0de12ea5b2f4281c6b1a13514a2d",
    "luminous": {
-    "class": "HighlightEffect"
+    "class": "HighlightEffect",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2824,7 +2873,8 @@
   {
    "guid": "0865e15f03a37ee4ca9f396777c12113",
    "luminous": {
-    "class": "HighlightEffectActions"
+    "class": "HighlightEffectActions",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2832,7 +2882,8 @@
   {
    "guid": "103ad30dfd9b5974783218585d0c9c36",
    "luminous": {
-    "class": "HighlightEffectEditor"
+    "class": "HighlightEffectEditor",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2840,7 +2891,8 @@
   {
    "guid": "accf3de4c1161ac41b0a0d5c2f263de8",
    "luminous": {
-    "class": "HighlightEffectOccluderManager"
+    "class": "HighlightEffectOccluderManager",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2848,7 +2900,8 @@
   {
    "guid": "e52b7676e39ca9a4090f26b689bb8b78",
    "luminous": {
-    "class": "HighlightManager"
+    "class": "HighlightManager",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2856,7 +2909,8 @@
   {
    "guid": "cb0624240a8542b4ba412dd958d9b259",
    "luminous": {
-    "class": "HighlightManagerEditor"
+    "class": "HighlightManagerEditor",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2864,7 +2918,8 @@
   {
    "guid": "9e404be72357e20488724a6ff5717e4f",
    "luminous": {
-    "class": "HighlightPlusRenderPassFeature"
+    "class": "HighlightPlusRenderPassFeature",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2872,7 +2927,8 @@
   {
    "guid": "be2f8cc734b236e4087c5ec123e62dba",
    "luminous": {
-    "class": "HighlightProfile"
+    "class": "HighlightProfile",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2880,7 +2936,8 @@
   {
    "guid": "10bd2a45cc90616458200fff1bc3c362",
    "luminous": {
-    "class": "HighlightProfileEditor"
+    "class": "HighlightProfileEditor",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2888,7 +2945,8 @@
   {
    "guid": "40af127ea18147046857c6c361a5f60c",
    "luminous": {
-    "class": "HighlightSeeThroughOccluder"
+    "class": "HighlightSeeThroughOccluder",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2896,7 +2954,8 @@
   {
    "guid": "7db59a8dc6291ec43b6c7cbd1c856aaa",
    "luminous": {
-    "class": "HighlightSeeThroughOccluderEditor"
+    "class": "HighlightSeeThroughOccluderEditor",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2904,7 +2963,8 @@
   {
    "guid": "76e3c631f8108d849860c0c3c5612a56",
    "luminous": {
-    "class": "HighlightTrigger"
+    "class": "HighlightTrigger",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2912,7 +2972,8 @@
   {
    "guid": "99f21b46f641e3c4e9e10a91f6064738",
    "luminous": {
-    "class": "HighlightTriggerEditor"
+    "class": "HighlightTriggerEditor",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -2920,35 +2981,40 @@
   {
    "guid": "0acb914e1e3742bf994f00f5305b1ca4",
    "luminous": {
-    "class": "IHighlightSetter"
+    "class": "IHighlightSetter",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "18091c906ce1ec542b0c7551eaed9102",
    "luminous": {
-    "class": "IInteractableObjectEditorPanel"
+    "class": "IInteractableObjectEditorPanel",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "fcb862095f03473da12d417d30752585",
    "luminous": {
-    "class": "INetworkComponentSetter"
+    "class": "INetworkComponentSetter",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "396ec09abe8e2f1488f90c3a0560f0c4",
    "luminous": {
-    "class": "IPlayerInteractionControls"
+    "class": "IPlayerInteractionControls",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "629280d0f4c53924fbae3de70f0f645f",
    "luminous": {
-    "class": "IReplayPreparer"
+    "class": "IReplayPreparer",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2956,7 +3022,8 @@
   {
    "guid": "be11e18419a06bb42b97640ac31f62f9",
    "luminous": {
-    "class": "IReplaySerialize"
+    "class": "IReplaySerialize",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2964,7 +3031,8 @@
   {
    "guid": "2a59b712d4703a140a98e8e261f74a87",
    "luminous": {
-    "class": "IReplaySnapshotStorable"
+    "class": "IReplaySnapshotStorable",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2972,7 +3040,8 @@
   {
    "guid": "ec5ed8d40713c0c4cafc78a8780a4d1b",
    "luminous": {
-    "class": "IReplayStreamProvider"
+    "class": "IReplayStreamProvider",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2980,7 +3049,8 @@
   {
    "guid": "85206ac57e9b15b4a80a6aebe7fb57d2",
    "luminous": {
-    "class": "IReplayStreamSerialize"
+    "class": "IReplayStreamSerialize",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -2988,191 +3058,220 @@
   {
    "guid": "0045173c1dd64abb88b07c031e4dd644",
    "luminous": {
-    "class": "ISnapzoneSetter"
+    "class": "ISnapzoneSetter",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "224b69333d524a83b33ede141fdb08f8",
    "luminous": {
-    "class": "ITouchInteractionSetter"
+    "class": "ITouchInteractionSetter",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "e336f7132b204984adf6f8e075bab9ea",
    "luminous": {
-    "class": "IValveSetter"
+    "class": "IValveSetter",
+    "ns": ""
    },
    "pixo": null
   },
   {
    "guid": "8a6e08fc13e7407f9c2876de742df66f",
    "luminous": {
-    "class": "InteractableData"
+    "class": "InteractableData",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "812e9dd6a0454ff193e3b289e9a6dce8",
    "luminous": {
-    "class": "InteractableObjectEditorWindow"
+    "class": "InteractableObjectEditorWindow",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "c4efe11855b89554b89773356b524c25",
    "luminous": {
-    "class": "InteractableObjectInteractionPanel"
+    "class": "InteractableObjectInteractionPanel",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "7ab65d8d1b7c39845b3c3efa7ddc0019",
    "luminous": {
-    "class": "InteractableObjectObjectPanel"
+    "class": "InteractableObjectObjectPanel",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "08c37eaa881430644aec221f2e90ea05",
    "luminous": {
-    "class": "InteractableObjectSnapIDList"
+    "class": "InteractableObjectSnapIDList",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "aea6a7021cd356e4e81da9bea691204c",
    "luminous": {
-    "class": "InteractableObjectSnapzonePanel"
+    "class": "InteractableObjectSnapzonePanel",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "250a1181ef7629849a0fbbe190aa3080",
    "luminous": {
-    "class": "InteractableObjectValvePanel"
+    "class": "InteractableObjectValvePanel",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "acca9e0b778ec1c47b0fce842efca0d4",
    "luminous": {
-    "class": "JsonPhotonCommandSerializer"
+    "class": "JsonPhotonCommandSerializer",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "f83764ab0c2398346b307cd6e8b1e0b0",
    "luminous": {
-    "class": "KeyboardSkipButton"
+    "class": "KeyboardSkipButton",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "74ff9f77fba5c84408ce54f2c9e84803",
    "luminous": {
-    "class": "LaunchReplay"
+    "class": "LaunchReplay",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "d078d39d09eb19f48869a493732ad552",
    "luminous": {
-    "class": "LayermaskUtility"
+    "class": "LayermaskUtility",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "ad66c626464151e4ca99a68d62ccfbdd",
    "luminous": {
-    "class": "LinearPlayerPlacer"
+    "class": "LinearPlayerPlacer",
+    "ns": "Luminous.Utils"
    },
    "pixo": null
   },
   {
    "guid": "8117e5eb12e183d499ed6814bd7b9171",
    "luminous": {
-    "class": "LoggingSettingsElement"
+    "class": "LoggingSettingsElement",
+    "ns": "Luminous.Core.LoggingSettings"
    },
    "pixo": null
   },
   {
    "guid": "e04e71e4bcbd14b4da0d35b02af9a044",
    "luminous": {
-    "class": "LostObject"
+    "class": "LostObject",
+    "ns": "Luminous.Unity.Utilities"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "LostObject"
+    "class": "LostObject",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "cbf23a972b08bec4d9a13eaa8cdd7af1",
    "luminous": {
-    "class": "LostObjectManager"
+    "class": "LostObjectManager",
+    "ns": "Luminous.Unity.Utilities"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "LostObjectManager"
+    "class": "LostObjectManager",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "020c55edb5019a94aa3cf5958d3c8866",
    "luminous": {
-    "class": "LuminousReplayControlsLegacy"
+    "class": "LuminousReplayControlsLegacy",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "c56afe2a3ba76574ea451cc8e0bab44f",
    "luminous": {
-    "class": "Math"
+    "class": "Math",
+    "ns": "Luminous.Utils"
    },
    "pixo": null
   },
   {
    "guid": "28462036f41e40209b9edcdad912100b",
    "luminous": {
-    "class": "MeshSetter"
+    "class": "MeshSetter",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "f57f5fd58c3ae594bbcb60472fd4e037",
    "luminous": {
-    "class": "MoveObjectToPosition"
+    "class": "MoveObjectToPosition",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "bbba48d11e2c17b468078eee7fc01da5",
    "luminous": {
-    "class": "MultiuserPlayerUtility"
+    "class": "MultiuserPlayerUtility",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "80380460dead9b24ca680a76a86875ee",
    "luminous": {
-    "class": "NetworkGrabManagerOpenXR"
+    "class": "NetworkGrabManagerOpenXR",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "NetworkGrabManager"
+    "class": "NetworkGrabManager",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "428d0554b16f543468458b36339e48e2",
    "luminous": {
-    "class": "NetworkHazardStateManager"
+    "class": "NetworkHazardStateManager",
+    "ns": "Luminous.HazardPerception"
    },
    "pixo": null
   },
   {
    "guid": "d293c891e30090b4ca6ac96c790b5616",
    "luminous": {
-    "class": "NetworkInfoPoint"
+    "class": "NetworkInfoPoint",
+    "ns": "Luminous.Networking"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Interactions",
@@ -3182,7 +3281,8 @@
   {
    "guid": "59ff427fa1afe2a47832a60106fa6f6f",
    "luminous": {
-    "class": "NetworkInfoPointManager"
+    "class": "NetworkInfoPointManager",
+    "ns": "Luminous.Networking"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Interactions",
@@ -3192,109 +3292,128 @@
   {
    "guid": "cb7fd4a4aeaef2e428f431b2376a9aaa",
    "luminous": {
-    "class": "NetworkInitializer"
+    "class": "NetworkInitializer",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "c696b26147400e74493adc8ed07d7135",
    "luminous": {
-    "class": "ObjectEditorSettingsElement"
+    "class": "ObjectEditorSettingsElement",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "4d85e333e7bbc4142a560e637d3659b0",
    "luminous": {
-    "class": "OculusFreezeBehaviour"
+    "class": "OculusFreezeBehaviour",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "OculusFreezeBehaviour"
+    "class": "OculusFreezeBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "df58a9f5ada74844fac9cff009c97d69",
    "luminous": {
-    "class": "PackageData"
+    "class": "PackageData",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "d97755c0b2a70fb4a837acaf482c2dcd",
    "luminous": {
-    "class": "PhotonButton"
+    "class": "PhotonButton",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "b9ec69c191b44a1fa2eb9900396c2bf6",
    "luminous": {
-    "class": "PhotonComponentManager"
+    "class": "PhotonComponentManager",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "8bc346e389426a144ab8b2a4e0ba144c",
    "luminous": {
-    "class": "PhotonFreezeBehaviour"
+    "class": "PhotonFreezeBehaviour",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonFreezeBehaviour"
+    "class": "PhotonFreezeBehaviour",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "6aa204db1089d6d42b26fc10ba7824f9",
    "luminous": {
-    "class": "PhotonInstructorControls"
+    "class": "PhotonInstructorControls",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonInstructorControls"
+    "class": "PhotonInstructorControls",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "6f1f12d06e5d59c4cbce85671c5ed85a",
    "luminous": {
-    "class": "PhotonLobby"
+    "class": "PhotonLobby",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonLobby"
+    "class": "PhotonLobby",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "8456d7e8b9f16424691034981687feb6",
    "luminous": {
-    "class": "PhotonNetworkManager"
+    "class": "PhotonNetworkManager",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonNetworkManager"
+    "class": "PhotonNetworkManager",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "417b55db96bd1cc47ae89975f543eec5",
    "luminous": {
-    "class": "PhotonNetworkUpdateHandler"
+    "class": "PhotonNetworkUpdateHandler",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonSyncView"
+    "class": "PhotonSyncView",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "d69a434fda113fe48986411ca08d0681",
    "luminous": {
-    "class": "PhotonPlayerListSerializer"
+    "class": "PhotonPlayerListSerializer",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "edeef56a3fe042c79b15b597dafbf999",
    "luminous": {
-    "class": "PhotonRandomGenerator"
+    "class": "PhotonRandomGenerator",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Utility",
@@ -3304,79 +3423,92 @@
   {
    "guid": "7aa84049faea6e14f87016d424e6b35c",
    "luminous": {
-    "class": "PhotonRandomSyncView"
+    "class": "PhotonRandomSyncView",
+    "ns": "Luminous.Core.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "ba025dbf2cf77b04699ad28ee219625f",
    "luminous": {
-    "class": "PhotonRoom"
+    "class": "PhotonRoom",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonRoom"
+    "class": "PhotonRoom",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "2d08fb9907ec3dd45b87c7bd9b06cac4",
    "luminous": {
-    "class": "PhotonToggle"
+    "class": "PhotonToggle",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "8cbe8e57706673f4db177a75a13670e7",
    "luminous": {
-    "class": "PhotonValveSyncView"
+    "class": "PhotonValveSyncView",
+    "ns": "Luminous.Middleman.Multiuser.Photon"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Photon",
-    "class": "PhotonSyncView"
+    "class": "PhotonSyncView",
+    "asm": "PixoVR.TrainingCore.Photon"
    }
   },
   {
    "guid": "9f1528ae20691854998c5a3f007711d4",
    "luminous": {
-    "class": "PlatformData"
+    "class": "PlatformData",
+    "ns": "Luminous.Middleman.Platforms"
    },
    "pixo": null
   },
   {
    "guid": "6cd959cca0350204593caed3791ff0d7",
    "luminous": {
-    "class": "PlatformManagerElement"
+    "class": "PlatformManagerElement",
+    "ns": "Luminous.Middleman.Platforms"
    },
    "pixo": null
   },
   {
    "guid": "5db34373a1561ab439ed82b9b1bbed4f",
    "luminous": {
-    "class": "PlatformReader"
+    "class": "PlatformReader",
+    "ns": "Luminous.Middleman.Platforms"
    },
    "pixo": null
   },
   {
    "guid": "055d09b498260df49ae5935ee3c5cee6",
    "luminous": {
-    "class": "PlayerList"
+    "class": "PlayerList",
+    "ns": "Luminous.Middleman.Multiuser"
    },
    "pixo": null
   },
   {
    "guid": "3b1e43385d598bf4e842d73860b7320f",
    "luminous": {
-    "class": "PlayerNetworkControlsOpenXR"
+    "class": "PlayerNetworkControlsOpenXR",
+    "ns": "Luminous.Middleman.Utility"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "PlayerNetworkControls"
+    "class": "PlayerNetworkControls",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "fc45348a3c0cebc4eb756f0d6f07c59c",
    "luminous": {
-    "class": "QuizAnswer"
+    "class": "QuizAnswer",
+    "ns": "Luminous.UI.Quiz"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Interactions",
@@ -3386,7 +3518,8 @@
   {
    "guid": "aca0ed081cdd77445b5bbc2344e61b56",
    "luminous": {
-    "class": "QuizAnswerData"
+    "class": "QuizAnswerData",
+    "ns": "Luminous.Unity.Utilities"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Data",
@@ -3396,7 +3529,8 @@
   {
    "guid": "9e558c82b9fc4814b9f83d6c67f18a13",
    "luminous": {
-    "class": "ReplayAnimator"
+    "class": "ReplayAnimator",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3404,7 +3538,8 @@
   {
    "guid": "074fe435627a30f44800d73607563f5f",
    "luminous": {
-    "class": "ReplayAnimatorInspector"
+    "class": "ReplayAnimatorInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3412,7 +3547,8 @@
   {
    "guid": "40957f64a3762dd4ea64f366cf5be106",
    "luminous": {
-    "class": "ReplayAnimatorSerializer"
+    "class": "ReplayAnimatorSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3420,7 +3556,8 @@
   {
    "guid": "5fe93ffa5a8572642b7307b5504a98d8",
    "luminous": {
-    "class": "ReplayAudio"
+    "class": "ReplayAudio",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3428,7 +3565,8 @@
   {
    "guid": "7dd7f5915279add4ebed0ccdd8c4ccc6",
    "luminous": {
-    "class": "ReplayAudioInspector"
+    "class": "ReplayAudioInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3436,7 +3574,8 @@
   {
    "guid": "7396cc453db93c24b9132c886280aca4",
    "luminous": {
-    "class": "ReplayAudioSerializer"
+    "class": "ReplayAudioSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3444,14 +3583,16 @@
   {
    "guid": "b1052de84b1066743a7b1e36780a5867",
    "luminous": {
-    "class": "ReplayAvatar"
+    "class": "ReplayAvatar",
+    "ns": "Luminous.Interactables"
    },
    "pixo": null
   },
   {
    "guid": "4c08d04e3607a5d4db8a19f10acf85d3",
    "luminous": {
-    "class": "ReplayBehaviour"
+    "class": "ReplayBehaviour",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3459,7 +3600,8 @@
   {
    "guid": "56c70df0f440c1d489d4ef05d8c0f64a",
    "luminous": {
-    "class": "ReplayBlendShape"
+    "class": "ReplayBlendShape",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3467,7 +3609,8 @@
   {
    "guid": "e6b6c05b88b8f924eb6bed85a294a288",
    "luminous": {
-    "class": "ReplayBlendShapeInspector"
+    "class": "ReplayBlendShapeInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3475,7 +3618,8 @@
   {
    "guid": "62c46bf305b651d4aaf4275d6ad60114",
    "luminous": {
-    "class": "ReplayBlendShapeSerializer"
+    "class": "ReplayBlendShapeSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3483,7 +3627,8 @@
   {
    "guid": "12c531f1182a2fe4b9e9ee00ca1d034c",
    "luminous": {
-    "class": "ReplayCleanupUtility"
+    "class": "ReplayCleanupUtility",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3491,7 +3636,8 @@
   {
    "guid": "001d12fa29419364b858d11c75a13a3f",
    "luminous": {
-    "class": "ReplayComponentData"
+    "class": "ReplayComponentData",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3499,7 +3645,8 @@
   {
    "guid": "7b75244ae0a91d74b8ca35c9bd41c5e0",
    "luminous": {
-    "class": "ReplayComponentEnabledState"
+    "class": "ReplayComponentEnabledState",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3507,7 +3654,8 @@
   {
    "guid": "ffed94d4a71a7bf46bd1fad146f58792",
    "luminous": {
-    "class": "ReplayComponentPreparerAttribute"
+    "class": "ReplayComponentPreparerAttribute",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3515,7 +3663,8 @@
   {
    "guid": "b40a24333ee8fc646ad8afa4c2348616",
    "luminous": {
-    "class": "ReplayControls"
+    "class": "ReplayControls",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3523,7 +3672,8 @@
   {
    "guid": "792a7f858be635846b8ba23677744440",
    "luminous": {
-    "class": "ReplayEnabledState"
+    "class": "ReplayEnabledState",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3531,7 +3681,8 @@
   {
    "guid": "1fd172f9f1827f340bc7449d8c911da9",
    "luminous": {
-    "class": "ReplayEnabledStateSerializer"
+    "class": "ReplayEnabledStateSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3539,7 +3690,8 @@
   {
    "guid": "91393dd3263e92343b32438deb9a314d",
    "luminous": {
-    "class": "ReplayEventData"
+    "class": "ReplayEventData",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3547,7 +3699,8 @@
   {
    "guid": "fb8932ea2836913418bf9e634c1f034d",
    "luminous": {
-    "class": "ReplayFileBinaryTarget"
+    "class": "ReplayFileBinaryTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3555,7 +3708,8 @@
   {
    "guid": "f41d0e213c9318f498dee227689b07e8",
    "luminous": {
-    "class": "ReplayFileJsonTarget"
+    "class": "ReplayFileJsonTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3563,7 +3717,8 @@
   {
    "guid": "28aebdb507f190448ab4445a7e8a5d4c",
    "luminous": {
-    "class": "ReplayFileTarget"
+    "class": "ReplayFileTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3571,7 +3726,8 @@
   {
    "guid": "90334f243cf1bed428e07db1689aaaca",
    "luminous": {
-    "class": "ReplayHandle"
+    "class": "ReplayHandle",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3579,7 +3735,8 @@
   {
    "guid": "04592cb4cd074914086ab3864e4d21dd",
    "luminous": {
-    "class": "ReplayHighlightReelStorage"
+    "class": "ReplayHighlightReelStorage",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3587,7 +3744,8 @@
   {
    "guid": "12ac89c7a3be8394e90c5be78f3c52c2",
    "luminous": {
-    "class": "ReplayHumanoidConfigurator"
+    "class": "ReplayHumanoidConfigurator",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3595,7 +3753,8 @@
   {
    "guid": "96cc5263804c91e499e7660f85fc8cdb",
    "luminous": {
-    "class": "ReplayHumanoidConfiguratorWindow"
+    "class": "ReplayHumanoidConfiguratorWindow",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3603,7 +3762,8 @@
   {
    "guid": "acc0a12dea2b63a43bcc8ca2b0df9e82",
    "luminous": {
-    "class": "ReplayIdentity"
+    "class": "ReplayIdentity",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3611,7 +3771,8 @@
   {
    "guid": "fab8da507f8327348926c0c5675d47ef",
    "luminous": {
-    "class": "ReplayIdentityPropertyDrawer"
+    "class": "ReplayIdentityPropertyDrawer",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3619,7 +3780,8 @@
   {
    "guid": "536289f12611b6f469143374e1771f14",
    "luminous": {
-    "class": "ReplayIgnoreAttribute"
+    "class": "ReplayIgnoreAttribute",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3627,7 +3789,8 @@
   {
    "guid": "de296eccfdbb23040afa0a07279a6566",
    "luminous": {
-    "class": "ReplayInitialData"
+    "class": "ReplayInitialData",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3635,7 +3798,8 @@
   {
    "guid": "c8dfdc0254d9aca46a22911e82b4ce67",
    "luminous": {
-    "class": "ReplayInitialDataBuffer"
+    "class": "ReplayInitialDataBuffer",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3643,7 +3807,8 @@
   {
    "guid": "ecf83de65418fcd4ab0beb5961f4324a",
    "luminous": {
-    "class": "ReplayInstancePool"
+    "class": "ReplayInstancePool",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3651,7 +3816,8 @@
   {
    "guid": "b7bd2f5b768e32243b7e0dfccd0ae1d0",
    "luminous": {
-    "class": "ReplayLineRenderer"
+    "class": "ReplayLineRenderer",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3659,14 +3825,16 @@
   {
    "guid": "19d7e774bb4e76f4281e1be9c9e2fc89",
    "luminous": {
-    "class": "ReplayLoader"
+    "class": "ReplayLoader",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "5256efb2b6404834994e307013ce2e4c",
    "luminous": {
-    "class": "ReplayLockable"
+    "class": "ReplayLockable",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3674,7 +3842,8 @@
   {
    "guid": "1cec5e4a97fe0d64282750f4e1b273aa",
    "luminous": {
-    "class": "ReplayManager"
+    "class": "ReplayManager",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3682,7 +3851,8 @@
   {
    "guid": "efbd62e1852a2c34590a3ca345200df6",
    "luminous": {
-    "class": "ReplayMaterial"
+    "class": "ReplayMaterial",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3690,7 +3860,8 @@
   {
    "guid": "e94db3f2f38574845af458cf07a54d76",
    "luminous": {
-    "class": "ReplayMaterialChange"
+    "class": "ReplayMaterialChange",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3698,7 +3869,8 @@
   {
    "guid": "221ca0108cd00934e9a55751a6222e0d",
    "luminous": {
-    "class": "ReplayMaterialChangeInspector"
+    "class": "ReplayMaterialChangeInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3706,7 +3878,8 @@
   {
    "guid": "54c300dc7cb1d184a9eb6722c4a5ed26",
    "luminous": {
-    "class": "ReplayMaterialChangeSerializer"
+    "class": "ReplayMaterialChangeSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3714,7 +3887,8 @@
   {
    "guid": "f08c1db871bc5a84882bafbf75e1e3e7",
    "luminous": {
-    "class": "ReplayMaterialInspector"
+    "class": "ReplayMaterialInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3722,7 +3896,8 @@
   {
    "guid": "024cdd1858a7bc543b420fea5a08c65b",
    "luminous": {
-    "class": "ReplayMaterialSerializer"
+    "class": "ReplayMaterialSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3730,7 +3905,8 @@
   {
    "guid": "cf1df2281d77924499847ec9fa04339e",
    "luminous": {
-    "class": "ReplayMemoryTarget"
+    "class": "ReplayMemoryTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3738,7 +3914,8 @@
   {
    "guid": "950d9d3020b289040a10aac4bf041f1b",
    "luminous": {
-    "class": "ReplayMethodAttribute"
+    "class": "ReplayMethodAttribute",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3746,7 +3923,8 @@
   {
    "guid": "e75cdbb46f7f7ae41a32ca74431eabf3",
    "luminous": {
-    "class": "ReplayMethodData"
+    "class": "ReplayMethodData",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3754,7 +3932,8 @@
   {
    "guid": "fd365bbaadf100e4fa7a14deeb5650dc",
    "luminous": {
-    "class": "ReplayMethods"
+    "class": "ReplayMethods",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3762,7 +3941,8 @@
   {
    "guid": "b6d4a23cc5cda434fbd19ba3e86cc094",
    "luminous": {
-    "class": "ReplayObject"
+    "class": "ReplayObject",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3770,7 +3950,8 @@
   {
    "guid": "3a6476b54e93fc442bd680a06617d8a7",
    "luminous": {
-    "class": "ReplayObjectInspector"
+    "class": "ReplayObjectInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3778,7 +3959,8 @@
   {
    "guid": "c6364ad72ee292145a8ca4ec799fb2cd",
    "luminous": {
-    "class": "ReplayObjectLifecycleProvider"
+    "class": "ReplayObjectLifecycleProvider",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3786,7 +3968,8 @@
   {
    "guid": "fc6e6f0ce9e6359429465200068e0242",
    "luminous": {
-    "class": "ReplayObjectPrefabLifecycleProvider"
+    "class": "ReplayObjectPrefabLifecycleProvider",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3794,7 +3977,8 @@
   {
    "guid": "a58b08d55bb0a3743aab20c1789cc858",
    "luminous": {
-    "class": "ReplayObjectReferencePropertyDrawer"
+    "class": "ReplayObjectReferencePropertyDrawer",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3802,7 +3986,8 @@
   {
    "guid": "b1174647ac3effc4e8e436ed67aea282",
    "luminous": {
-    "class": "ReplayObjectSerializer"
+    "class": "ReplayObjectSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3810,7 +3995,8 @@
   {
    "guid": "016871611446ca44690ceb14c7168916",
    "luminous": {
-    "class": "ReplayParticleSystem"
+    "class": "ReplayParticleSystem",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3818,7 +4004,8 @@
   {
    "guid": "0a7f82787dd7b2249a960010531229a9",
    "luminous": {
-    "class": "ReplayParticleSystemInspector"
+    "class": "ReplayParticleSystemInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3826,7 +4013,8 @@
   {
    "guid": "246d354d09304e648814edb461704b29",
    "luminous": {
-    "class": "ReplayParticleSystemSerializer"
+    "class": "ReplayParticleSystemSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3834,7 +4022,8 @@
   {
    "guid": "d2f9cb44cee95424992a0dd86609632e",
    "luminous": {
-    "class": "ReplayPlaybackAccuracyReporter"
+    "class": "ReplayPlaybackAccuracyReporter",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -3842,7 +4031,8 @@
   {
    "guid": "6d4a310f74c68da4683575ed8485cb15",
    "luminous": {
-    "class": "ReplayPlaybackOptions"
+    "class": "ReplayPlaybackOptions",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3850,7 +4040,8 @@
   {
    "guid": "6788a2f7310fbad4892e48fee7ea1721",
    "luminous": {
-    "class": "ReplayPlaybackServiceInstance"
+    "class": "ReplayPlaybackServiceInstance",
+    "ns": "UltimateReplay.Core.Services"
    },
    "pixo": null,
    "keep": true
@@ -3858,7 +4049,8 @@
   {
    "guid": "e7f4d7b8ce199da40980de82bcbb24aa",
    "luminous": {
-    "class": "ReplayPointRendererInspector"
+    "class": "ReplayPointRendererInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3866,7 +4058,8 @@
   {
    "guid": "213ccb33ebfa6174cb2fef74f78c1f89",
    "luminous": {
-    "class": "ReplayPointRendererSerializer"
+    "class": "ReplayPointRendererSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3874,7 +4067,8 @@
   {
    "guid": "c04d4be12b2307542bc84c93ef878fab",
    "luminous": {
-    "class": "ReplayRecordOptions"
+    "class": "ReplayRecordOptions",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3882,7 +4076,8 @@
   {
    "guid": "fac6c792c291290458f4bc635d3239b8",
    "luminous": {
-    "class": "ReplayRecordServiceInstance"
+    "class": "ReplayRecordServiceInstance",
+    "ns": "UltimateReplay.Core.Services"
    },
    "pixo": null,
    "keep": true
@@ -3890,7 +4085,8 @@
   {
    "guid": "f3e64e3e31d70364fbcd50e81a982978",
    "luminous": {
-    "class": "ReplayRecordableBehaviour"
+    "class": "ReplayRecordableBehaviour",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3898,7 +4094,8 @@
   {
    "guid": "2ef1dd98b5ee635479d71bd419f1f494",
    "luminous": {
-    "class": "ReplayRecordableBehaviourInspector"
+    "class": "ReplayRecordableBehaviourInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3906,7 +4103,8 @@
   {
    "guid": "3c5b042f4f6e1ec4bb5890985459d457",
    "luminous": {
-    "class": "ReplayRecordableStatistics"
+    "class": "ReplayRecordableStatistics",
+    "ns": "UltimateReplay.Statistics"
    },
    "pixo": null,
    "keep": true
@@ -3914,7 +4112,8 @@
   {
    "guid": "2de70f406573bff4398019b4524f26c3",
    "luminous": {
-    "class": "ReplayScene"
+    "class": "ReplayScene",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3922,7 +4121,8 @@
   {
    "guid": "bb2e9455f91dd334caa8ada9792a5a30",
    "luminous": {
-    "class": "ReplaySceneManager"
+    "class": "ReplaySceneManager",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3930,7 +4130,8 @@
   {
    "guid": "42b8444cf20427d4b93113bdae642fec",
    "luminous": {
-    "class": "ReplaySequencer"
+    "class": "ReplaySequencer",
+    "ns": "UltimateReplay.Core.Services"
    },
    "pixo": null,
    "keep": true
@@ -3938,7 +4139,8 @@
   {
    "guid": "f0ddedfd7afe9f04fb99a22983727879",
    "luminous": {
-    "class": "ReplaySerializerAttribute"
+    "class": "ReplaySerializerAttribute",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3946,7 +4148,8 @@
   {
    "guid": "b79f578e6b626424d973d029bdf9a7e2",
    "luminous": {
-    "class": "ReplaySerializers"
+    "class": "ReplaySerializers",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -3954,7 +4157,8 @@
   {
    "guid": "1c00c53bedea70f45b7ecbf3ea851a45",
    "luminous": {
-    "class": "ReplayServiceInstance"
+    "class": "ReplayServiceInstance",
+    "ns": "UltimateReplay.Core.Services"
    },
    "pixo": null,
    "keep": true
@@ -3962,7 +4166,8 @@
   {
    "guid": "c9d4e206e5276bc49859d9436cfcceac",
    "luminous": {
-    "class": "ReplaySettingsInspector"
+    "class": "ReplaySettingsInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3970,7 +4175,8 @@
   {
    "guid": "a31294c9bade2f244a0d1c9e60523a2d",
    "luminous": {
-    "class": "ReplaySnapshot"
+    "class": "ReplaySnapshot",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -3978,7 +4184,8 @@
   {
    "guid": "09ae339e519b0314c95239f08f5f5b89",
    "luminous": {
-    "class": "ReplayState"
+    "class": "ReplayState",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -3986,7 +4193,8 @@
   {
    "guid": "7d09dedb937303b439afdbb09b2bc98c",
    "luminous": {
-    "class": "ReplayState.Read"
+    "class": "ReplayState.Read",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -3994,7 +4202,8 @@
   {
    "guid": "67560595c5a70a14bb07704a0e701a98",
    "luminous": {
-    "class": "ReplayState.Write"
+    "class": "ReplayState.Write",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4002,7 +4211,8 @@
   {
    "guid": "deeba2469c70fae40bb9909d4f84d8bc",
    "luminous": {
-    "class": "ReplayStatePointer"
+    "class": "ReplayStatePointer",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4010,7 +4220,8 @@
   {
    "guid": "095e88e139feb3443a7d31ab72366ff5",
    "luminous": {
-    "class": "ReplayStatistics"
+    "class": "ReplayStatistics",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4018,7 +4229,8 @@
   {
    "guid": "0f4b78492644f104bb39a956378f3ce6",
    "luminous": {
-    "class": "ReplayStatisticsUtil"
+    "class": "ReplayStatisticsUtil",
+    "ns": "UltimateReplay.Statistics"
    },
    "pixo": null,
    "keep": true
@@ -4026,7 +4238,8 @@
   {
    "guid": "259a3613f17a4734da5eaa767db8b919",
    "luminous": {
-    "class": "ReplayStorageCombiner"
+    "class": "ReplayStorageCombiner",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4034,7 +4247,8 @@
   {
    "guid": "516020386a01a374bbc1414d7d39e2a2",
    "luminous": {
-    "class": "ReplayStorageStats"
+    "class": "ReplayStorageStats",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4042,7 +4256,8 @@
   {
    "guid": "becd04e857d531c41a476ffe287d0e39",
    "luminous": {
-    "class": "ReplayStorageTarget"
+    "class": "ReplayStorageTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4050,7 +4265,8 @@
   {
    "guid": "a433e1b0845605d4a878ee3cb3936a9d",
    "luminous": {
-    "class": "ReplayStorageTargetStatistics"
+    "class": "ReplayStorageTargetStatistics",
+    "ns": "UltimateReplay.Statistics"
    },
    "pixo": null,
    "keep": true
@@ -4058,7 +4274,8 @@
   {
    "guid": "f2d923113816eb4419e47de09425e487",
    "luminous": {
-    "class": "ReplayStreamBinaryTarget"
+    "class": "ReplayStreamBinaryTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4066,7 +4283,8 @@
   {
    "guid": "4f996850372da8446b4f487f46012f15",
    "luminous": {
-    "class": "ReplayStreamBuffer"
+    "class": "ReplayStreamBuffer",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4074,7 +4292,8 @@
   {
    "guid": "358266fae1182764b89af22053ef525b",
    "luminous": {
-    "class": "ReplayStreamChunk"
+    "class": "ReplayStreamChunk",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4082,7 +4301,8 @@
   {
    "guid": "fc376636429e1cf44b0116cf51b906a6",
    "luminous": {
-    "class": "ReplayStreamChunkTable"
+    "class": "ReplayStreamChunkTable",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4090,7 +4310,8 @@
   {
    "guid": "630228fba9e4e1f49894109f092912a6",
    "luminous": {
-    "class": "ReplayStreamCompression"
+    "class": "ReplayStreamCompression",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4098,7 +4319,8 @@
   {
    "guid": "c43fe31b286b9f0478ea03860a0e53b3",
    "luminous": {
-    "class": "ReplayStreamHeader"
+    "class": "ReplayStreamHeader",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4106,7 +4328,8 @@
   {
    "guid": "892dae06a333f2447aafb18c6cce1863",
    "luminous": {
-    "class": "ReplayStreamJsonSerializer"
+    "class": "ReplayStreamJsonSerializer",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4114,7 +4337,8 @@
   {
    "guid": "0f83491bfc8c5b346ab23ba1b896dd5c",
    "luminous": {
-    "class": "ReplayStreamJsonTarget"
+    "class": "ReplayStreamJsonTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4122,7 +4346,8 @@
   {
    "guid": "e579275b2e6513f46bf23325217f4db5",
    "luminous": {
-    "class": "ReplayStreamSerializationUtility"
+    "class": "ReplayStreamSerializationUtility",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4130,7 +4355,8 @@
   {
    "guid": "988ebdf5c90afff49bc7ff6872366db0",
    "luminous": {
-    "class": "ReplayStreamSource"
+    "class": "ReplayStreamSource",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4138,7 +4364,8 @@
   {
    "guid": "319852f454a65cf42ae66de3b707b9dc",
    "luminous": {
-    "class": "ReplayStreamTarget"
+    "class": "ReplayStreamTarget",
+    "ns": "UltimateReplay.Storage"
    },
    "pixo": null,
    "keep": true
@@ -4146,7 +4373,8 @@
   {
    "guid": "1208d4346ec83254d86a3ab977a079ac",
    "luminous": {
-    "class": "ReplayStreamTarget.Threading"
+    "class": "ReplayStreamTarget.Threading",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4154,7 +4382,8 @@
   {
    "guid": "97a1105f11cc383479ad312a2f3421c1",
    "luminous": {
-    "class": "ReplayTextSerializeAttribute"
+    "class": "ReplayTextSerializeAttribute",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4162,7 +4391,8 @@
   {
    "guid": "d683736731a72704c9f155f3f9b13166",
    "luminous": {
-    "class": "ReplayTime"
+    "class": "ReplayTime",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4170,7 +4400,8 @@
   {
    "guid": "f55beea690b0b7b409103056f16fa212",
    "luminous": {
-    "class": "ReplayTimer"
+    "class": "ReplayTimer",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4178,7 +4409,8 @@
   {
    "guid": "9daf0f627da840248af7eb83076bba48",
    "luminous": {
-    "class": "ReplayTrailRenderer"
+    "class": "ReplayTrailRenderer",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4186,7 +4418,8 @@
   {
    "guid": "44684b078c520c3448ab84ebe39316aa",
    "luminous": {
-    "class": "ReplayTransform"
+    "class": "ReplayTransform",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4194,7 +4427,8 @@
   {
    "guid": "7d95d0c2e15c44c4ab9cb6178b283560",
    "luminous": {
-    "class": "ReplayTransformInspector"
+    "class": "ReplayTransformInspector",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4202,7 +4436,8 @@
   {
    "guid": "23f5377650e0dad4d8197cf6fc7e221c",
    "luminous": {
-    "class": "ReplayTransformSerializer"
+    "class": "ReplayTransformSerializer",
+    "ns": "UltimateReplay.Serializers"
    },
    "pixo": null,
    "keep": true
@@ -4210,7 +4445,8 @@
   {
    "guid": "9d6cf9da2026e07429e2ec608caf4af1",
    "luminous": {
-    "class": "ReplayValidator"
+    "class": "ReplayValidator",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4218,7 +4454,8 @@
   {
    "guid": "1707bdf200ed4424abeed3d597c4b671",
    "luminous": {
-    "class": "ReplayVarAttribute"
+    "class": "ReplayVarAttribute",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4226,7 +4463,8 @@
   {
    "guid": "d26d57f9224591d44b98e9b3fcca9c58",
    "luminous": {
-    "class": "ReplayVariable"
+    "class": "ReplayVariable",
+    "ns": "UltimateReplay.Core"
    },
    "pixo": null,
    "keep": true
@@ -4234,7 +4472,8 @@
   {
    "guid": "4db136d4013ab6d4a92b62c7ad3d3805",
    "luminous": {
-    "class": "ReplayVariableData"
+    "class": "ReplayVariableData",
+    "ns": ""
    },
    "pixo": null,
    "keep": true
@@ -4242,7 +4481,8 @@
   {
    "guid": "c190092df8c9eb544b4cf8df26ad9a37",
    "luminous": {
-    "class": "ReplayablePrefabs"
+    "class": "ReplayablePrefabs",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4250,7 +4490,8 @@
   {
    "guid": "3018225449667d643a13b27fdf7fe12d",
    "luminous": {
-    "class": "RigidBodyPreparer"
+    "class": "RigidBodyPreparer",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -4258,14 +4499,16 @@
   {
    "guid": "f6d5434ee11076b47a84b015a21d920b",
    "luminous": {
-    "class": "ScrollingUVs"
+    "class": "ScrollingUVs",
+    "ns": "Luminous.Unity.Utilities.Animation"
    },
    "pixo": null
   },
   {
    "guid": "c12eac3e579e9e5429e70c5593c9b325",
    "luminous": {
-    "class": "SerializableType"
+    "class": "SerializableType",
+    "ns": "UltimateReplay.Core.StatePreparer"
    },
    "pixo": null,
    "keep": true
@@ -4273,28 +4516,32 @@
   {
    "guid": "a24c4db18928917409af105004cad4ba",
    "luminous": {
-    "class": "SessionReplayManager"
+    "class": "SessionReplayManager",
+    "ns": "Luminous.Replay"
    },
    "pixo": null
   },
   {
    "guid": "b86647e66119d444ba92817770ed4006",
    "luminous": {
-    "class": "SetGameModeElement"
+    "class": "SetGameModeElement",
+    "ns": "Luminous.Core.GameModes"
    },
    "pixo": null
   },
   {
    "guid": "70bc39b109cf50f45a47d05155f9e9f0",
    "luminous": {
-    "class": "SetInactiveTimer"
+    "class": "SetInactiveTimer",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "15a49fb9b980e1a4baa5dd4287abded4",
    "luminous": {
-    "class": "ShaderParams"
+    "class": "ShaderParams",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -4302,114 +4549,132 @@
   {
    "guid": "d8c49666f98048dd9f43c67d010ea755",
    "luminous": {
-    "class": "SnapZoneComponentManagerMRTK"
+    "class": "SnapZoneComponentManagerMRTK",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "5e99a26855764fd7ad08123df4958713",
    "luminous": {
-    "class": "SnapZoneComponentManagerOpenXR"
+    "class": "SnapZoneComponentManagerOpenXR",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "66f177d90e7a1b14e8d98e6e9874442d",
    "luminous": {
-    "class": "SnapZoneOpenXR"
+    "class": "SnapZoneOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRISnapZone"
+    "class": "XRISnapZone",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "880b8b0a4bc1aee46a5c4bde461341be",
    "luminous": {
-    "class": "SnapZoneTests"
+    "class": "SnapZoneTests",
+    "ns": "NodeTests.StepTests"
    },
    "pixo": null
   },
   {
    "guid": "9f71df630e4ef8d4aa50331bcf048650",
    "luminous": {
-    "class": "SnappableObject"
+    "class": "SnappableObject",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRISnapBehaviour"
+    "class": "XRISnapBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "6a871caf7e688bd4e968b588ce70b629",
    "luminous": {
-    "class": "TappableObjectMRTK"
+    "class": "TappableObjectMRTK",
+    "ns": "Luminous.Core.Interactions"
    },
    "pixo": null
   },
   {
    "guid": "78c7dce37532a384cb950df9d8a5c2a4",
    "luminous": {
-    "class": "TeleportAreaOpenXR"
+    "class": "TeleportAreaOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRITeleportBehaviour"
+    "class": "XRITeleportBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "3b7e6a1f658afcd48827141644f8cdae",
    "luminous": {
-    "class": "TeleportHazardComplete"
+    "class": "TeleportHazardComplete",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "c84564f2c57eeb94db4db01bcbdbac61",
    "luminous": {
-    "class": "TeleportPointManager"
+    "class": "TeleportPointManager",
+    "ns": "Luminous.HazardPerception"
    },
    "pixo": null
   },
   {
    "guid": "a1102839a92d8364aa38b12ab0ca64aa",
    "luminous": {
-    "class": "TeleportSpreadingTest"
+    "class": "TeleportSpreadingTest",
+    "ns": "Tests"
    },
    "pixo": null
   },
   {
    "guid": "bc287a8a047142bcb75fac2debaa8bdc",
    "luminous": {
-    "class": "TestValve"
+    "class": "TestValve",
+    "ns": "Runtime"
    },
    "pixo": null
   },
   {
    "guid": "466fde970f374d34dbbd1779616e0145",
    "luminous": {
-    "class": "TextSpeechListener"
+    "class": "TextSpeechListener",
+    "ns": "Luminous.Middleman.Utility"
    },
    "pixo": null
   },
   {
    "guid": "ac330907480918d46a1edeb57e93174e",
    "luminous": {
-    "class": "TextToSpeechElement"
+    "class": "TextToSpeechElement",
+    "ns": "Luminous.Core.TextToSpeech"
    },
    "pixo": null
   },
   {
    "guid": "f03ba4cc872178f43998c06dbb21e203",
    "luminous": {
-    "class": "TextToSpeechSetupElement"
+    "class": "TextToSpeechSetupElement",
+    "ns": "Luminous.Core.TextToSpeech"
    },
    "pixo": null
   },
   {
    "guid": "f3b4364dcead81d4b810e13e873d44ac",
    "luminous": {
-    "class": "ToggleInfoPointLabel"
+    "class": "ToggleInfoPointLabel",
+    "ns": "Luminous.UI.Quiz"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.Interactions",
@@ -4419,28 +4684,32 @@
   {
    "guid": "6a8f75624a5615f44818dd6d50763021",
    "luminous": {
-    "class": "ToggleableHologram"
+    "class": "ToggleableHologram",
+    "ns": "Luminous.UI.Controlls"
    },
    "pixo": null
   },
   {
    "guid": "9fcd2a08492f4d148d93277f6a8010fd",
    "luminous": {
-    "class": "TouchComponentManagerMRTK"
+    "class": "TouchComponentManagerMRTK",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "fffb7a2686c04f449a336fa4582ebd6d",
    "luminous": {
-    "class": "TouchComponentManagerOpenXR"
+    "class": "TouchComponentManagerOpenXR",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "2318d68d1e98fdb45b5fcc5ddfa171b5",
    "luminous": {
-    "class": "TransparentWithDepth"
+    "class": "TransparentWithDepth",
+    "ns": "HighlightPlus"
    },
    "pixo": null,
    "keep": true
@@ -4448,31 +4717,36 @@
   {
    "guid": "8013204b54c89fb4d97f2e620ed1293a",
    "luminous": {
-    "class": "TurnOffColliderOnCorrect"
+    "class": "TurnOffColliderOnCorrect",
+    "ns": "Luminous.Utility"
    },
    "pixo": null
   },
   {
    "guid": "36fe5ca8c5b716740b0182c79df7c2c8",
    "luminous": {
-    "class": "TwoHandedGrabbableOpenXR"
+    "class": "TwoHandedGrabbableOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRIGrabBehaviour"
+    "class": "XRIGrabBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
   },
   {
    "guid": "b8630ab845b320f4a90f3f218f1c14de",
    "luminous": {
-    "class": "UIControlSettings"
+    "class": "UIControlSettings",
+    "ns": "Luminous.UI.Controlls"
    },
    "pixo": null
   },
   {
    "guid": "4c21c693a7772e248bced9b1e01cc7f3",
    "luminous": {
-    "class": "UltimateReplay"
+    "class": "UltimateReplay",
+    "ns": "UltimateReplay"
    },
    "pixo": null,
    "keep": true
@@ -4480,33 +4754,45 @@
   {
    "guid": "ecc273194ee24a68b3809aec5d872564",
    "luminous": {
-    "class": "ValveComponentManagerMRTK"
+    "class": "ValveComponentManagerMRTK",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "fcd5a06b98744e5c9c7830b4a6c7d298",
    "luminous": {
-    "class": "ValveComponentManagerOpenXR"
+    "class": "ValveComponentManagerOpenXR",
+    "ns": "Luminous.EditorTools"
    },
    "pixo": null
   },
   {
    "guid": "c80f02fa65583ca42a8ce23428255ead",
    "luminous": {
-    "class": "ValveMultiTurnOpenXR"
+    "class": "ValveMultiTurnOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": null
   },
   {
    "guid": "ddf05ca5927bd6f45b47e8f04fad4afc",
    "luminous": {
-    "class": "ValveTurnOpenXR"
+    "class": "ValveTurnOpenXR",
+    "ns": "Luminous.Interactables"
    },
    "pixo": {
     "ns": "PixoVR.TrainingCore.XRI",
-    "class": "XRIValveBehaviour"
+    "class": "XRIValveBehaviour",
+    "asm": "PixoVR.TrainingCore.XRI"
    }
+  }
+ ],
+ "assets": [
+  {
+   "luminous": "c348712bda248c246b8c49b3db54643f",
+   "pixo": "3d1634cb0140478092fc030578072e4d",
+   "note": "Luminous XRI Default Input Actions → TrainingCore Runtime/XRI/Input copy"
   }
  ]
 }
