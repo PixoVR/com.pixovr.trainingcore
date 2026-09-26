@@ -44,6 +44,7 @@ namespace PixoVR.TrainingCore.XRI
         private Quaternion lastRotation;
         private bool hasLastPose;
         private bool teleportPending;
+        private int pendingFrames;
         private Teleporter teleporter;
 
         private Teleporter TeleporterComponent =>
@@ -97,16 +98,24 @@ namespace PixoVR.TrainingCore.XRI
         private void OnTeleporting(TeleportingEventArgs args)
         {
             teleportPending = true;
+            pendingFrames = 0;
         }
 
+        /// <summary>Waits for the XRI body transformer to apply the queued move before firing <see cref="OnTeleported"/>.</summary>
         private void LateUpdate()
         {
             if (!teleportPending)
                 return;
-            teleportPending = false;
             var origin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
             if (origin == null)
+            {
+                teleportPending = false;
                 return;
+            }
+            pendingFrames++;
+            if ((origin.transform.position - lastPosition).sqrMagnitude <= 1e-6f && pendingFrames < 5)
+                return;
+            teleportPending = false;
             TeleporterComponent?.OnObjectEntered(origin.gameObject, lastPosition, lastRotation);
             OnTeleported?.Invoke();
         }
