@@ -156,8 +156,8 @@ namespace PixoVR.TrainingCore.Flow
                 VisitedNodes.Add(s);
         }
 
-        /// <summary>Advance all current steps to their outputs.</summary>
-        public void NextSteps()
+        /// <summary>Advance all current steps to their outputs; <paramref name="enter"/> controls entering the new steps.</summary>
+        public void NextSteps(bool enter = true)
         {
             if (Cancelled)
                 return;
@@ -171,7 +171,7 @@ namespace PixoVR.TrainingCore.Flow
                     if (!next.Contains(o))
                         next.Add(o);
                 }
-            SetCurrentSteps(Expand(next));
+            SetCurrentSteps(Expand(next), enter);
         }
 
         private void RecordPredecessor(StepBase step, StepBase from)
@@ -250,16 +250,19 @@ namespace PixoVR.TrainingCore.Flow
             return result;
         }
 
-        /// <summary>Rewind all current steps to their inputs.</summary>
-        public void PreviousSteps()
+        /// <summary>Rewind all current steps to their inputs; <paramref name="enter"/> controls entering the new steps.</summary>
+        public void PreviousSteps(bool enter = true)
         {
             var prev = CurrentSteps.SelectMany(s => s?.InputSteps ?? new List<StepBase>())
                 .Where(s => s != null).Distinct().ToList();
-            SetCurrentSteps(Collapse(prev));
+            SetCurrentSteps(Collapse(prev), enter);
         }
 
         /// <summary>Force the active step set.</summary>
-        public virtual void SetCurrentSteps(List<StepBase> steps)
+        public virtual void SetCurrentSteps(List<StepBase> steps) => SetCurrentSteps(steps, true);
+
+        /// <summary>Force the active step set; <paramref name="enter"/> controls entering the new steps.</summary>
+        public virtual void SetCurrentSteps(List<StepBase> steps, bool enter)
         {
             if (Cancelled)
                 return;
@@ -274,13 +277,26 @@ namespace PixoVR.TrainingCore.Flow
             CurrentSteps = steps ?? new List<StepBase>();
             currentStepGuids = CurrentSteps.Select(s => s?.GUID).ToList();
 
-            var entering = CurrentSteps;
-            foreach (var s in entering.Where(s => s != null))
+            foreach (var s in CurrentSteps.Where(s => s != null))
             {
                 if (!visitedStepGuids.Contains(s.GUID))
                     visitedStepGuids.Add(s.GUID);
                 if (!VisitedNodes.Contains(s))
                     VisitedNodes.Add(s);
+            }
+
+            if (enter)
+                EnterCurrentSteps();
+        }
+
+        /// <summary>Enter the current steps (subscribe, OnEnter, notify). Skipping moves the iterator without entering and calls this once on the landing steps.</summary>
+        public void EnterCurrentSteps()
+        {
+            if (Cancelled)
+                return;
+            var entering = CurrentSteps;
+            foreach (var s in entering.Where(s => s != null))
+            {
                 s.StepCompleted += OnStepCompleted;
                 s.OnEnter();
                 foreach (var cb in onStepEntered)

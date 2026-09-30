@@ -25,7 +25,7 @@ namespace PixoVR.TrainingCore.Flow
         public abstract void SkipUntil(int targetStepNumber, Action onComplete = null);
     }
 
-    /// <summary>Forwards skipping: runs each step's forwards-skip hooks then advances.</summary>
+    /// <summary>Forwards skipping: intermediate steps are traversed via their skip hooks; only the landing steps are entered.</summary>
     public class ForwardSkippingBehaviour : SkippingBehaviourBase
     {
         /// <summary>Create over an iterator.</summary>
@@ -34,34 +34,41 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void SkipOneStep(Action onComplete = null)
         {
-            if (iterator == null)
-                return;
-            OnStartSkip();
-            int guard = 0;
-            do
-            {
-                foreach (var s in iterator.CurrentSteps.ToList())
-                    s?.SkipForwardOnExit();
-                StepCounter.Increment();
-                iterator.NextSteps();
-            }
-            while (!ReachedSkipPoint() && iterator.CurrentSteps.Count > 0 && guard++ < 1000);
+            Skip(ReachedSkipPoint);
             onComplete?.Invoke();
         }
 
         /// <inheritdoc/>
         public override void SkipUntil(int targetStepNumber, Action onComplete = null)
         {
-            int guard = 0;
-            while (iterator?.CurrentSteps?.Count > 0 &&
-                   iterator.CurrentSteps.Max(s => s?.GetMainStepNumber() ?? 0) < targetStepNumber &&
-                   guard++ < 1000)
-                SkipOneStep();
+            if (iterator?.CurrentSteps?.Count > 0 &&
+                iterator.CurrentSteps.Max(s => s?.GetMainStepNumber() ?? 0) < targetStepNumber)
+                Skip(() => iterator.CurrentSteps.Max(s => s?.GetMainStepNumber() ?? 0) >= targetStepNumber);
             onComplete?.Invoke();
+        }
+
+        private void Skip(Func<bool> reached)
+        {
+            if (iterator == null)
+                return;
+            OnStartSkip();
+            foreach (var s in iterator.CurrentSteps.ToList())
+                s?.SkipForwardOnExit();
+            int guard = 0;
+            while (true)
+            {
+                StepCounter.Increment();
+                iterator.NextSteps(enter: false);
+                if (iterator.CurrentSteps.Count == 0 || reached() || guard++ >= 1000)
+                    break;
+                foreach (var s in iterator.CurrentSteps.ToList())
+                    s?.OnSkipForwards();
+            }
+            iterator.EnterCurrentSteps();
         }
     }
 
-    /// <summary>Backwards skipping: runs backwards-skip hooks, rewinds, and can undo step actions.</summary>
+    /// <summary>Backwards skipping: intermediate steps are traversed via their skip hooks, rewound, and undone; only the landing steps are entered.</summary>
     public class BackwardSkippingBehaviour : SkippingBehaviourBase
     {
         /// <summary>Create over an iterator.</summary>
@@ -70,21 +77,28 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void SkipOneStep(Action onComplete = null)
         {
+            Skip(ReachedSkipPoint);
+            onComplete?.Invoke();
+        }
+
+        private void Skip(Func<bool> reached)
+        {
             if (iterator == null)
                 return;
             OnStartSkip();
             int guard = 0;
-            do
+            while (true)
             {
                 Commands.CommandHistory.Instance.UndoStep(StepCounter.Current);
                 Events.EventBus.Instance.RemoveEventsFor(StepCounter.Current);
                 foreach (var s in iterator.CurrentSteps.ToList())
                     s?.SkipBackwards();
                 StepCounter.Decrement();
-                iterator.PreviousSteps();
+                iterator.PreviousSteps(enter: false);
+                if (iterator.CurrentSteps.Count == 0 || reached() || guard++ >= 1000)
+                    break;
             }
-            while (iterator.CurrentSteps.Count > 0 && !ReachedSkipPoint() && guard++ < 1000);
-            onComplete?.Invoke();
+            iterator.EnterCurrentSteps();
         }
 
         /// <summary>Undo every action of the current steps.</summary>
@@ -99,11 +113,9 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         public override void SkipUntil(int targetStepNumber, Action onComplete = null)
         {
-            int guard = 0;
-            while (iterator?.CurrentSteps?.Count > 0 &&
-                   iterator.CurrentSteps.Min(s => s?.GetMainStepNumber() ?? 0) > targetStepNumber &&
-                   guard++ < 1000)
-                SkipOneStep();
+            if (iterator?.CurrentSteps?.Count > 0 &&
+                iterator.CurrentSteps.Min(s => s?.GetMainStepNumber() ?? 0) > targetStepNumber)
+                Skip(() => iterator.CurrentSteps.Min(s => s?.GetMainStepNumber() ?? 0) <= targetStepNumber);
             onComplete?.Invoke();
         }
     }

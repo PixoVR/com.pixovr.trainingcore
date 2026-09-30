@@ -119,7 +119,10 @@ namespace PixoVR.TrainingCore.Flow
             if (!Active || step == null)
                 return;
             if (step.NeverFail)
-                neverFailCounter--;
+            {
+                if (neverFailCounter > 0)
+                    neverFailCounter--;
+            }
             else
                 currentStepFailExceptions.Remove(step.GUID);
         }

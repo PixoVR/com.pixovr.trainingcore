@@ -391,6 +391,87 @@ namespace PixoVR.TrainingCore.Tests
         }
 
         [Test]
+        public void SkipUntil_DoesNotEnterIntermediateSteps()
+        {
+            var g = GraphTestHelpers.NewGraph();
+            var start = GraphTestHelpers.Node<StartNode>(g, "start");
+            var t2 = new GameObject("t2");
+            var t3 = new GameObject("t3");
+            var t4 = new GameObject("t4");
+            try
+            {
+                StepBaseNode prev = start;
+                var targets = new[] { null, t2, t3, t4 };
+                for (int i = 1; i <= 4; i++)
+                {
+                    var step = GraphTestHelpers.Node<GenericStepNode>(g, $"s{i}");
+                    GraphTestHelpers.Flow(g, prev, "executes", step, "executed");
+                    var action = GraphTestHelpers.Node<SetGameObjectActiveStateNode>(g, $"a{i}");
+                    action.TargetObject = targets[i];
+                    action.State = true;
+                    GraphTestHelpers.Flow(g, step, "OnStartActions", action, "ActionLink");
+                    prev = step;
+                }
+                t2.SetActive(false);
+                t3.SetActive(false);
+                t4.SetActive(false);
+
+                var data = new GraphParser(GameMode.Training).Parse(g);
+                var it = data.GetIterator();
+                it.StartIterator();
+                var s4 = data.FindStepByGuid("s4");
+
+                new ForwardSkippingBehaviour(it).SkipUntil(s4.GetMainStepNumber());
+
+                Assert.IsFalse(t2.activeSelf, "intermediate step s2 must not be entered");
+                Assert.IsFalse(t3.activeSelf, "intermediate step s3 must not be entered");
+                Assert.IsTrue(t4.activeSelf, "landing step s4 must be entered");
+                Assert.Contains(s4, it.CurrentSteps);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(t2);
+                UnityEngine.Object.DestroyImmediate(t3);
+                UnityEngine.Object.DestroyImmediate(t4);
+            }
+        }
+
+        [Test]
+        public void SkipOneStep_EntersOnlyLandingStep()
+        {
+            var g = GraphTestHelpers.NewGraph();
+            var start = GraphTestHelpers.Node<StartNode>(g, "start");
+            var s1 = GraphTestHelpers.Node<GenericStepNode>(g, "s1");
+            var s2 = GraphTestHelpers.Node<GenericStepNode>(g, "s2");
+            s2.IsSkipPoint = true;
+            var action = GraphTestHelpers.Node<SetGameObjectActiveStateNode>(g, "a2");
+            var target = new GameObject("landing-target");
+            try
+            {
+                action.TargetObject = target;
+                action.State = true;
+                GraphTestHelpers.Flow(g, start, "executes", s1, "executed");
+                GraphTestHelpers.Flow(g, s1, "executes", s2, "executed");
+                GraphTestHelpers.Flow(g, s2, "OnStartActions", action, "ActionLink");
+                target.SetActive(false);
+
+                var data = new GraphParser(GameMode.Training).Parse(g);
+                var it = data.GetIterator();
+                it.StartIterator();
+                var s2step = data.FindStepByGuid("s2");
+
+                new ForwardSkippingBehaviour(it).SkipOneStep();
+
+                Assert.IsTrue(target.activeSelf, "landing step s2 must be entered once");
+                Assert.Contains(s2step, it.CurrentSteps);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
         public void SnapOnZoneStep_Completes_OnSnapEventPublishedOnSnappedObject()
         {
             var node = new SnapOnZoneStepNode { GUID = "snap" };
