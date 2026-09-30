@@ -495,14 +495,11 @@ namespace PixoVR.TrainingCore.Flow
     [Serializable]
     public class NormalFlow : FlowBase
     {
-        /// <inheritdoc/>
-        public override string Name { get; set; } = "Normal";
-
         /// <summary>Create over data.</summary>
-        public NormalFlow(GraphData data) : base(data) { }
+        public NormalFlow(GraphData data) : base(data) => Name = "Normal";
 
         /// <summary>Create over an iterator.</summary>
-        public NormalFlow(GraphIterator it) : base(it) { }
+        public NormalFlow(GraphIterator it) : base(it) => Name = "Normal";
     }
 
     /// <summary>A fail-handler flow; completing it resumes the normal flow.</summary>
