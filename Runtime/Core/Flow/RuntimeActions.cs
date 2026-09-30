@@ -136,7 +136,10 @@ namespace PixoVR.TrainingCore.Flow
             state = node.State;
             targetObject = node.TargetObject;
             targetObjects = node.TargetObjects;
+            targetGuid = node.Data?.Find("TargetObject")?.ObjectReference?.Guid ?? Guid.Empty;
         }
+
+        private readonly Guid targetGuid;
 
         private readonly System.Collections.Generic.List<SetObjectActiveStateCommand> commands =
             new System.Collections.Generic.List<SetObjectActiveStateCommand>();
@@ -147,10 +150,33 @@ namespace PixoVR.TrainingCore.Flow
             commands.Clear();
             if (targetObject != null)
                 Record(new SetObjectActiveStateCommand(targetObject, state));
+            else if (targetGuid != Guid.Empty)
+                Utility.Log.Warning($"[Flow Diag] SetActive({state}) [{GUID}]: target guid {targetGuid:N} not resolved",
+                    Utility.LogCategory.Flow);
             if (targetObjects != null)
                 foreach (var go in targetObjects)
                     if (go != null)
                         Record(new SetObjectActiveStateCommand(go, state));
+        }
+
+        private void LogState(GameObject go)
+        {
+            if (!Utility.Log.IsEnabled(Utility.LogCategory.Flow))
+                return;
+            var inactiveParent = "none";
+            for (var t = go.transform.parent; t != null; t = t.parent)
+                if (!t.gameObject.activeSelf)
+                {
+                    inactiveParent = t.name;
+                    break;
+                }
+            var renderers = go.GetComponentsInChildren<Renderer>(true);
+            var visible = 0;
+            foreach (var r in renderers)
+                if (r.enabled && r.gameObject.activeInHierarchy && r.isVisible)
+                    visible++;
+            Utility.Log.Info($"[Flow Diag] SetActive({state}) [{GUID}] '{go.name}': activeSelf={go.activeSelf} activeInHierarchy={go.activeInHierarchy} inactiveParent={inactiveParent} layer={LayerMask.LayerToName(go.layer)}({go.layer}) pos={go.transform.position} scale={go.transform.lossyScale} renderers={renderers.Length} visibleLastFrame={visible}",
+                Utility.LogCategory.Flow);
         }
 
         /// <inheritdoc/>
@@ -166,6 +192,8 @@ namespace PixoVR.TrainingCore.Flow
             command.Execute();
             CommandHistory.Instance.Record(command);
             commands.Add(command);
+            if (command.Target != null)
+                LogState(command.Target);
         }
     }
 
