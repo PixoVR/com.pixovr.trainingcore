@@ -15,6 +15,9 @@
   auto-registration left it empty, so trigger-only tap/grab targets are hoverable.
 - `XRRig.prefab` direct interactors now detect trigger colliders
   (`m_PhysicsTriggerInteraction: 2`) and use `StateChange` select trigger.
+- Forward/backward skipping no longer enters (runs the start actions of) the steps it
+  passes over; intermediate steps are traversed via their skip hooks and only the
+  landing steps are entered (Luminous parity).
 
 ## [0.1.0] - Unreleased
 ### Fixed
