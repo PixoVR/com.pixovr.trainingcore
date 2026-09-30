@@ -318,6 +318,27 @@ namespace PixoVR.TrainingCore.Flow
             (SnapZoneId == 0 || (snap.Snapzone != null && snap.Snapzone.SnapzoneID == SnapZoneId));
 
         /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (snappable == null)
+                return;
+            var reference = new GuidReference(snappable.gameObject);
+            var snap = new Exceptions.SnapFailException
+            {
+                SnappedObjectParameter = new Exceptions.ObjectReferenceFailParameter(reference, typeof(Snappable)),
+                SnappedObjectId = snappable.SnapId
+            };
+            if (SnapZoneId != 0)
+            {
+                snap.SnapzoneObjectParameter = new Exceptions.ObjectReferenceFailParameter(typeof(Snapzone), false);
+                snap.SnapzoneId = SnapZoneId;
+            }
+            AddInherentException(snap);
+            AddInherentException(new Exceptions.GrabFailException(reference));
+            AddInherentException(new Exceptions.TapFailException(reference));
+        }
+
+        /// <inheritdoc/>
         public override void SkipForwards()
         {
             base.SkipForwards();
