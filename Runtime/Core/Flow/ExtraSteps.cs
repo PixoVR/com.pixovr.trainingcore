@@ -96,22 +96,15 @@ namespace PixoVR.TrainingCore.Flow
             Name = node.name;
             IsSkipPoint = node.IsSkipPoint;
             stateRequired = node.ShouldOpen;
-            AddInherentFailExceptions();
         }
 
         /// <summary>Fail when the menu is moved to the opposite of the required state.</summary>
-        public void AddInherentFailExceptions()
-        {
-            if (FailExceptions.OfType<Exceptions.HandMenuFailException>()
-                .Any(e => e.OpenMenuParameter != null && e.OpenMenuParameter.Value == !stateRequired))
-                return;
-            FailExceptions.Add(new Exceptions.HandMenuFailException(!stateRequired));
-        }
+        public override void AddInherentFailExceptions() =>
+            AddInherentException(new Exceptions.HandMenuFailException(!stateRequired));
 
         /// <inheritdoc/>
         public override void OnEnter()
         {
-            AddInherentFailExceptions();
             base.OnEnter();
             var menu = HandMenuBase.Instance;
             if (menu == null)

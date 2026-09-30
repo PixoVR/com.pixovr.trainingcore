@@ -536,12 +536,12 @@ namespace PixoVR.TrainingCore.Flow
             base.Start();
         }
 
-        /// <summary>Complete: undo the failed step's commands and events, then resume the normal flow.</summary>
+        /// <summary>Complete: undo the failed step's commands and events, then resume the normal flow with the failed step re-entering at its original step number.</summary>
         public override void Complete()
         {
             Commands.CommandHistory.Instance.UndoUntil(stepCounterOnEnter - 1);
             Events.EventBus.Instance.RemoveEventsAfter(stepCounterOnEnter - 1);
-            StepCounter.InitializeTo(stepCounterOnEnter - 1);
+            StepCounter.InitializeTo(stepCounterOnEnter);
             base.Complete();
         }
     }

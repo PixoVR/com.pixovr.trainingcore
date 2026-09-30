@@ -9,7 +9,7 @@ namespace PixoVR.TrainingCore.Highlight
     /// Requires the HighlightPlus asset in the project and the HIGHLIGHT_PLUS scripting define.
     /// </summary>
     [RequireComponent(typeof(HighlightEffect))]
-    public class HighlightPlusHighlighter : HighlightBase
+    public class HighlightPlusHighlighter : Utility.HighlightBase
     {
         private HighlightEffect highlighter;
 
