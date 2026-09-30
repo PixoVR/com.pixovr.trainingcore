@@ -200,7 +200,7 @@ namespace PixoVR.TrainingCore.Commands
     public sealed class HighlightObjectCommand : CommandBase
     {
         /// <summary>Highlight component being toggled.</summary>
-        public HighlightBase TargetObject;
+        public Utility.HighlightBase TargetObject;
 
         /// <summary>Highlight state applied on execute.</summary>
         public bool HighlightState;
@@ -208,7 +208,7 @@ namespace PixoVR.TrainingCore.Commands
         private bool initialState;
         private bool captured;
 
-        public HighlightObjectCommand(HighlightBase target, bool state)
+        public HighlightObjectCommand(Utility.HighlightBase target, bool state)
             : base(target != null ? target.gameObject.GetGuidString() : string.Empty)
         {
             TargetObject = target;

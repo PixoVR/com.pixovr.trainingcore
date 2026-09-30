@@ -100,6 +100,7 @@ namespace PixoVR.TrainingCore.Graph
                 if (node.ExceptionsData?.Exceptions != null)
                     step.FailExceptions = node.ExceptionsData.Exceptions
                         .Select(e => e.Exception).Where(e => e != null).ToList();
+                step.AddInherentFailExceptions();
                 step.UseDefaultFailhandler = node.UseDefaultFailHandler;
                 step.FailHandlerGuid = node.SelectedFailHandlerGuid;
                 step.Description = node.Description;

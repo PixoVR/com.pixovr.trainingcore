@@ -65,6 +65,16 @@ namespace PixoVR.TrainingCore.Flow
         protected override bool Matches(InteractionEventArgs args) => args is GrabInteractionEventArgs;
 
         /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (grabbable == null)
+                return;
+            var reference = new GuidReference(grabbable.gameObject);
+            AddInherentException(new Exceptions.GrabFailException(reference));
+            AddInherentException(new Exceptions.TapFailException(reference));
+        }
+
+        /// <inheritdoc/>
         public override void SkipForwards()
         {
             base.SkipForwards();
@@ -102,6 +112,13 @@ namespace PixoVR.TrainingCore.Flow
         /// <inheritdoc/>
         protected override bool Matches(InteractionEventArgs args) =>
             args is TapInteractionEventArgs tap && tap.TapDuration >= RequiredDuration;
+
+        /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (tappable != null)
+                AddInherentException(new Exceptions.TapFailException(new GuidReference(tappable.gameObject)));
+        }
 
         /// <inheritdoc/>
         public override void SkipForwards()
@@ -212,6 +229,39 @@ namespace PixoVR.TrainingCore.Flow
         }
 
         /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (zone == null)
+                return;
+            var zoneParameter = new Exceptions.ObjectReferenceFailParameter(
+                new GuidReference(zone.gameObject), typeof(Snapzone));
+            if (SnapObjectId == 0)
+            {
+                AddInherentException(new Exceptions.SnapFailException
+                {
+                    SnapzoneObjectParameter = zoneParameter,
+                    SnapzoneId = zone.SnapzoneID
+                });
+                return;
+            }
+            foreach (var snappable in SnappableRegistry.SnappableList
+                         .Where(s => s != null && s.SnapId == SnapObjectId))
+            {
+                var reference = new GuidReference(snappable.gameObject);
+                AddInherentException(new Exceptions.SnapFailException
+                {
+                    SnappedObjectParameter = new Exceptions.ObjectReferenceFailParameter(
+                        reference, typeof(Snappable)),
+                    SnappedObjectId = snappable.SnapId,
+                    SnapzoneObjectParameter = zoneParameter,
+                    SnapzoneId = zone.SnapzoneID
+                });
+                AddInherentException(new Exceptions.GrabFailException(reference));
+                AddInherentException(new Exceptions.TapFailException(reference));
+            }
+        }
+
+        /// <inheritdoc/>
         public override void SkipForwards()
         {
             base.SkipForwards();
@@ -268,6 +318,27 @@ namespace PixoVR.TrainingCore.Flow
             (SnapZoneId == 0 || (snap.Snapzone != null && snap.Snapzone.SnapzoneID == SnapZoneId));
 
         /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (snappable == null)
+                return;
+            var reference = new GuidReference(snappable.gameObject);
+            var snap = new Exceptions.SnapFailException
+            {
+                SnappedObjectParameter = new Exceptions.ObjectReferenceFailParameter(reference, typeof(Snappable)),
+                SnappedObjectId = snappable.SnapId
+            };
+            if (SnapZoneId != 0)
+            {
+                snap.SnapzoneObjectParameter = new Exceptions.ObjectReferenceFailParameter(typeof(Snapzone), false);
+                snap.SnapzoneId = SnapZoneId;
+            }
+            AddInherentException(snap);
+            AddInherentException(new Exceptions.GrabFailException(reference));
+            AddInherentException(new Exceptions.TapFailException(reference));
+        }
+
+        /// <inheritdoc/>
         public override void SkipForwards()
         {
             base.SkipForwards();
@@ -314,6 +385,13 @@ namespace PixoVR.TrainingCore.Flow
             CompletionRange = node.CompletionRange;
             valve = node.ValveComponent;
             ValveSubjectId = valve != null ? valve.SubjectId : null;
+        }
+
+        /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (valve != null)
+                AddInherentException(new Exceptions.ValveTurnException(new GuidReference(valve.gameObject)));
         }
 
         /// <inheritdoc/>
@@ -526,6 +604,13 @@ namespace PixoVR.TrainingCore.Flow
         {
             if (!string.IsNullOrEmpty(SubjectId))
                 EventBus.Instance.Unsubscribe(SubjectId, this);
+        }
+
+        /// <inheritdoc/>
+        public override void AddInherentFailExceptions()
+        {
+            if (target != null)
+                AddInherentException(new Exceptions.TeleportFailException(new GuidReference(target.gameObject)));
         }
 
         /// <inheritdoc/>

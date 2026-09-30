@@ -185,6 +185,16 @@ namespace PixoVR.TrainingCore.Flow
         /// <summary>This step can never fail.</summary>
         public bool NeverFail;
 
+        /// <summary>Exceptions implied by the step itself (its own target interaction is never a failure).</summary>
+        public virtual void AddInherentFailExceptions() { }
+
+        /// <summary>Adds <paramref name="exception"/> unless an equivalent one is already present.</summary>
+        protected void AddInherentException(Exceptions.FailExceptionBase exception)
+        {
+            if (exception != null && !FailExceptions.Any(e => e != null && e.ExactEquals(exception)))
+                FailExceptions.Add(exception);
+        }
+
         /// <summary>User-authored description.</summary>
         public string Description = string.Empty;
 

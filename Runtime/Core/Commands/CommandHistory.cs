@@ -110,10 +110,10 @@ namespace PixoVR.TrainingCore.Commands
                 Undo();
         }
 
-        /// <summary>Undo until (and including) the given step is reached.</summary>
+        /// <summary>Undo commands until the top of the stack belongs to <paramref name="stepId"/> or an earlier step.</summary>
         public void UndoUntil(int stepId)
         {
-            while (executed.Any() && executed.Peek().StepId != stepId)
+            while (executed.Any() && executed.Peek().StepId > stepId)
                 UndoStep(executed.Peek().StepId);
         }
 

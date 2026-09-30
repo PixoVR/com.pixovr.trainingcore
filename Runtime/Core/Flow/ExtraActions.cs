@@ -271,7 +271,7 @@ namespace PixoVR.TrainingCore.Flow
             commands.Clear();
             foreach (var zone in zonesData)
             {
-                var highlight = zone?.Target?.GetComponent<HighlightBase>();
+                var highlight = zone?.Target?.GetComponent<Utility.HighlightBase>();
                 if (highlight == null)
                     continue;
                 var command = new HighlightObjectCommand(highlight, zone.State);
